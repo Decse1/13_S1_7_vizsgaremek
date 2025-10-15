@@ -1,0 +1,49 @@
+Frontend algoritmusok:
+
+- Felhasználónév és jelszó ellenőrzés a szervernek küldés előtt: 
+
+Form: BejelentkezoForm
+    Mezők:
+        - fnev
+        - jelszo
+    Gomb:
+        - Bejelentkezés
+
+Amikor a Bejelentkezés gombra kattintanak:
+    felhasznalonev = BejelentkezoForm.felhasznalonev.ertek
+    jelszo = BejelentkezoForm.jelszo.ertek
+    
+    # 1. Ellenőrzés
+    hibaUzenet = EllenorizFelhasznalonevEsJelszo(felhasznalonev, jelszo)
+    
+    Ha hibaUzenet != "Sikeres ellenőrzés":
+        Megjelenít hibaUzenet a felhasználónak
+        Megállítja a további feldolgozást
+    Egyébként:
+        # 2. Küldés a szervernek
+        response = KuldesSzervernek(felhasznalonev, jelszo)
+        Megjelenít response a felhasználónak
+
+Függvény EllenorizFelhasznalonevEsJelszo(felhasznalonev, jelszo):
+    MAX_HOSSZ = 100
+    
+    Ha felhasznalonev ÜRES VAGY jelszo ÜRES:
+        Visszaad "Hiba: Minden mezőt ki kell tölteni."
+    
+    Ha hossza(felhasznalonev) > MAX_HOSSZ VAGY hossza(jelszo) > MAX_HOSSZ:
+        Visszaad "Hiba: A mezők hossza nem lehet több, mint 100 karakter."
+    
+    Visszaad "Sikeres ellenőrzés"
+	
+Függvény KuldesSzervernek(felhasznalonev, jelszo):
+    adat = { "felhasznalonev": felhasznalonev, "jelszo": jelszo }
+    response = POST("https://szerver.hu/login", adat)
+    
+    Ha response sikeres:
+        Visszaad "Sikeres bejelentkezés"
+    Egyébként:
+        Visszaad "Hiba a szerverrel"
+		
+		
+		
+- 
