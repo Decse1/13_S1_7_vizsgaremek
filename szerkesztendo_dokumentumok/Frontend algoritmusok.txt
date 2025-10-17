@@ -45,5 +45,69 @@ Függvény KuldesSzervernek(felhasznalonev, jelszo):
         Visszaad "Hiba a szerverrel"
 		
 		
+
+
 		
-- 
+- Webshop kosár
+
+Kosár tárolása cookie-k formájában történik, 14 napig érvényes a cookie, minden változáskor ez újrakezdődik.
+A kosár tartalma JSON-ben van.
+
+KOSÁR KEZELÉSE
+
+Kosár lekérése:
+Függvény GetCart(felhasználó):
+    cookieNév = "cart_" + felhasználó
+    cartJSON = GetCookie(cookieNév)
+    Ha cartJSON == null:
+        Visszatér üres lista
+    Egyébként:
+        Visszatér JSONparse(cartJSON)
+
+Kosár mentése:
+Függvény SaveCart(felhasználó, kosár):
+    cookieNév = "cart_" + felhasználó
+    cartJSON = JSONstringify(kosár)
+    SetCookie(cookieNév, cartJSON, 7)  // 7 napig érvényes
+
+
+TERMÉK HOZZÁADÁSA
+
+Függvény AddToCart(felhasználó, termékID, név, ár, mennyiség):
+    kosár = GetCart(felhasználó)
+    talált = HAMIS
+    Minden elem a kosár-ban:
+        Ha elem.id == termékID:
+            elem.mennyiség += mennyiség
+            talált = IGAZ
+            Megszakít
+    Ha talált == HAMIS:
+        Kosárhoz hozzáad({id: termékID, név: név, ár: ár, mennyiség: mennyiség})
+    SaveCart(felhasználó, kosár)
+
+
+TERMÉK ELTÁVOLÍTÁSA
+
+Függvény RemoveFromCart(felhasználó, termékID):
+    kosár = GetCart(felhasználó)
+    ÚjKosár = minden elem a kosár-ban, ami elem.id != termékID
+    SaveCart(felhasználó, ÚjKosár)
+
+
+KOSÁR MEGJELENÍTÉSE ÉS ÖSSZÉRTÉK
+
+Függvény ViewCart(felhasználó):
+    kosár = GetCart(felhasználó)
+    teljesÉrték = 0
+    Minden elem a kosár-ban:
+        elemÖsszesen = elem.ár * elem.mennyiség
+        teljesÉrték += elemÖsszesen
+        Kiír("Termék:", elem.név, "Mennyiség:", elem.mennyiség, "Egységár:", elem.ár, "Összesen:", elemÖsszesen)
+    Kiír("Kosár összértéke:", teljesÉrték)
+    Visszatér kosár, teljesÉrték
+
+
+KOSÁR ÜRÍTÉSE
+
+Függvény ClearCart(felhasználó):
+    SaveCart(felhasználó, üres lista)
