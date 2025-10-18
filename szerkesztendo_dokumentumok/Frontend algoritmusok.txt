@@ -90,6 +90,11 @@ TERMÉK HOZZÁADÁSA
 
 Függvény AddToCart(felhasznalo.id, termek.id, termek.nev, termek.tulajdonos, termek.ar, kosarmennyiseg):
     kosar = GetCart(felhasznalo.id)
+    Ha kosar nem üres
+	elsoTulajdonos = kosar[0].tulajdonos
+	Ha elsoTulajdonos != termek.tulajdonos
+	    Kiír("Másik tulajdonos termékét próbálod hozzáadni. A kosár törlődik.")
+	    kosar = üres lista
     talált = HAMIS
     Minden elem a kosár-ban:
         Ha elem.id == termek.id:
@@ -128,4 +133,6 @@ Függvény ClearCart(felhasznalo.id):
     SaveCart(felhasznalo.id, üres lista)
 
 
-PARTNER ELLENŐRZÉSE
+
+
+
