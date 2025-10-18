@@ -53,11 +53,26 @@ Függvény KuldesSzervernek(felhasznalonev, jelszo):
 Kosár tárolása cookie-k formájában történik, 14 napig érvényes a cookie, minden változáskor ez újrakezdődik.
 A kosár tartalma JSON-ben van.
 
+COOKIE FÜGGVÉNYEK
+
+Függvény SetCookie(név, érték, lejáratNapok):
+    lejáratiDátum = jelenlegiDátum + lejáratNapok
+    cookie = név + "=" + URLencode(érték) + "; expires=" + lejáratiDátum + "; path=/"
+    dokumentum.cookie = cookie
+
+Függvény GetCookie(név):
+    cookieLista = dokumentum.cookie.split(";")
+    Minden cookieElem a cookieLista-ban:
+        [cookieNév, cookieÉrték] = cookieElem.split("=")
+        Ha trim(cookieNév) == név:
+            Visszatér URLdecode(cookieÉrték)
+    Visszatér null
+
 KOSÁR KEZELÉSE
 
 Kosár lekérése:
-Függvény GetCart(felhasználó):
-    cookieNév = "cart_" + felhasználó
+Függvény GetCart(felhasznalo.id):
+    cookieNév = "cart_" + felhasznalo.id
     cartJSON = GetCookie(cookieNév)
     Ha cartJSON == null:
         Visszatér üres lista
@@ -65,49 +80,52 @@ Függvény GetCart(felhasználó):
         Visszatér JSONparse(cartJSON)
 
 Kosár mentése:
-Függvény SaveCart(felhasználó, kosár):
-    cookieNév = "cart_" + felhasználó
-    cartJSON = JSONstringify(kosár)
+Függvény SaveCart(felhasznalo.id, kosar):
+    cookieNév = "cart_" + felhasznalo.id
+    cartJSON = JSONstringify(kosar)
     SetCookie(cookieNév, cartJSON, 7)  // 7 napig érvényes
 
 
 TERMÉK HOZZÁADÁSA
 
-Függvény AddToCart(felhasználó, termékID, név, ár, mennyiség):
-    kosár = GetCart(felhasználó)
+Függvény AddToCart(felhasznalo.id, termek.id, termek.nev, termek.tulajdonos, termek.ar, kosarmennyiseg):
+    kosar = GetCart(felhasznalo.id)
     talált = HAMIS
     Minden elem a kosár-ban:
-        Ha elem.id == termékID:
-            elem.mennyiség += mennyiség
+        Ha elem.id == termek.id:
+            elem.kosarmennyiseg += kosarmennyiseg
             talált = IGAZ
             Megszakít
     Ha talált == HAMIS:
-        Kosárhoz hozzáad({id: termékID, név: név, ár: ár, mennyiség: mennyiség})
-    SaveCart(felhasználó, kosár)
+        Kosárhoz hozzáad({id: termek.id, nev: név, tulajdonos: termek.tulajdonos, ar: termek.ar, kosarmennyiseg: kosarmennyiseg})
+    SaveCart(felhasznalo.id, kosar)
 
 
 TERMÉK ELTÁVOLÍTÁSA
 
-Függvény RemoveFromCart(felhasználó, termékID):
-    kosár = GetCart(felhasználó)
-    ÚjKosár = minden elem a kosár-ban, ami elem.id != termékID
-    SaveCart(felhasználó, ÚjKosár)
+Függvény RemoveFromCart(felhasznalo.id, termek.id):
+    kosar = GetCart(felhasználó)
+    ujKosar = minden elem a kosár-ban, ami elem.id != termek.id
+    SaveCart(felhasznalo.id, ujKosar)
 
 
 KOSÁR MEGJELENÍTÉSE ÉS ÖSSZÉRTÉK
 
-Függvény ViewCart(felhasználó):
-    kosár = GetCart(felhasználó)
+Függvény ViewCart(felhasznalo.id):
+    kosar = GetCart(felhasznalo.id)
     teljesÉrték = 0
-    Minden elem a kosár-ban:
-        elemÖsszesen = elem.ár * elem.mennyiség
+    Minden elem a kosar-ban:
+        elemÖsszesen = elem.ar * elem.kosarmennyiseg
         teljesÉrték += elemÖsszesen
-        Kiír("Termék:", elem.név, "Mennyiség:", elem.mennyiség, "Egységár:", elem.ár, "Összesen:", elemÖsszesen)
+        Kiír("Termék:", elem.nev, "Partner:", elem.tulajdonos, "Mennyiség:", elem.kosarmennyiseg, "Egységár:", elem.ar, "Összesen:", elemÖsszesen)
     Kiír("Kosár összértéke:", teljesÉrték)
-    Visszatér kosár, teljesÉrték
+    Visszatér kosar, teljesÉrték
 
 
 KOSÁR ÜRÍTÉSE
 
-Függvény ClearCart(felhasználó):
-    SaveCart(felhasználó, üres lista)
+Függvény ClearCart(felhasznalo.id):
+    SaveCart(felhasznalo.id, üres lista)
+
+
+PARTNER ELLENŐRZÉSE
