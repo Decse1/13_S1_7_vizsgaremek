@@ -83,7 +83,7 @@ Kosár mentése:
 Függvény SaveCart(felhasznalo.id, kosar):
     cookieNév = "cart_" + felhasznalo.id
     cartJSON = JSONstringify(kosar)
-    SetCookie(cookieNév, cartJSON, 7)  // 7 napig érvényes
+    SetCookie(cookieNév, cartJSON, 14)  // 14 napig érvényes
 
 
 TERMÉK HOZZÁADÁSA
