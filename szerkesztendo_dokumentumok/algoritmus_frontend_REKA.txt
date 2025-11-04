@@ -70,7 +70,7 @@ Függvény AddToCart(felhasznalo.id, termek.id, termek.nev, termek.tulajdonos, t
     SaveCart(felhasznalo.id, kosar)
 //
 
--Frontend kapcsolat a beérkezett rendelések lista oldalon (hasonlóan működik több oldalon is):
+-Frontend kapcsolat a beérkezett rendelések lista oldalon (hasonlóan működik a kapcsolat a többi oldalon is):
 
 Axios használata
 Változók:
@@ -78,7 +78,7 @@ Változók:
     bool: loading
     string: error
 
-1. 'app' alkalmazás létrehozása, ami a #app DOM elemhez kapcsolódik
+1. 'app' alkalmazás létrehozása, ami az #app DOM elemhez kapcsolódik
 
 2. Rendelések betöltése (fetchOrders() függvény)
     loading = IGAZ
@@ -96,3 +96,53 @@ Változók:
 	loading = HAMIS
 
 3. Megjelenítés a DOM-ban
+    HA loading = IGAZ → jelenítsd meg: "Betöltés..."
+    HA error = NEM ÜRES → jelenítsd meg az error üzenetet
+    KÜLÖNBEN:
+	Írasd ki az orders lista elemeit egy táblázatban:
+        - Rendelési azonosító
+        - Megrendelő
+        - Rendelési dátum
+
+ALGORITMUS VÉGE
+
+
+-Keresés táblázatban
+
+Változók:
+    string:
+
+const input = document.getElementById('searchInput');
+    const table = document.getElementById('myTable');
+    const noResult = document.getElementById('noResult');
+
+    // Függvény az ékezetek eltávolítására
+    function removeAccents(str) {
+      return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+
+    input.addEventListener('input', function() {
+      const filter = removeAccents(this.value.toLowerCase());
+      const rows = table.querySelectorAll('tbody tr');
+      let visibleCount = 0;
+
+      rows.forEach(row => {
+        const nameCell = removeAccents(row.cells[0].textContent.toLowerCase());
+        const cityCell = removeAccents(row.cells[2].textContent.toLowerCase());
+        const match = nameCell.includes(filter) || cityCell.includes(filter);
+
+        row.classList.toggle('hidden', !match);
+        if (match) visibleCount++;
+      });
+
+      // Ha nincs találat
+      if (visibleCount === 0) {
+        table.style.display = 'none';
+        noResult.style.display = 'block';
+      } else {
+        table.style.display = 'table';
+        noResult.style.display = 'none';
+      }
+    });
+
+V
