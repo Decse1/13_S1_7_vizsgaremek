@@ -1,0 +1,98 @@
+algoritmus_frontend_REKA
+
+-Bejelentkezés kieg.
+
+X. Mezők ellenőrzése frontend oldalon
+MAX_HOSSZ = 100
+HA fnev ÜRES VAGY jelszo ÜRES:
+    KIÍR "Hiba: Minden mezőt ki kell tölteni."
+VÉGAHA 
+Ha hossza(fnev) > MAX_HOSSZ VAGY hossza(jelszo) > MAX_HOSSZ:
+    KIÍR "Hiba: A mezők hossza nem lehet több, mint 100 karakter."
+VÉGEHA
+
+//
+-Kosár
+
+Cookie használata
+Változók:
+	string: kosar
+	string: ujkosar
+	bool: talált
+	string: elsoTulajdonos
+
+0. Cookie függvények
+Függvény SetCookie(név, érték, lejáratNapok):
+    lejáratiDátum = jelenlegiDátum + lejáratNapok
+    cookie = név + "=" + URLencode(érték) + "; expires=" + lejáratiDátum + "; path=/"
+    dokumentum.cookie = cookie
+
+Függvény GetCookie(név):
+    cookieLista = dokumentum.cookie.split(";")
+    Minden cookieElem a cookieLista-ban:
+        [cookieNév, cookieÉrték] = cookieElem.split("=")
+        Ha trim(cookieNév) == név:
+            Visszatér URLdecode(cookieÉrték)
+    Visszatér null
+
+1. Kosár kezelése
+Függvény GetCart(felhasznalo.id):
+    cookieNév = "cart_" + felhasznalo.id
+    cartJSON = GetCookie(cookieNév)
+    Ha cartJSON == null:
+        Visszatér üres lista
+    Egyébként:
+        Visszatér JSONparse(cartJSON)
+
+2. Kosár mentése
+Függvény SaveCart(felhasznalo.id, kosar):
+    cookieNév = "cart_" + felhasznalo.id
+    cartJSON = JSONstringify(kosar)
+    SetCookie(cookieNév, cartJSON, 14)  // 14 napig érvényes
+
+3. Termék hozzáadása a kosárhoz
+Függvény AddToCart(felhasznalo.id, termek.id, termek.nev, termek.tulajdonos, termek.ar, kosarmennyiseg):
+    kosar = GetCart(felhasznalo.id)
+    HA kosar NEM ÜRES
+ 	elsoTulajdonos = kosar[0].tulajdonos
+ 	HA elsoTulajdonos != termek.tulajdonos
+ 	    KIÍR "Másik tulajdonos termékét próbálod hozzáadni. A kosár törlődik."
+ 	    kosar = üres lista
+	VÉGEHA
+    talált = HAMIS
+    Minden elem a kosár-ban:
+        Ha elem.id == termek.id:
+            elem.kosarmennyiseg += kosarmennyiseg
+            talált = IGAZ
+            MEGSZAKÍT
+    Ha talált == HAMIS:
+        Kosárhoz hozzáad({id: termek.id, nev: név, tulajdonos: termek.tulajdonos, ar: termek.ar, kosarmennyiseg: kosarmennyiseg})
+    SaveCart(felhasznalo.id, kosar)
+//
+
+-Frontend kapcsolat a beérkezett rendelések lista oldalon (hasonlóan működik több oldalon is):
+
+Axios használata
+Változók:
+    string: orders
+    bool: loading
+    string: error
+
+1. 'app' alkalmazás létrehozása, ami a #app DOM elemhez kapcsolódik
+
+2. Rendelések betöltése (fetchOrders() függvény)
+    loading = IGAZ
+    error = ÜRES
+
+    PRÓBÁLD MEG:
+	Küldj GET kérést az "/api/orders" címre
+	HA a válasz sikeres:
+	    orders = válaszban kapott adatok (tömb objektumokkal)
+	VÉGAHA
+    HA hiba történik:
+	Hiba kiíratása a konzolra
+	error = "Nem sikerült lekérni az adatokat"
+    VÉGÜL:
+	loading = HAMIS
+
+3. Megjelenítés a DOM-ban
