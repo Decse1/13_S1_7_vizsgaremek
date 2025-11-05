@@ -145,4 +145,39 @@ const input = document.getElementById('searchInput');
       }
     });
 
-V
+Keresés táblázatban
+
+Algoritmus kereses
+
+1. A HTML-ben keresd meg a keresésben lévő szöveget, a táblázatot és a nincs találat elemet.
+2. Ékezetek eltávolítása a keresésből (removeAccents(str) függvény)
+    Szöveg normalizálása, ékezetjelek eltávolítása reguláris kifejezéssel, majd az ékezetek nélküli verzió visszaadása
+3. Input esemény a keresőmezőbe gépeléskor
+    filter = removeAccents(str) függvény végrehajtása a beírt szövegen, majd kisbetűsítés
+
+    rows = a táblázat összes sora a <tbody> részből
+    visibleCount = 0   
+
+    Minden egyes sor esetén:
+        nameCell = az első oszlop (név) szövege, kisbetűs + ékezetmentesítve
+        cityCell:= a harmadik oszlop (város) szövege, kisbetűs + ékezetmentesítve
+
+	HA filter ∈ nameCell VAGY filter ∈ cityCell:
+            match = IGAZ
+	VÉGEHA
+
+        HA match = IGAZ:
+            jelenítsd meg a sort
+            növeld a visibleCount értékét eggyel
+        KÜLÖNBEN:
+            rejtsd el a sort
+	VÉGEHA
+
+    HA visibleCount == 0:
+        rejtsd el a táblázatot
+        jelenítsd meg a "Nincs találat" szöveget
+    KÜLÖNBEN:
+        mutasd meg a táblázatot
+        rejtsd el a "Nincs találat" szöveget
+    VÉGEHA
+VÉGEALGORITMUS
