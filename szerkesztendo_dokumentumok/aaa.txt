@@ -33,8 +33,8 @@ VÁLTOZÓK:
      	Integer: sajat_ceg_id
 	Adat lista: partner_ceg
 FOLYAMAT:
-sajat_ceg_id := SELECT id FROM Ceg WHERE CONTAINS (alkalmazott, ’sajat_id’)
-partnerseg_lista := SELECT elado FROM Partnerseg WHEREOR vevo = sajat_ceg_id
+sajat_ceg_id := LEKERDEZ("SELECT id FROM Ceg WHERE CONTAINS (alkalmazott, ’sajat_id’)")
+partnerseg_lista := LEKERDEZ("SELECT elado FROM Partnerseg WHEREOR vevo = sajat_ceg_id")
 Algoritmus Tartalom megjelenítése
 ALGORITMUS vége
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -46,11 +46,11 @@ VÁLTOZÓK:
 	Integer: N
 	String mátrix [2xM] nagyságú: rendelelt_termek [id, mennyiseg]
 FOLYAMAT:
-termek_lisat = SELECT * FROM Termek WHERE tulajdonos = partner_ceg[N].id
+termek_lisat = LEKERDEZ("SELECT * FROM Termek WHERE tulajdonos = partner_ceg[N].id
 Algoritmus: Tartalom megjelenítése
-INSERT INTO Rendeles (partnerseg, datum, status, sz_cim) VALUES (SELECT id FROM Partnerseg WHERE vevo = sajat_ceg.id AND elado = partner_ceg.id, MAI_DATUM, "beérkezett", sajat.cim)
-ciklus tetel IN rendelt_termek
-	INSERT INTO Rendeles_tetel (rendeles_id, termek_id, mennyiseg VALUES ((SELECT id FROM Rendeles WHERE partnerseg = (SELECT id FROM Partnerseg WHERE vevo = sajat_ceg.id AND elado = partner_ceg.id)AND datum = maidatum), tetel[1], tetel[2])
+LEKERDEZ("INSERT INTO Rendeles (partnerseg, datum, status, sz_cim) VALUES (SELECT id FROM Partnerseg WHERE vevo = sajat_ceg.id AND elado = partner_ceg.id, MAI_DATUM, "beérkezett", sajat.cim)")
+ciklus amíg tetel IN rendelt_termek
+	LEKERDEZ("INSERT INTO Rendeles_tetel (rendeles_id, termek_id, mennyiseg VALUES ((SELECT id FROM Rendeles WHERE partnerseg = (SELECT id FROM Partnerseg WHERE vevo = sajat_ceg.id AND elado = partner_ceg.id)AND datum = maidatum), tetel[1], tetel[2])")
 ciklus vége
 ALGORITMUS vége
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -60,9 +60,105 @@ VÁLTOZÓK:
 	String: rendelo
 	String: allapot
 	Date: be_erk
+	Adat lista: eredmeny
 FOLYAMAT:
 HA rendelo <> ÜRES VAGY allapot <> ÜRES VAGY be_erk <> ÜRES:
-	SELECT * FROM rendelesek WHERE partnerseg = (SELECT id FROM partnerseg WHERE elado = sajat_ceg.id) AND sz_cim = rendelo.id AND status = allapot AND datum = be_erk
+	eredmeny:= SELECT * FROM rendelesek WHERE partnerseg = (SELECT id FROM partnerseg WHERE elado = sajat_ceg.id) AND sz_cim = rendelo.id AND status = allapot AND datum = be_erk
 KÜLÖNBEN
-	SELECT * FROM rendelesek WHERE partnerseg = (SELECT id FROM partnerseg WHERE elado = sajat_ceg.id)
+	eredmeny:= SELECT * FROM rendelesek WHERE partnerseg = (SELECT id FROM partnerseg WHERE elado = sajat_ceg.id)
+VÉGEALGORITMUS
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ALGORITMUS: Fuvarlevel_Keszites
+VÁLTOZÓK:
+	Integer: rendeles_id, tetel_szam
+	Adat lista: rendeles_adat, partnerseg_adat, elado_adat, vevo_adat
+	Lista: tetelek_lista
+	Adat lista: tetel
+	Adat mátrix: aradat [6,M] [tetel_nev, mennyiseg, netto, afa_kulcs, afa_ertek, brutto]
+	Lista [halmaz]: aktual_afa_kulcs
+	Float: ossz_netto:= 0, ossz_brutto:= 0, afa_ertek:= 0
+FOLYAMAT:
+	BE: rendeles_id
+	rendeles_adat := LEKERDEZ("SELECT * FROM Rendeles WHERE id =rendeles_id")
+	partnerseg_adat := LEKERDEZ("SELECT * FROM Partnerseg WHERE id = rendeles_adat.partnerseg")
+	elado_adat := LEKERDEZ("SELECT * FROM Ceg WHERE id = partnerseg_adat.elado")
+	vevo_adat := LEKERDEZ("SELECT * FROM Ceg WHERE id = partnerseg_adat.vevo")
+	tetelek_lista = LEKERDEZ(" SELECT T.nev, T.ar, T.afa_kulcs, RT.mennyiseg FROM RendelesTetel RT JOIN Termek T ON RT.termek_id = T.id WHERE RT.rendeles_id = rendeles_id")
+	CIKLUS amíg tetel IN tetelek_lista
+		aradat ÚJ SOR
+		aradat[tetel_szam,1]:= tetel.nev
+		aradat[tetel_szam,2]:= tetel.mennyiseg
+		aradat[tetel_szam,3]:= tetel.ar
+		aradat[tetel_szam,4]:= tetel.afa_kulcs + "%"
+		aktual_afa_kulcs HOZZÁ ADÁS tetel.afa_kulcs
+		aradat[tetel_szam,5]:= tetel.ar * (tetel.afa_kulcs/100)
+		aradat[tetel_szam,6]:= aradat[tetel_szam,4] + aradat[tetel_szam,5]
+	CIKLUS vége
+	CIKLUS amíg elem IN aradat
+		Integer: ii:= 1
+		netto:= netto + (tetel.ar * tetel.mennyiseg)
+		ciklus amíg afa_osszesites[ii,1] <> tetel.afa_kulcs/100
+			ii:= ii+1
+		ciklus vége
+		HA ii <= afa_osszesites.hossz:
+			afa_osszesites[ii,2]:= tetel.ar * tetel.mennyiseg * tetel.afa_kulcs
+			bruttó:= tetel.ar + afa_osszesites[ii,2]
+		KÜLÖNBEN
+			afa_osszesites <= új sor
+			afa_osszesites[ii+1,2]:= tetel.ar * tetel.mennyiseg * tetel.afa_kulcs
+			bruttó:= tetel.ar + afa_osszesites[ii+1,2] 
+		
+
+		tetel_szam:= +1
+     osszes_nettó ← osszes_nettó + nettó
+     osszes_bruttó ← osszes_bruttó + bruttó
+
+     HA tetel.afa_kulcs NINCS afa_osszesites-ban
+      afa_osszesites[tetel.afa_kulcs] ← afa
+     KÜLÖNBEN
+      afa_osszesites[tetel.afa_kulcs]
+      afa_osszesites[tetel.afa_kulcs] + afa
+     VÉGEHA
+    VÉGECIKLUS
+
+6. Fuvarlevél generálása (képernyőre vagy fájlba) példa
+
+    KIÍR "-----------------------------------------"
+    KIÍR "              F U V A R L E V É L         "
+    KIÍR "-----------------------------------------"
+    KIÍR "Eladó: ", elado_adat.nev
+    KIÍR "Adószám: ", elado_adat.adoszam
+    KIÍR "Cím: ", elado_adat.cim
+    KIÍR "-----------------------------------------"
+    KIÍR "Vevő: ", vevo_adat.nev
+    KIÍR "Adószám: ", vevo_adat.adoszam
+    KIÍR "Cím: ", vevo_adat.cim
+    KIÍR "-----------------------------------------"
+    KIÍR "Rendelés azonosító: ", rendeles_adat.id
+    KIÍR "Dátum: ", rendeles_adat.datum
+    KIÍR "-----------------------------------------"
+    KIÍR "Tételek:"
+    KIÍR "Termék | Mennyiség | Nettó ár | ÁFA% | Bruttó ár"
+
+    CIKLUS minden tetel ∈ tetelek_lista
+     nettó ← tetel.ar * tetel.mennyiseg
+     afa ← nettó * (tetel.afa_kulcs / 100)
+     bruttó ← nettó + afa
+     KIÍR tetel.nev, " | ", tetel.mennyiseg, " | ", nettó, " |
+      ", tetel.afa_kulcs, "% | ", bruttó
+    VÉGECIKLUS
+
+    KIÍR "-----------------------------------------"
+    KIÍR "ÁFA bontás:"
+    CIKLUS minden kulcs, osszeg ∈ afa_osszesites
+     KIÍR kulcs, "% ÁFA: ", osszeg
+    VÉGECIKLUS
+
+    KIÍR "-----------------------------------------"
+    KIÍR "Összes nettó: ", osszes_nettó
+    KIÍR "Összes bruttó: ", osszes_bruttó
+    KIÍR "-----------------------------------------"
+    KIÍR "Fuvarlevél generálása kész."
+    KIÍR "-----------------------------------------"
+
 VÉGEALGORITMUS
