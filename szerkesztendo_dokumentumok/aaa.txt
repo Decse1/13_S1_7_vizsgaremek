@@ -1,0 +1,68 @@
+ALGORITMUS bejelentkezes
+VÁLTOZÓK:
+	String: fnev := ""
+    	String: jelszo := ""
+	Adatbázis tábla: Felhasznalo
+ 	Adat: talalat
+	Bool: userOK := false
+FOLYAMAT:
+ciklus amíg (IGAZ)
+	ciklus, amíg NEM(fnev <> ÜRES ÉS jelszo <> ÜRES ÉS fnev.hosszúság <= 100 és jelszo.hosszúság <= 100)
+		BE: fnev [normál szövegdoboz]
+		BE: jelszo [jelszó szövegdoboz]
+		HA fnev = ÜRES VAGY jelszo = ÜRES:
+			KIÍR "Adja meg a felhasználónevet vagy a jelszót."	
+		HA fnev.hosszúság > 100 VAGY jelszo.hosszúság > 100:
+		 KIÍR: "A felhasználónév vagy a jelszó nem megengedett hosszúságú
+	ciklus vége	
+	talalat := LEKERDEZ("SELECT jelszo FROM Felhasznalo WHERE nev = fnev")
+	HA talalat = ÜRES:
+		KIÍR: "Hibás felhasználónév!"		
+		CONTINUE
+	HA jelszo = talalat
+		  userOK := true
+		  BREAK
+	KÜLÖNBEN
+		KIÍR: "Hibás jelszó!"
+ciklus vége
+ALGORITMUS vége
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Algoritmus: listaz_partner_cegek
+VÁLTOZÓK:
+	Integer: sajat_id
+     	Integer: sajat_ceg_id
+	Adat lista: partner_ceg
+FOLYAMAT:
+sajat_ceg_id := SELECT id FROM Ceg WHERE CONTAINS (alkalmazott, ’sajat_id’)
+partnerseg_lista := SELECT elado FROM Partnerseg WHEREOR vevo = sajat_ceg_id
+Algoritmus Tartalom megjelenítése
+ALGORITMUS vége
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Algoritmus: rendeles_leadasa
+VÁLTOZÓK:
+	Adat lista: partner_ceg
+	Adat lista: termek_lista
+	Adat lista: sajat_ceg
+	Integer: N
+	String mátrix [2xM] nagyságú: rendelelt_termek [id, mennyiseg]
+FOLYAMAT:
+termek_lisat = SELECT * FROM Termek WHERE tulajdonos = partner_ceg[N].id
+Algoritmus: Tartalom megjelenítése
+INSERT INTO Rendeles (partnerseg, datum, status, sz_cim) VALUES (SELECT id FROM Partnerseg WHERE vevo = sajat_ceg.id AND elado = partner_ceg.id, MAI_DATUM, "beérkezett", sajat.cim)
+ciklus tetel IN rendelt_termek
+	INSERT INTO Rendeles_tetel (rendeles_id, termek_id, mennyiseg VALUES ((SELECT id FROM Rendeles WHERE partnerseg = (SELECT id FROM Partnerseg WHERE vevo = sajat_ceg.id AND elado = partner_ceg.id)AND datum = maidatum), tetel[1], tetel[2])
+ciklus vége
+ALGORITMUS vége
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Algoritmus rendelesek
+VÁLTOZÓK:
+	Adat lista: sajat_ceg
+	String: rendelo
+	String: allapot
+	Date: be_erk
+FOLYAMAT:
+HA rendelo <> ÜRES VAGY allapot <> ÜRES VAGY be_erk <> ÜRES:
+	SELECT * FROM rendelesek WHERE partnerseg = (SELECT id FROM partnerseg WHERE elado = sajat_ceg.id) AND sz_cim = rendelo.id AND status = allapot AND datum = be_erk
+KÜLÖNBEN
+	SELECT * FROM rendelesek WHERE partnerseg = (SELECT id FROM partnerseg WHERE elado = sajat_ceg.id)
+VÉGEALGORITMUS
