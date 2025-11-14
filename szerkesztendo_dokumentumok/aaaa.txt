@@ -1,0 +1,72 @@
+aaaa
+
+ALGORITMUS tartalomMegjelenites
+VÁLTOZÓK:
+    String: orders := ""
+    Bool: loading := HAMIS
+    String: hibauz := ""
+FOLYAMAT:
+loading = IGAZ
+error = ""
+PRÓBÁLD MEG:
+    KÜLDJ GET kérést az "/api/orders" címre
+    HA a válasz sikeres:
+	orders = válaszban kapott adatok (tömb
+                 objektumokkal)
+    HA hiba történt:
+        console.log(hiba)
+        error = "Hiba történt: " + hibauz
+    VÉGÜL:
+	loading = HAMIS
+HA loading = IGAZ
+    KIÍR: "Betöltés..."
+KÜLÖNBEN
+    KIÍR: ""
+HA hibauz != ""
+    KIÍR: error
+KÜLÖNBEN:
+    KIÍR: orders (megfelelően módon)
+
+
+
+
+ALGORITMUS kereses (itt egy táblázatban)
+VÁLTOZÓK:
+    String: keres := ""
+    String: tartalom := ""
+    String: filter := ""
+    String: nincsTalalat := ""
+    Integer: lathatoSzaml := 0
+    Bool: talalat := HAMIS
+    String: nevCella := ""
+    String: varosCella := ""
+FOLYAMAT:
+content = document.getElementById("tabla").innerHTML
+keres = document.getElementById("keresoText").innerHTML
+nincsTalalat = document.getElementById("nincsTalalat").innerHTML
+FÜGGVÉNY ekezetEltavolit(str)
+    VISSZAAD str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+ESEMÉNY input
+    filter = ekezetEltavolit(keres.toLowerCase())			    
+    tartalom.osszesKivalaszt('tbody tr');
+    lathatoSzaml = 0   
+    CIKLUS összes sorig
+        talalat = HAMIS
+        nevCella = ekezetEltavolit(row.cells[0].textContent.toLowerCase());
+        varosCella = ekezetEltavolit(row.cells[2].textContent.toLowerCase());
+	HA filter ∈ nevCella VAGY filter ∈ varosCella
+            talalat = IGAZ
+        HA talalat == IGAZ
+            visibleCount++
+             KÜLÖNBEN
+            row.classList.toggle('hidden');			 
+    HA visibleCount == 0:
+        tartalom.style.display = 'none';
+        nincsTalalat.style.display = 'block';
+    KÜLÖNBEN:
+        tartalom.style.display = 'table';
+        nincsTalalat.style.display = 'none';
+
+
+
+
