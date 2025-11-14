@@ -60,7 +60,7 @@ ESEMÉNY input
             visibleCount++
              KÜLÖNBEN
             row.classList.toggle('hidden');			 
-    HA visibleCount == 0:
+    HA lathatoSzaml == 0:
         tartalom.style.display = 'none';
         nincsTalalat.style.display = 'block';
     KÜLÖNBEN:
