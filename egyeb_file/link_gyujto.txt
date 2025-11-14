@@ -1,3 +1,5 @@
 ER diagram: https://dbdiagram.io/d/68ba926161a46d388e9738ae
 Város API: https://api-ninjas.com/api/city
 Magyar cím API: https://cimapi.hu/
+Nemzetközi irányítószám api: https://postalcodes.app/?lang=hu
+Cég api: https://cegadatapi.hu/

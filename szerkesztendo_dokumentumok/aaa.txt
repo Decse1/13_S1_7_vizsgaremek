@@ -70,12 +70,14 @@ VÉGEALGORITMUS
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ALGORITMUS: Fuvarlevel_Keszites
 VÁLTOZÓK:
-	Integer: rendeles_id, tetel_szam
+	Integer: rendelesid, tetel_szam
 	Adat lista: rendeles_adat, partnerseg_adat, elado_adat, vevo_adat
+	Adat: rendelesi_hely
 	Lista: tetelek_lista
 	Adat lista: tetel
-	Adat mátrix: aradat [6,M] [tetel_nev, mennyiseg, netto, afa_kulcs, afa_ertek, brutto]
+	Adat mátrix: aradat [M,6] [tetel_nev, mennyiseg, netto, afa_kulcs, afa_ertek, brutto]
 	Lista [halmaz]: aktual_afa_kulcs
+	Integer mátrix: afa_fiz [M,2] [afakulcs, ertek]
 	Float: ossz_netto:= 0, ossz_brutto:= 0, afa_ertek:= 0
 FOLYAMAT:
 	BE: rendeles_id
@@ -83,82 +85,45 @@ FOLYAMAT:
 	partnerseg_adat := LEKERDEZ("SELECT * FROM Partnerseg WHERE id = rendeles_adat.partnerseg")
 	elado_adat := LEKERDEZ("SELECT * FROM Ceg WHERE id = partnerseg_adat.elado")
 	vevo_adat := LEKERDEZ("SELECT * FROM Ceg WHERE id = partnerseg_adat.vevo")
-	tetelek_lista = LEKERDEZ(" SELECT T.nev, T.ar, T.afa_kulcs, RT.mennyiseg FROM RendelesTetel RT JOIN Termek T ON RT.termek_id = T.id WHERE RT.rendeles_id = rendeles_id")
+	rendelesi_cim := LEKERDEZ("SELECT telephely_cim FROM Felhasznalo WHERE id = rendeles_adat.sz_cim")
+	tetelek_lista = LEKERDEZ(" SELECT Termek.nev, Termek.ar, Termek.afa_kulcs, RendelesTetel.mennyiseg FROM RendelesTetel Inner JOIN Termek ON RendelesTetel.termek_id = Termek.id WHERE RendelesTetel.rendeles_id = rendeles_adat.id")
+	KIÍR "-----------------------------------------"
+	KIÍR "              F U V A R L E V É L         "
+	KIÍR "-----------------------------------------"
+	KIÍR "Eladó: ", elado_adat.nev
+	KIÍR "Adószám: ", elado_adat.adoszam
+	KIÍR "Cím: ", elado_adat.cim
+	KIÍR "-----------------------------------------"
+	KIÍR "Vevő: ", vevo_adat.nev
+	KIÍR "Adószám: ", vevo_adat.adoszam
+	KIÍR "Cím: ", vevo_adat.cim
+	KIÍR "-----------------------------------------"
+	KIÍR "Rendelés azonosító: ", rendeles_adat.id
+	KIÍR "Dátum: ", rendeles_adat.datum
+	KIÍR "Szállítási cím: ", rendelesi_cim
+	KIÍR "-----------------------------------------"
+	KIÍR "Termék | Mennyiség | Nettó ár | ÁFA% | Bruttó ár"
 	CIKLUS amíg tetel IN tetelek_lista
-		aradat ÚJ SOR
-		aradat[tetel_szam,1]:= tetel.nev
-		aradat[tetel_szam,2]:= tetel.mennyiseg
-		aradat[tetel_szam,3]:= tetel.ar
-		aradat[tetel_szam,4]:= tetel.afa_kulcs + "%"
-		aktual_afa_kulcs HOZZÁ ADÁS tetel.afa_kulcs
-		aradat[tetel_szam,5]:= tetel.ar * (tetel.afa_kulcs/100)
-		aradat[tetel_szam,6]:= aradat[tetel_szam,4] + aradat[tetel_szam,5]
-	CIKLUS vége
-	CIKLUS amíg elem IN aradat
+		KIÍR tetel.nev, " | ", tetel.mennyiseg, " | ", nettó, " | ", tetel.afa_kulcs, "% | ", (tetel.ar * tetel.mennyiseg) * (1 + (tetel.afa_kulcs/100))
 		Integer: ii:= 1
-		netto:= netto + (tetel.ar * tetel.mennyiseg)
-		ciklus amíg afa_osszesites[ii,1] <> tetel.afa_kulcs/100
+		ossz_netto:= ossz_netto + tetel.mennyiseg * tetel.ar
+		CIKLUS amíg afa_fiz[ii,1] <> aradat[i,4]
 			ii:= ii+1
-		ciklus vége
-		HA ii <= afa_osszesites.hossz:
-			afa_osszesites[ii,2]:= tetel.ar * tetel.mennyiseg * tetel.afa_kulcs
-			bruttó:= tetel.ar + afa_osszesites[ii,2]
+		CIKLUS vége
+		HA ii <= afa_fiz.oszlophossz:
+			afa_fiz[ii,2]:= afa_fiz[ii,2] + (tetel.ar * tetel.mennyiseg) * (tetel.afa_kulcs/100)
+			ossz_bruttó:= ossz_brutto + (tetel.ar * tetel.mennyiseg) * (1 + (tetel.afa_kulcs/100))
 		KÜLÖNBEN
-			afa_osszesites <= új sor
-			afa_osszesites[ii+1,2]:= tetel.ar * tetel.mennyiseg * tetel.afa_kulcs
-			bruttó:= tetel.ar + afa_osszesites[ii+1,2] 
-		
-
-		tetel_szam:= +1
-     osszes_nettó ← osszes_nettó + nettó
-     osszes_bruttó ← osszes_bruttó + bruttó
-
-     HA tetel.afa_kulcs NINCS afa_osszesites-ban
-      afa_osszesites[tetel.afa_kulcs] ← afa
-     KÜLÖNBEN
-      afa_osszesites[tetel.afa_kulcs]
-      afa_osszesites[tetel.afa_kulcs] + afa
-     VÉGEHA
-    VÉGECIKLUS
-
-6. Fuvarlevél generálása (képernyőre vagy fájlba) példa
-
-    KIÍR "-----------------------------------------"
-    KIÍR "              F U V A R L E V É L         "
-    KIÍR "-----------------------------------------"
-    KIÍR "Eladó: ", elado_adat.nev
-    KIÍR "Adószám: ", elado_adat.adoszam
-    KIÍR "Cím: ", elado_adat.cim
-    KIÍR "-----------------------------------------"
-    KIÍR "Vevő: ", vevo_adat.nev
-    KIÍR "Adószám: ", vevo_adat.adoszam
-    KIÍR "Cím: ", vevo_adat.cim
-    KIÍR "-----------------------------------------"
-    KIÍR "Rendelés azonosító: ", rendeles_adat.id
-    KIÍR "Dátum: ", rendeles_adat.datum
-    KIÍR "-----------------------------------------"
-    KIÍR "Tételek:"
-    KIÍR "Termék | Mennyiség | Nettó ár | ÁFA% | Bruttó ár"
-
-    CIKLUS minden tetel ∈ tetelek_lista
-     nettó ← tetel.ar * tetel.mennyiseg
-     afa ← nettó * (tetel.afa_kulcs / 100)
-     bruttó ← nettó + afa
-     KIÍR tetel.nev, " | ", tetel.mennyiseg, " | ", nettó, " |
-      ", tetel.afa_kulcs, "% | ", bruttó
-    VÉGECIKLUS
-
-    KIÍR "-----------------------------------------"
-    KIÍR "ÁFA bontás:"
-    CIKLUS minden kulcs, osszeg ∈ afa_osszesites
-     KIÍR kulcs, "% ÁFA: ", osszeg
-    VÉGECIKLUS
-
-    KIÍR "-----------------------------------------"
-    KIÍR "Összes nettó: ", osszes_nettó
-    KIÍR "Összes bruttó: ", osszes_bruttó
-    KIÍR "-----------------------------------------"
-    KIÍR "Fuvarlevél generálása kész."
-    KIÍR "-----------------------------------------"
-
-VÉGEALGORITMUS
+			afa_fiz <= új sor
+			afa_fiz[ii+1,1]:= tetel.afa_kulcs
+			afa_fiz[ii+1,2]:= afa_fiz[ii+1,2] + (tetel.ar * tetel.mennyiseg) * (tetel.afa_kulcs/100)
+			ossz_bruttó:= ossz_brutto + (tetel.ar * tetel.mennyiseg) * (1 + (tetel.afa_kulcs/100))
+	CIKLUS vége
+	KIÍR "-----------------------------------------"
+	KIÍR "Összes nettó: ", ossz_netto
+	KIÍR (kurzor sorvégén marad) "Összes áfa":
+	CIKLUS amíg i := 1 i < afa_fiz.oszlophossz
+		KIÍR afa_fiz[i,1], "%: ", afa_fiz[i,2]
+	CIKLUS vége
+	KIÍR "Összes bruttó: ", ossz_brutto
+ALGRITMUS vége
