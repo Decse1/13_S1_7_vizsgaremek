@@ -1,35 +1,29 @@
-const express = require("express");
-const bodyParser = require("body-parser");
+// server.js
+const express = require('express');
+const cors = require('cors');
+const db = require('./connect');
 
 const app = express();
-const port = 3000;
+app.use(cors());
+app.use(express.json());
+app.use(express.static('public'));
 
-// Middleware a POST form adatok feldolgozásához
-app.use(bodyParser.urlencoded({ extended: true }));
+// LEKÉRDEZÉS — már itt van, nem kell külön query.js
+async function peldalekerd() {
+  const [rows] = await db.query("SELECT * FROM Termek inner JOIN Ceg ON Termek.tulajdonos = Ceg.id");
+  return rows;
+}
 
-// Főoldal – HTML form
-app.get("/", (req, res) => {
-  res.send(`
-    <h1>Összeadó alkalmazás</h1>
-    <form action="/sum" method="post">
-      <input type="text" name="num1" placeholder="Első szám" required>
-      <input type="text" name="num2" placeholder="Második szám" required>
-      <button type="submit">Számol</button>
-    </form>
-  `);
+// API ENDPOINT
+app.get('/api/Ceg', async (req, res) => {
+  try {
+    const users = await peldalekerd();
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ error: "Adatbázis hiba!" });
+  }
 });
 
-// POST feldolgozás
-app.post("/sum", (req, res) => {
-  const num1 = parseFloat(req.body.num1);
-  const num2 = parseFloat(req.body.num2);
-  const sum = num1 + num2;
-
-  res.send(`<h2>A két szám összege: ${sum}</h2>
-            <a href="/">Vissza</a>`);
-});
-
-// Szerver indítása
-app.listen(port, () => {
-  console.log(`Szerver fut: http://localhost:${port}`);
-});
+app.listen(3000, () =>
+  console.log("Szerver fut: http://localhost:3000")
+);
