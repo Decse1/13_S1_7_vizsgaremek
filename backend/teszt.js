@@ -10,7 +10,7 @@ app.use(express.static('public'));
 
 // LEKÉRDEZÉS — már itt van, nem kell külön query.js
 async function peldalekerd() {
-  const [rows] = await db.query("SELECT * FROM Termek inner JOIN Ceg ON Termek.tulajdonos = Ceg.id");
+  const [rows] = await db.query("SELECT * FROM Termek inner JOIN Ceg ON Termek.tulajdonos = Ceg.id GROUP BY Ceg.id");
   return rows;
 }
 
