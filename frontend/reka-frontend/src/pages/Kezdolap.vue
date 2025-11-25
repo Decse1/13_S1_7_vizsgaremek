@@ -4,7 +4,7 @@
 
 <template>
   <div class="content">
-    <h1>Kezdőlap</h1>
+    <h2>Kezdőlap</h2>
     <p>Üdv a kezdőlapon!</p>
   </div>
 </template>
@@ -26,5 +26,9 @@
       padding: 2rem;
       margin-top: 56px;
     }
+  }
+
+  body {
+    background-color: lightgray(--bs-body-bg);;
   }
 </style>
