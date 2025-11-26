@@ -1,6 +1,6 @@
 <template>
   <div>
-    <NavBar />
+    <NavBar v-if="!hideNavBar" />
     <main>
       <router-view />
     </main>
@@ -9,9 +9,18 @@
 
 <script>
   import NavBar from "./components/NavBar.vue";
-  
+  import { useRoute } from "vue-router";
+  import { computed } from "vue";
+
   export default {
-    components: { NavBar }
+    components: { NavBar },
+    setup() {
+      const route = useRoute();
+
+      const hideNavBar = computed(() => route.path === "/bejelentkezes");
+
+      return { hideNavBar };
+    }
   };
   
 </script>

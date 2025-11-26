@@ -1,11 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import Kezdolap from "./pages/Kezdolap.vue";
 import Raktar from "./pages/Raktar.vue";
+import Bejelentkezes from './pages/Bejelentkezes.vue';
 
 const routes = [
-  { path: "/", redirect: "/kezdolap" },
+  { path: "/", redirect: "/bejelentkezes" },
   { path: "/kezdolap", name: "Kezdőlap", component: Kezdolap },
-  { path: "/raktar", name: "Raktár", component: Raktar }
+  { path: "/raktar", name: "Raktár", component: Raktar },
+  { path: "/bejelentkezes", name: "Bejelentkezés", component: Bejelentkezes }
 ];
 
 const router = createRouter({

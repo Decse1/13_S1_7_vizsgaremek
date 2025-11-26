@@ -22,6 +22,31 @@
   const remove = (item) => {
     console.log('Delete:', item)
   }
+
+  // Modal state and form model for new product
+  const showAddModal = ref(false)
+  const newProduct = ref({
+    name: '',
+    stock: 0,
+  })
+
+  const openAddModal = () => {
+    newProduct.value = { name: '', stock: 0 }
+    showAddModal.value = true
+  }
+
+  const closeAddModal = () => {
+    showAddModal.value = false
+  }
+
+  const saveNewProduct = () => {
+    if (!newProduct.value.name) return
+    items.value.push({
+      name: newProduct.value.name,
+      stock: Number(newProduct.value.stock) || 0,
+    })
+    closeAddModal()
+  }
 </script>
 
 <template>
@@ -41,7 +66,10 @@
         </div>
       </div>
 
-      <button class="btn btn-success add-btn rounded-5 d-flex align-items-center">
+      <button
+        class="btn btn-success add-btn rounded-5 d-flex align-items-center"
+        @click="openAddModal"
+      >
         <i class="bi bi-plus-lg"></i>
         <span class="d-none d-sm-inline ms-2">Új termék felvétele</span>
       </button>
@@ -66,6 +94,84 @@
         </tr>
       </tbody>
     </table>
+
+    <!-- Add product modal -->
+    <transition name="modal-fade">
+      <div
+        v-if="showAddModal"
+        class="modal-backdrop-custom"
+        tabindex="-1"
+        role="dialog"
+        @click="closeAddModal"
+      >
+        <div class="modal-dialog modal-dialog-centered modal-dialog-custom" role="document" @click.stop>
+          <div class="modal-content custom-modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Új termék felvétele</h5>
+              <button type="button" class="btn-close" @click="closeAddModal"></button>
+            </div>
+            <div class="modal-body">
+              <form @submit.prevent="saveNewProduct">
+                <div class="mb-3">
+                  <label class="form-label">Terméknév</label>
+                  <input
+                    v-model="newProduct.name"
+                    type="text"
+                    class="form-control"
+                    required
+                  />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Készlet (db)</label>
+                  <input
+                    v-model.number="newProduct.stock"
+                    type="number"
+                    min="0"
+                    class="form-control"
+                    required
+                  />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Cikkszám</label>
+                  <input
+                    type="text"
+                    min="0"
+                    class="form-control"
+                    required
+                  />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Termék kiszerelése</label>
+                  <input
+                    type="text"
+                    min="0"
+                    class="form-control"
+                    required
+                  />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Termék kiszerelése</label>
+                  <input
+                    type="text"
+                    min="0"
+                    class="form-control"
+                    required
+                  />
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" @click="closeAddModal">
+                Mégse
+              </button>
+              <button type="button" class="btn btn-primary" @click="saveNewProduct">
+                Mentés
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -145,5 +251,60 @@
     border-color: #00948B;
     background-color: white;
     box-shadow: none;
+  }
+
+  .modal-backdrop {
+    display: none;
+  }
+
+  .modal-backdrop-custom {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1050;
+  }
+
+  .modal-dialog-custom {
+    max-width: 500px;
+    width: 90%;
+  }
+
+  .custom-modal-content {
+    background-color: #ffffff;
+    border-radius: 1rem;
+    overflow: hidden;
+    width: 100%;
+  }
+
+  .custom-modal-content .modal-header,
+  .custom-modal-content .modal-body,
+  .custom-modal-content .modal-footer {
+    padding: 0.75rem 1rem;
+  }
+
+  /* Modal open/close animation */
+  .modal-fade-enter-active,
+  .modal-fade-leave-active {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+
+  .modal-fade-enter-from,
+  .modal-fade-leave-to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  .modal-fade-enter-to,
+  .modal-fade-leave-from {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  /* Space between footer buttons */
+  .custom-modal-content .modal-footer .btn + .btn {
+    margin-left: 0.5rem;
   }
 </style>
