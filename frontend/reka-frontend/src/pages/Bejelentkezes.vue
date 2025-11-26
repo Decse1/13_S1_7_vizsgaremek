@@ -1,10 +1,10 @@
 <!--/src/reka_logo_white.png-->
 <template>
   <div class="d-flex flex-column justify-content-center align-items-center bg-teal min-vh-100">
-    <img src="/src/reka_logo_white.png" alt="RÉKA logo" class="logo mb-4" />
+    <img src="/src/reka_logo_white.png" alt="RÉKA logo" class="logo mb-2" />
 
     <div class="p-4 login-card shadow-lg rounded-5 bg-white">
-      <div class="text-center mb-3">
+      <div class="text-center mb-4 mt-1">
         <h3 class="fw-bold">Bejelentkezés a RÉKA-rendszerbe</h3>
       </div>
 
@@ -20,7 +20,7 @@
           />
         </div>
 
-        <div class="mb-3">
+        <div class="mb-4">
           <input
             id="password"
             v-model="password"
@@ -142,4 +142,18 @@ a:hover {
   background-color: #007a72 !important; /* a bit darker on hover */
   border-color: #007a72 !important;
 }
+
+.custom-input {
+    border: 2px solid #ccc;
+    background-color: white;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+.custom-input:focus {
+    border-color: #00948B;
+    background-color: white;
+    box-shadow: none;
+  }
 </style>
+
