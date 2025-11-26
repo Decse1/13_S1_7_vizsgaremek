@@ -1,30 +1,3 @@
-<<<<<<< HEAD
--- ==========================
--- TÁBLÁK TÖRLÉSE (ha léteznek)
--- ==========================
-DROP TABLE IF EXISTS RendelesTetel;
-DROP TABLE IF EXISTS Rendeles;
-DROP TABLE IF EXISTS Termek;
-DROP TABLE IF EXISTS Partnerseg;
-DROP TABLE IF EXISTS Felhasznalo;
-DROP TABLE IF EXISTS Ceg;
-DROP TABLE IF EXISTS Termek_kategoria;
-
-
--- ==========================
--- TÁBLÁK LÉTREHOZÁSA (ha léteznek)
--- ==========================
-CREATE TABLE `Ceg` (
-  `id` integer PRIMARY KEY,
-  `nev` varchar(100),
-  `adoszam` varchar(11),
-  `euAdoszam` varchar(20),
-  `cim` varchar(255),
-  `email` varchar(100),
-  `telefon` varchar(15),
-  `alkalmazott` text NOT NULL,
-  `elofiz` bool
-=======
 -- ----------------------------
 -- DROP TABLES IF EXISTS (FK miatt fordított sorrendben)
 -- ----------------------------
@@ -49,7 +22,6 @@ CREATE TABLE Ceg (
     email VARCHAR(100),
     telefon VARCHAR(15),
     elofiz BOOLEAN
->>>>>>> a7617a8f002cf13a9cfb162ed8b922f98fc186be
 );
 
 CREATE TABLE Felhasznalo (
@@ -119,13 +91,6 @@ CREATE TABLE RendelesTetel (
     FOREIGN KEY (termek_id) REFERENCES Termek(id)
 );
 
-<<<<<<< HEAD
-
--- ==========================
--- TÁBLÁK ÖSSZEKAPCSOLÁSA
--- ==========================
-ALTER TABLE `Felhasznalo` ADD FOREIGN KEY (`id`) REFERENCES `Ceg` (`alkalmazott`);
-=======
 CREATE TABLE Ceg_alkalmazott (
     cegId INT,
     felhasznaloId INT,
@@ -134,7 +99,6 @@ CREATE TABLE Ceg_alkalmazott (
     FOREIGN KEY (cegId) REFERENCES Ceg(id),
     FOREIGN KEY (felhasznaloId) REFERENCES Felhasznalo(id)
 );
->>>>>>> a7617a8f002cf13a9cfb162ed8b922f98fc186be
 
 -- ----------------------------
 -- INSERT DATA: Cégek (20)
@@ -205,7 +169,6 @@ INSERT INTO Felhasznalo (id, nev, jelszo, kategoria, telephely_cim, telefon) VAL
 (38,'Molnár Péter','pwd123',2,'1918 Budapest, Szeder u. 19','+3619191921'),
 (39,'Kiss Dániel','pwd123',1,'2020 Budapest, Eper u. 20','+3620202021'),
 (40,'Horváth Eszter','pwd123',2,'2021 Budapest, Eper u. 20','+3620202022');
-
 -- ----------------------------
 -- INSERT DATA: Termek_kategoria
 -- ----------------------------
@@ -317,107 +280,6 @@ INSERT INTO RendelesTetel (rendeles_id, termek_id, mennyiseg) VALUES
 (9,36,5),(9,38,1),
 (10,40,3),(10,41,2);
 
-<<<<<<< HEAD
-ALTER TABLE `Rendeles` ADD FOREIGN KEY (`sz_cim`) REFERENCES `Felhasznalo` (`id`);
-
-
--- ==========================
--- TERMEK KATEGÓRIÁK
--- ==========================
-INSERT INTO Termek_kategoria (id, nev) VALUES
-(1, 'Irodaszerek'),
-(2, 'Élelmiszer'),
-(3, 'Elektronika'),
-(4, 'Tisztítószer');
-
-
--- ==========================
--- CÉGEK
--- ==========================
-INSERT INTO Ceg (id, nev, adoszam, euAdoszam, cim, email, telefon, alkalmazott, elofiz) VALUES
-(1, 'Alfa Kft', '12345678-1-12', 'HU12345678', 'Budapest, Fő utca 1.', 'info@alfakft.hu', '0611111111', '1', true),
-(2, 'Beta Zrt', '22345678-1-22', 'HU22345678', 'Debrecen, Kossuth tér 3.', 'kapcsolat@betazrt.hu', '0620111111', '2', true),
-(3, 'Gamma Bt', '32345678-1-33', 'HU32345678', 'Szeged, Piac utca 5.', 'iroda@gammabt.hu', '0630111111', '3', false),
-(4, 'Delta Kft', '42345678-1-44', 'HU42345678', 'Pécs, Nagy Lajos király útja 10.', 'info@deltakft.hu', '0640111111', '4', true);
-
-
--- ==========================
--- FELHASZNÁLÓK
--- ==========================
-INSERT INTO Felhasznalo (id, nev, jelszo, kategoria, telephely_cim, telefon) VALUES
-(1, 'Nagy Péter', 'pw1', 1, 'Budapest, Fő utca 1.', '0612345678'),
-(2, 'Tóth László', 'pw3', 2, 'Debrecen, Kossuth tér 3.', '0620123456'),
-(3, 'Szabó Márton', 'pw5', 1, 'Szeged, Piac utca 5.', '0630123456'),
-(4, 'Varga Péter', 'pw7', 2, 'Pécs, Nagy Lajos út 10.', '0640123456'),
-
-
-
--- ==========================
--- PARTNERSÉGEK
--- ==========================
-INSERT INTO Partnerseg (id, elado, vevo, fizetesi_ido, fizetesi_forma) VALUES
-(1, 1, 2, 30, 'Átutalás'),
-(2, 3, 4, 14, 'Készpénz');
-
-
--- ==========================
--- TERMÉKEK – ALFA KFT (1)
--- ==========================
-INSERT INTO Termek (id, tulajdonos, nev, cikkszam, mennyiseg, kiszereles, min_vas_menny, leiras, ar, kategoria, afa_kulcs) VALUES
-(1, 1, 'Golyóstoll kék', 'ALF-001', 500, 'db', 10, 'Kék golyóstoll', 120, 1, 27),
-(2, 1, 'Jegyzetfüzet A5', 'ALF-002', 300, 'db', 5, 'Füzet 80 lapos', 450, 1, 27),
-(3, 1, 'Fehér nyomtatópapír', 'ALF-003', 1000, 'cs', 1, 'A4 80g', 1600, 1, 27),
-(4, 1, 'Irodai szék', 'ALF-004', 50, 'db', 1, 'Ergonomikus szék', 29000, 3, 27),
-(5, 1, 'Monitor 24"', 'ALF-005', 40, 'db', 1, 'Full HD monitor', 52000, 3, 27),
-(6, 1, 'Tűzőgép', 'ALF-006', 200, 'db', 5, 'Fém tűzőgép', 1500, 1, 27),
-(7, 1, 'Zselés toll készlet', 'ALF-007', 100, 'cs', 1, 'Színes toll készlet', 900, 1, 27);
-
-
--- ==========================
--- TERMÉKEK – BETA ZRT (2)
--- ==========================
-INSERT INTO Termek VALUES
-(8, 2, 'Szalámi', 'BET-001', 200, 'kg', 1, 'Paprikás szalámi', 3200, 2, 27),
-(9, 2, 'Kenyér', 'BET-002', 150, 'db', 1, 'Fehér kenyér', 450, 2, 18),
-(10, 2, 'Kávé', 'BET-003', 300, 'cs', 1, 'Őrölt kávé 500g', 1800, 2, 27),
-(11, 2, 'Tea citromos', 'BET-004', 250, 'cs', 1, 'Filteres tea', 700, 2, 27),
-(12, 2, 'Keksz', 'BET-005', 400, 'cs', 1, 'Vajas keksz', 550, 2, 27),
-(13, 2, 'Cukor kristály', 'BET-006', 500, 'kg', 1, '1 kg kristálycukor', 390, 2, 5),
-(14, 2, 'Liszt BL55', 'BET-007', 300, 'kg', 1, 'Finomliszt 1 kg', 350, 2, 5);
-
-
--- ==========================
--- TERMÉKEK – GAMMA BT (3)
--- ==========================
-INSERT INTO Termek VALUES
-(15, 3, 'Laptop 15"', 'GAM-001', 20, 'db', 1, 'Irodai laptop', 210000, 3, 27),
-(16, 3, 'USB kábel', 'GAM-002', 300, 'db', 5, 'USB-A – USB-C kábel', 1500, 3, 27),
-(17, 3, 'Egér vezetékes', 'GAM-003', 150, 'db', 1, 'Optikai egér', 3000, 3, 27),
-(18, 3, 'Billentyűzet', 'GAM-004', 100, 'db', 1, 'USB billentyűzet', 4500, 3, 27),
-(19, 3, 'Pendrive 32GB', 'GAM-005', 200, 'db', 1, '32GB pendrive', 3500, 3, 27),
-(20, 3, 'Monitor 27"', 'GAM-006', 30, 'db', 1, 'QHD monitor', 89000, 3, 27),
-(21, 3, 'Fejhallgató', 'GAM-007', 80, 'db', 1, 'Zajszűrős headset', 12000, 3, 27);
-
-
--- ==========================
--- RENDELÉSEK
--- ==========================
-INSERT INTO Rendeles (id, partnerseg, datum, status, sz_cim) VALUES
-(1, 1, '2025-02-01', 'Új', 3),
-(2, 2, '2025-02-03', 'Folyamatban', 5);
-
-
--- ==========================
--- RENDELÉS TÉTELEK
--- ==========================
-INSERT INTO RendelesTetel (rendeles_id, termek_id, mennyiseg) VALUES
-(1, 1, 20),
-(1, 3, 5),
-(1, 6, 10),
-
-(2, 15, 2),
-(2, 17, 5);
-=======
 -- ----------------------------
 -- INSERT DATA: Ceg_alkalmazott
 -- ----------------------------
@@ -427,4 +289,3 @@ INSERT INTO Ceg_alkalmazott (cegId, felhasznaloId) VALUES
 (9,17),(9,18),(10,19),(10,20),(11,21),(11,22),(12,23),(12,24),
 (13,25),(13,26),(14,27),(14,28),(15,29),(15,30),(16,31),(16,32),
 (17,33),(17,34),(18,35),(18,36),(19,37),(19,38),(20,39),(20,40);
->>>>>>> a7617a8f002cf13a9cfb162ed8b922f98fc186be
