@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const db = require('../connect');
+const db = require('../../connect');
 
 const app = express();
 app.use(cors());
@@ -10,10 +10,10 @@ app.use(express.static('public'));
 //Lekérdezés változók
 let own = 1
 //Érkezetett adatok:
-app.post('/api/Ceg_adat', (req, res) => {
+app.post('/api/Fehasznalo_ad', (req, res) => {
   //console.log(req.body)
 });
-module.exports = (app) => {
+/*module.exports = (app) => {
   //Raktárkészlet
   async function rak_kesz(own) {
     const [rows] = await db.query(`SELECT * FROM Termek WHERE Termek.tulajdonos = ${own}`);
@@ -21,7 +21,7 @@ module.exports = (app) => {
     return rows;
   }
 
-  app.get('/api/Raktar', async (req, res) => {
+  app.get('/api/Regisztracio', async (req, res) => {
     try {
       const users = await rak_kesz(own);
       res.json(users);
@@ -30,7 +30,4 @@ module.exports = (app) => {
       console.log(err);
     }
   });
-};
-/*app.listen(3000, () =>
-  console.log("Szerver fut: http://localhost:3000")
-);*/
+};*/
