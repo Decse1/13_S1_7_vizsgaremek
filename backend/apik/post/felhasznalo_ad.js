@@ -13,7 +13,7 @@ let own = 1
 app.post('/api/Fehasznalo_ad', (req, res) => {
   //console.log(req.body)
 });
-/*module.exports = (app) => {
+module.exports = (app) => {
   //Raktárkészlet
   async function rak_kesz(own) {
     const [rows] = await db.query(`SELECT * FROM Termek WHERE Termek.tulajdonos = ${own}`);
@@ -30,4 +30,4 @@ app.post('/api/Fehasznalo_ad', (req, res) => {
       console.log(err);
     }
   });
-};*/
+};

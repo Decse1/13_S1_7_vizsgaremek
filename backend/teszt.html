@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <title>Bejelentkezés teszt</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        input { padding: 8px; margin: 5px 0; width: 200px; }
+        button { padding: 10px 20px; cursor: pointer; }
+        #eredmeny { margin-top: 20px; padding: 10px; background: #eee; }
+    </style>
+</head>
+<body>
+
+    <h2>Bejelentkezés teszt</h2>
+
+    <label>Felhasználónév:</label><br>
+    <input type="text" id="username"><br>
+
+    <label>Jelszó:</label><br>
+    <input type="password" id="password"><br><br>
+
+    <button onclick="login()">Bejelentkezés</button>
+
+    <div id="eredmeny"></div>
+
+    <script>
+        function login() {
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+
+            axios.post("http://localhost:3000/api/Bejelent", {
+                username,
+                password
+            })
+            .then(res => {
+                document.getElementById("eredmeny").innerText =
+                    JSON.stringify(res.data, null, 4);
+            })
+            .catch(err => {
+                if (err.response) {
+                    document.getElementById("eredmeny").innerText =
+                        JSON.stringify(err.response.data, null, 4);
+                } else {
+                    document.getElementById("eredmeny").innerText =
+                        "Hiba: nem érhető el a szerver!";
+                }
+            });
+        }
+    </script>
+
+</body>
+</html>
