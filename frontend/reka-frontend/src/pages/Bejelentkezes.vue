@@ -71,10 +71,30 @@ export default {
     };
   },
   methods: {
-    onSubmit() {
-      console.log("Bejelentkezés...", this.username, this.password);
-      // Example: clear error on submit
+    async onSubmit() {
       this.showError = false;
+
+      try {
+        const response = await axios.post("http://localhost:3000/api/Bejelent", {
+          username: this.username,
+          password: this.password,
+        });
+
+        console.log("Szerver válasza:", response.data);
+
+        // Példa: ha sikeres login → átirányítás
+        if (response.data.success) {
+          this.$router.push("/dashboard");
+        } else {
+          this.errorMessage = response.data.message || "Hibás felhasználónév vagy jelszó.";
+          this.showError = true;
+        }
+
+      } catch (error) {
+        console.error("Hiba:", error);
+        this.errorMessage = "Nem sikerült csatlakozni a szerverhez.";
+        this.showError = true;
+      }
     },
     onForgotPassword() {
       // placeholder for future logic
