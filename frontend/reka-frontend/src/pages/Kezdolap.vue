@@ -6,6 +6,8 @@
   <div class="content">
     <h2>Kezdőlap</h2>
     <p>Üdv a kezdőlapon!</p>
+    <h2>Backend-kapcsolat:</h2>
+    <h3>Nincs</h3>
   </div>
 </template>
 

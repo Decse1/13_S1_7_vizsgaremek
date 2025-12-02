@@ -1,7 +1,9 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 
 const sidebarOpen = ref(false);
+const dropdownOpen = ref(false);
+const dropdownRef = ref(null);
 
 const toggleSidebar = () => {
   sidebarOpen.value = !sidebarOpen.value;
@@ -10,6 +12,28 @@ const toggleSidebar = () => {
 const closeSidebar = () => {
   sidebarOpen.value = false;
 };
+
+const toggleDropdown = () => {
+  dropdownOpen.value = !dropdownOpen.value;
+};
+
+const closeDropdown = () => {
+  dropdownOpen.value = false;
+};
+
+const handleClickOutside = (event) => {
+  if (dropdownRef.value && !dropdownRef.value.contains(event.target)) {
+    closeDropdown();
+  }
+};
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside);
+});
 </script>
 
 <template>
@@ -29,12 +53,24 @@ const closeSidebar = () => {
       </div>
 
       <!-- Right: Profile -->
-      <div class="d-flex align-items-center">
-        <img src="/src/pfp.png" alt="Profile" class="profile-img rounded-circle d-lg-none" />
+      <div class="d-flex align-items-center position-relative" ref="dropdownRef">
+        <img 
+          src="/src/pfp.png" 
+          alt="Profile" 
+          class="profile-img rounded-circle d-lg-none" 
+          @click="toggleDropdown"
+          style="cursor: pointer;"
+        />
 
-        <div class="d-none d-lg-flex align-items-center">
+        <div class="d-none d-lg-flex align-items-center" @click="toggleDropdown" style="cursor: pointer;">
           <img src="/src/pfp.png" alt="Profile" class="profile-img rounded-circle me-2" />
           <span>Tóth Réka</span>
+        </div>
+
+        <!-- Dropdown Menu -->
+        <div class="profile-dropdown" :class="{ show: dropdownOpen }">
+          <a href="#" class="dropdown-item" @click="closeDropdown">Profiladatok</a>
+          <a href="/bejelentkezes" class="dropdown-item logout" @click="closeDropdown">Kijelentkezés</a>
         </div>
       </div>
 
@@ -140,5 +176,58 @@ const closeSidebar = () => {
 
 .overlay.show {
   display: block;
+}
+
+/* Profile Dropdown */
+.profile-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.5rem;
+  background-color: white;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  min-width: 180px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: opacity 0.2s, transform 0.2s, visibility 0.2s;
+  z-index: 1050;
+}
+
+.profile-dropdown.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.profile-dropdown .dropdown-item {
+  display: block;
+  padding: 0.75rem 1rem;
+  color: #333;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.profile-dropdown .dropdown-item:first-child {
+  border-radius: 8px 8px 0 0;
+}
+
+.profile-dropdown .dropdown-item:last-child {
+  border-radius: 0 0 8px 8px;
+}
+
+.profile-dropdown .dropdown-item:hover {
+  background-color: #f8f9fa;
+}
+
+.profile-dropdown .dropdown-item.logout {
+  color: #dc3545;
+  font-weight: 500;
+}
+
+.profile-dropdown .dropdown-item.logout:hover {
+  background-color: #fff5f5;
 }
 </style>
