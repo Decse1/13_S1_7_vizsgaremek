@@ -60,6 +60,9 @@
 </template>
 
 <script>
+/*
+import axios from "axios";
+
 export default {
   name: "RekaLogin",
   data() {
@@ -74,27 +77,41 @@ export default {
     async onSubmit() {
       this.showError = false;
 
-      try {
         const response = await axios.post("http://localhost:3000/api/Bejelent", {
           username: this.username,
           password: this.password,
-        });
+        })
 
-        console.log("Szerver válasza:", response.data);
+        //console.log("Szerver válasza:", response.data);
 
         // Példa: ha sikeres login → átirányítás
-        if (response.data.success) {
-          this.$router.push("/dashboard");
+        .then(res => {
+            console.log(res.data);
+           if (res.data.ok) {
+            this.$router.push("/kezdolap");
+            } else {
+            this.errorMessage = res.data.uzenet || "Hibás felhasználónév vagy jelszó.";
+            this.showError = true;
+          }
+        })
+        .catch(err => {
+          if (err.response) {
+            document.getElementById("eredmeny").innerText =
+              JSON.stringify(err.response.data, null, 4);
+          } else {
+            document.getElementById("eredmeny").innerText =
+              "Hiba: nem érhető el a szerver!";
+          }
+        });
+
+        /*
+        if (response.data.ok) {
+          this.$router.push("/kezdolap");
         } else {
-          this.errorMessage = response.data.message || "Hibás felhasználónév vagy jelszó.";
+          this.errorMessage = response.data.uzenet || "Hibás felhasználónév vagy jelszó.";
           this.showError = true;
         }
-
-      } catch (error) {
-        console.error("Hiba:", error);
-        this.errorMessage = "Nem sikerült csatlakozni a szerverhez.";
-        this.showError = true;
-      }
+          
     },
     onForgotPassword() {
       // placeholder for future logic
@@ -102,6 +119,64 @@ export default {
     },
     onRequestAccess() {
       // For testing: show a test error message in the alert box
+      this.errorMessage = "Teszt hibaüzenet: a hozzáférés kérés funkció még nem elérhető.";
+      this.showError = true;
+    },
+  },
+};
+*/
+
+import axios from "axios";
+
+export default {
+  name: "RekaLogin",
+  data() {
+    return {
+      username: "",
+      password: "",
+      showError: false,
+      errorMessage: "",
+      eredmeny: "", // opcionális: szerver válasz megjelenítéséhez
+    };
+  },
+  methods: {
+    async onSubmit() {
+      this.showError = false;
+      this.eredmeny = "";
+
+      try {
+        const response = await axios.post("http://localhost:3000/api/Bejelent", {
+          username: this.username,
+          password: this.password,
+        });
+
+        // A backend mindig 200 OK, ha minden rendben, ok ellenőrzése
+        if (response.data.ok) {
+          console.log("Felhasználó:", response.data.felhasznalo);
+          console.log("Cég:", response.data.ceg);
+          this.$router.push("/kezdolap");
+        }
+
+        this.eredmeny = JSON.stringify(response.data, null, 4);
+
+      } catch (err) {
+        // 400-as hibák itt is elkapódnak
+
+        if (!response.data.ok) {
+          this.errorMessage = response.data.uzenet || "Hibás felhasználónév vagy jelszó.";
+        }
+        if (err.response) {
+          this.eredmeny = JSON.stringify(err.response.data, null, 4);
+        } else {
+          this.eredmeny = "Hiba: nem érhető el a szerver!";
+        }
+        this.showError = true;
+      }
+    },
+    onForgotPassword() {
+      this.showError = false;
+    },
+    onRequestAccess() {
       this.errorMessage = "Teszt hibaüzenet: a hozzáférés kérés funkció még nem elérhető.";
       this.showError = true;
     },
