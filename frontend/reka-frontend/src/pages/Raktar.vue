@@ -3,8 +3,8 @@
 
   // sample product list
   const items = ref([
-    { name: 'Coca-Cola 1,75l (6db zsugor)', stock: 45 },
-    { name: 'NaturAqua szénsavas 1,5l (6db zsugor)', stock: 58 },
+    { name: 'Coca-Cola 1,75l', kiszereles: '6 db zsugor', stock: 45 },
+    { name: 'NaturAqua szénsavas 1,5l', kiszereles: '6 db zsugor', stock: 58 },
   ])
 
   const search = ref('')
@@ -28,10 +28,11 @@
   const newProduct = ref({
     name: '',
     stock: 0,
+    kiszereles: '',
   })
 
   const openAddModal = () => {
-    newProduct.value = { name: '', stock: 0 }
+    newProduct.value = { name: '', stock: 0, kiszereles: '' }
     showAddModal.value = true
   }
 
@@ -44,6 +45,7 @@
     items.value.push({
       name: newProduct.value.name,
       stock: Number(newProduct.value.stock) || 0,
+      kiszereles: newProduct.value.kiszereles,
     })
     closeAddModal()
   }
@@ -79,8 +81,9 @@
     <table class="table custom-table" style="border-bottom: 1px solid black;">
       <thead>
         <tr>
-          <th style="width: 89%;">Terméknév</th>
-          <th class="text-end" style="width: 6%;">Készlet</th>
+          <th style="width: 60%;">Terméknév</th>
+          <th style="width: 23%;">Kiszerelés</th>
+          <th class="text-end" style="width: 12%;">Készlet</th>
           <th style="width: 2.5%;"></th>
           <th style="width: 2.5%;"></th>
         </tr>
@@ -88,6 +91,7 @@
       <tbody>
         <tr v-for="(item, index) in filteredItems" :key="index">
           <td>{{ item.name }}</td>
+          <td>{{ item.kiszereles }}</td>
           <td class="text-end">{{ item.stock }} db</td>
           <td><i class="bi bi-pencil" @click="edit(item)"/></td>
           <td><i class="bi bi-trash" @click="remove(item)"/></td>
@@ -143,14 +147,14 @@
                 <div class="mb-3">
                   <label class="form-label">Termék kiszerelése</label>
                   <input
+                    v-model="newProduct.kiszereles"
                     type="text"
-                    min="0"
                     class="form-control"
                     required
                   />
                 </div>
                 <div class="mb-3">
-                  <label class="form-label">Termék kiszerelése</label>
+                  <label class="form-label">Még egy mező</label>
                   <input
                     type="text"
                     min="0"
