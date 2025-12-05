@@ -35,13 +35,13 @@ module.exports = (app) => {
             const felhasznalok = await Felhasznalo(username);
 
             if (felhasznalok.length === 0) {
-                return res.status(400).json({ ok: false, uzenet: "Hibás felhasználónév!" });
+                return res.status(200).json({ ok: false, uzenet: "Hibás felhasználónév!" });
             }
 
             const felhasznalo = felhasznalok[0];
 
             if (felhasznalo.jelszo !== password) {
-                return res.status(400).json({ ok: false, uzenet: "Hibás jelszó!" });
+                return res.status(200).json({ ok: false, uzenet: "Hibás jelszó!" });
             }
 
             const cegek = await Ceg_adat(felhasznalo.id);

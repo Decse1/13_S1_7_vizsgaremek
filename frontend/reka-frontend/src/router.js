@@ -2,12 +2,35 @@ import { createRouter, createWebHistory } from 'vue-router';
 import Kezdolap from "./pages/Kezdolap.vue";
 import Raktar from "./pages/Raktar.vue";
 import Bejelentkezes from './pages/Bejelentkezes.vue';
+import authStore from './stores/auth.js';
 
 const routes = [
   { path: "/", redirect: "/bejelentkezes" },
-  { path: "/kezdolap", name: "Kezdőlap", component: Kezdolap },
-  { path: "/raktar", name: "Raktár", component: Raktar },
-  { path: "/bejelentkezes", name: "Bejelentkezés", component: Bejelentkezes }
+  { 
+    path: "/kezdolap", 
+    name: "Kezdőlap", 
+    component: Kezdolap,
+    meta: { requiresAuth: true }
+  },
+  { 
+    path: "/raktar", 
+    name: "Raktár", 
+    component: Raktar,
+    meta: { requiresAuth: true }
+  },
+  { 
+    path: "/bejelentkezes", 
+    name: "Bejelentkezés", 
+    component: Bejelentkezes,
+    meta: { requiresGuest: true }
+  },
+  {
+    path: "/:pathMatch(.*)*",
+    name: "NotFound",
+    redirect: () => {
+      return { path: "/kezdolap", query: { error: "page-not-found" } };
+    }
+  }
 ];
 
 const router = createRouter({
@@ -15,5 +38,22 @@ const router = createRouter({
   routes
 });
 
+// Navigation guards
+router.beforeEach((to, from, next) => {
+  const isAuthenticated = authStore.isAuthenticated;
+  
+  // If route requires authentication and user is not logged in
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    next('/bejelentkezes');
+  } 
+  // If user is logged in and tries to access login page
+  else if (to.meta.requiresGuest && isAuthenticated) {
+    next('/kezdolap');
+  } 
+  // Otherwise, proceed
+  else {
+    next();
+  }
+});
 
 export default router;

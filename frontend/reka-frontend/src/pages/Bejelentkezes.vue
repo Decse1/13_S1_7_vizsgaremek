@@ -127,6 +127,7 @@ export default {
 */
 
 import axios from "axios";
+import authStore, { setAuthState } from "../stores/auth.js";
 
 export default {
   name: "RekaLogin",
@@ -139,38 +140,50 @@ export default {
       eredmeny: "", // opcionális: szerver válasz megjelenítéséhez
     };
   },
+  mounted() {
+    // If already logged in, redirect to home page
+    if (authStore.isAuthenticated) {
+      this.$router.push("/kezdolap");
+    }
+  },
   methods: {
     async onSubmit() {
       this.showError = false;
       this.eredmeny = "";
 
       try {
-        const response = await axios.post("http://localhost:3000/api/Bejelent", {
-          username: this.username,
-          password: this.password,
-        });
+      const response = await axios.post("http://localhost:3000/api/Bejelent", {
+        username: this.username,
+        password: this.password,
+      });
 
-        // A backend mindig 200 OK, ha minden rendben, ok ellenőrzése
-        if (response.data.ok) {
-          console.log("Felhasználó:", response.data.felhasznalo);
-          console.log("Cég:", response.data.ceg);
-          this.$router.push("/kezdolap");
-        }
-
-        this.eredmeny = JSON.stringify(response.data, null, 4);
+      // A backend mindig 200 OK, ha minden rendben, ok ellenőrzése
+      if (!response.data.ok) {
+        this.errorMessage = response.data.uzenet || "Hibás felhasználónév vagy jelszó.";
+        this.showError = true;
+      }
+      else if (response.data.ok) {
+        console.log("Felhasználó:", response.data.felhasznalo);
+        console.log("Cég:", response.data.ceg);
+        
+        // Store authentication data
+        setAuthState(response.data.felhasznalo, response.data.ceg);
+        
+        this.$router.push("/kezdolap");
+      }
+      
+      this.eredmeny = JSON.stringify(response.data, null, 4);
 
       } catch (err) {
-        // 400-as hibák itt is elkapódnak
-
-        if (!response.data.ok) {
-          this.errorMessage = response.data.uzenet || "Hibás felhasználónév vagy jelszó.";
-        }
-        if (err.response) {
-          this.eredmeny = JSON.stringify(err.response.data, null, 4);
-        } else {
-          this.eredmeny = "Hiba: nem érhető el a szerver!";
-        }
-        this.showError = true;
+      // 400-as hibák itt is elkapódnak
+      if (err.response) {
+        this.errorMessage = err.response.data.uzenet || "Hiba történt a kérés során.";
+        this.eredmeny = JSON.stringify(err.response.data, null, 4);
+      } else {
+        this.errorMessage = "Hiba: nem érhető el a szerver!";
+        this.eredmeny = "Hiba: nem érhető el a szerver!";
+      }
+      this.showError = true;
       }
     },
     onForgotPassword() {

@@ -29,10 +29,18 @@
     name: '',
     stock: 0,
     kiszereles: '',
+    category: '',
   })
 
+  // Category options
+  const categories = ref([
+    'Üdítők',
+    'Ásványvizek',
+    'Élelmiszerek'
+  ])
+
   const openAddModal = () => {
-    newProduct.value = { name: '', stock: 0, kiszereles: '' }
+    newProduct.value = { name: '', stock: 0, kiszereles: '', category: '' }
     showAddModal.value = true
   }
 
@@ -139,7 +147,6 @@
                   <label class="form-label">Cikkszám</label>
                   <input
                     type="text"
-                    min="0"
                     class="form-control"
                     required
                   />
@@ -154,9 +161,48 @@
                   />
                 </div>
                 <div class="mb-3">
-                  <label class="form-label">Még egy mező</label>
+                  <label class="form-label">Minimum vásárlási mennyiség</label>
+                  <input
+                    type="number"
+                    min="1"
+                    class="form-control"
+                    required
+                  />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Termék leírása</label>
                   <input
                     type="text"
+                    class="form-control"
+                    required
+                  />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Ár (magyar forint, nettó)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    class="form-control"
+                    required
+                  />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Termék kategóriája</label>
+                  <select
+                    v-model="newProduct.category"
+                    class="form-select"
+                    required
+                  >
+                    <option value="" disabled>Válasszon kategóriát...</option>
+                    <option v-for="category in categories" :key="category" :value="category">
+                      {{ category }}
+                    </option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Áfakulcs</label>
+                  <input
+                    type="number"
                     min="0"
                     class="form-control"
                     required
@@ -274,6 +320,9 @@
   .modal-dialog-custom {
     max-width: 500px;
     width: 90%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
   }
 
   .custom-modal-content {
@@ -281,12 +330,21 @@
     border-radius: 1rem;
     overflow: hidden;
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
   }
 
   .custom-modal-content .modal-header,
-  .custom-modal-content .modal-body,
   .custom-modal-content .modal-footer {
     padding: 0.75rem 1rem;
+    flex-shrink: 0;
+  }
+
+  .custom-modal-content .modal-body {
+    padding: 0.75rem 1rem;
+    overflow-y: auto;
+    flex: 1 1 auto;
   }
 
   /* Modal open/close animation */

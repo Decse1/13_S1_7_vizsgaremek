@@ -1,9 +1,16 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { useRouter } from 'vue-router';
+import authStore, { clearAuthState } from '../stores/auth.js';
 
+const router = useRouter();
 const sidebarOpen = ref(false);
 const dropdownOpen = ref(false);
 const dropdownRef = ref(null);
+
+const userName = computed(() => {
+  return authStore.user?.nev || 'Felhasználó';
+});
 
 const toggleSidebar = () => {
   sidebarOpen.value = !sidebarOpen.value;
@@ -19,6 +26,12 @@ const toggleDropdown = () => {
 
 const closeDropdown = () => {
   dropdownOpen.value = false;
+};
+
+const handleLogout = () => {
+  clearAuthState();
+  closeDropdown();
+  router.push('/bejelentkezes');
 };
 
 const handleClickOutside = (event) => {
@@ -64,13 +77,13 @@ onUnmounted(() => {
 
         <div class="d-none d-lg-flex align-items-center" @click="toggleDropdown" style="cursor: pointer;">
           <img src="/src/pfp.png" alt="Profile" class="profile-img rounded-circle me-2" />
-          <span>Tóth Réka</span>
+          <span>{{ userName }}</span>
         </div>
 
         <!-- Dropdown Menu -->
         <div class="profile-dropdown" :class="{ show: dropdownOpen }">
-          <a href="#" class="dropdown-item" @click="closeDropdown">Profiladatok</a>
-          <a href="/bejelentkezes" class="dropdown-item logout" @click="closeDropdown">Kijelentkezés</a>
+          <a href="#" class="dropdown-item" @click.prevent="closeDropdown">Profiladatok</a>
+          <a href="#" class="dropdown-item logout" @click.prevent="handleLogout">Kijelentkezés</a>
         </div>
       </div>
 
