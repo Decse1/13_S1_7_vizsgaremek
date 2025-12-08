@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import Kezdolap from "./pages/Kezdolap.vue";
 import Raktar from "./pages/Raktar.vue";
+import CegInfo from "./pages/CegInfo.vue";
 import Bejelentkezes from './pages/Bejelentkezes.vue';
 import authStore from './stores/auth.js';
 
@@ -16,6 +17,12 @@ const routes = [
     path: "/raktar", 
     name: "Raktár", 
     component: Raktar,
+    meta: { requiresAuth: true }
+  },
+  { 
+    path: "/ceginfo", 
+    name: "Cégadatok", 
+    component: CegInfo,
     meta: { requiresAuth: true }
   },
   { 

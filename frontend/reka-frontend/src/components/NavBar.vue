@@ -95,7 +95,7 @@ onUnmounted(() => {
     <router-link to="/kezdolap" @click="closeSidebar" class="sidebar-item">Kezdőlap</router-link>
     <router-link to="/" @click="closeSidebar" class="sidebar-item">Áruház</router-link>
     <router-link to="/raktar" @click="closeSidebar" class="sidebar-item">Raktárkezelés</router-link>
-    <router-link to="/" @click="closeSidebar" class="sidebar-item">Cégem</router-link>
+    <router-link to="/ceginfo" @click="closeSidebar" class="sidebar-item">Cégem</router-link>
     <router-link to="/" @click="closeSidebar" class="sidebar-item">Beállítások</router-link>
   </div>
 
