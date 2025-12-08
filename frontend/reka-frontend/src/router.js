@@ -3,6 +3,7 @@ import Kezdolap from "./pages/Kezdolap.vue";
 import Raktar from "./pages/Raktar.vue";
 import CegInfo from "./pages/CegInfo.vue";
 import Bejelentkezes from './pages/Bejelentkezes.vue';
+import Regisztracio from './pages/Regisztracio.vue';
 import authStore from './stores/auth.js';
 
 const routes = [
@@ -29,6 +30,12 @@ const routes = [
     path: "/bejelentkezes", 
     name: "Bejelentkezés", 
     component: Bejelentkezes,
+    meta: { requiresGuest: true }
+  },
+  { 
+    path: "/regisztracio", 
+    name: "Regisztráció", 
+    component: Regisztracio,
     meta: { requiresGuest: true }
   },
   {

@@ -17,7 +17,9 @@
     setup() {
       const route = useRoute();
 
-      const hideNavBar = computed(() => route.path === "/bejelentkezes");
+      const hideNavBar = computed(() =>
+        ["/bejelentkezes", "/regisztracio"].includes(route.path)
+      );
 
       return { hideNavBar };
     }
