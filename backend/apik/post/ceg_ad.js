@@ -7,24 +7,46 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-//Lekérdezés változók
-let own = 1
-//Érkezetett adatok:
-app.post('/api/Ceg_ad', (req, res) => {
-  //console.log(req.body)
-});
-module.exports = (app) => {
-  //Raktárkészlet
-  async function rak_kesz(own) {
-    const [rows] = await db.query(`SELECT * FROM Termek WHERE Termek.tulajdonos = ${own}`);
-    //console.log(rows);
-    return rows;
+async function ceg_ad(ceg) {
+  let fizet = 0; 
+  if(ceg.elofiz){
+    fizet = 1;
   }
+  const [rows] = await db.query(`INSERT INTO Ceg (nev, adoszam, euAdoszam, cim, email, telefon, elofiz) VALUES ('
+    ${ceg.nev}', '${ceg.adoszam}', '${ceg.euAdoszam}', '${ceg.cim}', '${ceg.email}', '${ceg.telefon}', '${fizet}');`);
+}
 
-  app.get('/api/Raktar', async (req, res) => {
+module.exports = (app) => {
+  app.post('/api/Ceg_ad', async (req, res) => {
     try {
-      const users = await rak_kesz(own);
-      res.json(users);
+      let ceg = req.body;
+      if(Object.keys(ceg).length == 7){
+        if (ceg.nev != ""){
+          if(ceg.adoszam != ""){
+            if(ceg.cim != ""){
+              if(ceg.email != "" || ceg.telefon != ""){
+                ceg_ad(ceg);
+                return res.status(200).json({ ok:true, uzenet:"Sikeres adatfelvétel!" });
+              }
+              else{
+                return res.status(200).json({ ok:false, uzenet: "Kérem adjon meg legalább egy elérhetőséget (email vagy telefon)!" });
+              }
+            }
+            else{
+              return res.status(200).json({ ok:false, uzenet: "Kérem adja meg a cég címét!" });
+            }
+          }
+          else{
+            return res.status(200).json({ ok:false, uzenet: "Kérem adja meg a cég adószámát!" });
+          }
+        }
+        else{
+          return res.status(200).json({ ok:false, uzenet: "Kérem adja meg a cég nevét!" });
+        }
+      }
+      else{
+        return res.status(200).json({ ok:false, uzenet: "Hiányzó adatok!" });
+      }
     } catch (err) {
       res.status(500).json({ error: "Adatbázis hiba!" });
       console.log(err);

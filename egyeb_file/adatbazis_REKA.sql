@@ -14,31 +14,31 @@ DROP TABLE IF EXISTS Ceg;
 -- CREATE TABLES
 -- ----------------------------
 CREATE TABLE Ceg (
-    id INT PRIMARY KEY,
-    nev VARCHAR(100),
-    adoszam VARCHAR(11),
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    nev VARCHAR(100) NOT NULL,
+    adoszam VARCHAR(11) NOT NULL,
     euAdoszam VARCHAR(20),
-    cim VARCHAR(255),
+    cim VARCHAR(255) NOT NULL,
     email VARCHAR(100),
     telefon VARCHAR(15),
     elofiz BOOLEAN
 );
 
 CREATE TABLE Felhasznalo (
-    id INT PRIMARY KEY,
-    nev VARCHAR(100),
-    jelszo VARCHAR(100),
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    nev VARCHAR(100) NOT NULL,
+    jelszo VARCHAR(100) NOT NULL,
     kategoria INT NOT NULL,
-    telephely_cim VARCHAR(255),
+    telephely_cim VARCHAR(255) NOT NULL,
     telefon VARCHAR(15)
 );
 
 CREATE TABLE Partnerseg (
-    id INT PRIMARY KEY,
+    id INT PRIMARY KEY AUTO_INCREMENT,
     elado INT NOT NULL,
     vevo INT NOT NULL,
-    fizetesi_ido INT,
-    fizetesi_forma VARCHAR(50),
+    fizetesi_ido INT NOT NULL,
+    fizetesi_forma VARCHAR(50) NOT NULL,
     INDEX (elado),
     INDEX (vevo),
     FOREIGN KEY (elado) REFERENCES Ceg(id),
@@ -46,12 +46,12 @@ CREATE TABLE Partnerseg (
 );
 
 CREATE TABLE Termek_kategoria (
-    id INT PRIMARY KEY,
-    nev VARCHAR(100)
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    nev VARCHAR(100) NOT NULL
 );
 
 CREATE TABLE Termek (
-    id INT PRIMARY KEY,
+    id INT PRIMARY KEY AUTO_INCREMENT,
     tulajdonos INT NOT NULL,
     nev VARCHAR(100) NOT NULL,
     cikkszam VARCHAR(100),
@@ -59,9 +59,9 @@ CREATE TABLE Termek (
     kiszereles VARCHAR(10),
     min_vas_menny INT,
     leiras TEXT,
-    ar INT,
+    ar INT NOT NULL,
     kategoria INT NOT NULL,
-    afa_kulcs INT,
+    afa_kulcs INT NOT NULL,
     INDEX (tulajdonos),
     INDEX (kategoria),
     FOREIGN KEY (tulajdonos) REFERENCES Ceg(id),
@@ -69,7 +69,7 @@ CREATE TABLE Termek (
 );
 
 CREATE TABLE Rendeles (
-    id INT PRIMARY KEY,
+    id INT PRIMARY KEY AUTO_INCREMENT,
     partnerseg INT NOT NULL,
     datum DATE NOT NULL,
     status VARCHAR(10) NOT NULL,
@@ -92,8 +92,8 @@ CREATE TABLE RendelesTetel (
 );
 
 CREATE TABLE Ceg_alkalmazott (
-    cegId INT,
-    felhasznaloId INT,
+    cegId INT NOT NULL,
+    felhasznaloId INT NOT NULL,
     INDEX (cegId),
     INDEX (felhasznaloId),
     FOREIGN KEY (cegId) REFERENCES Ceg(id),
