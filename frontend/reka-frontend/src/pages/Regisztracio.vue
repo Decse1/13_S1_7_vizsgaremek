@@ -1,11 +1,9 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
+import axios from 'axios';
 
 const router = useRouter();
-
-const errorMessage = "Libalibaliba";
-const showError = ref(true);
 
 const formData = ref({
   cegNeve: '',
@@ -14,16 +12,77 @@ const formData = ref({
   adoszamEuropai: '',
   cegTelszam: '',
   cegEmail: '',
-  felhasznalonev: '',
-  jelszo: '',
-  telephelyCime: '',
-  felhszTel: '',
   elfogadom: false
 });
 
-const handleSubmit = () => {
-  console.log('Registration data:', formData.value);
-  // TODO: Implement registration API call
+const showError = ref(false);
+const errorMessage = ref('');
+const showSuccess = ref(false);
+const successMessage = ref('');
+const isSubmitting = ref(false);
+
+const handleSubmit = async () => {
+  // Reset messages
+  showError.value = false;
+  showSuccess.value = false;
+  isSubmitting.value = true;
+
+  try {
+    // Prepare data according to backend API expectations
+    const cegData = {
+      nev: formData.value.cegNeve,
+      adoszam: formData.value.adoszamMagyar,
+      euAdoszam: formData.value.adoszamEuropai,
+      cim: formData.value.cegCime,
+      email: formData.value.cegEmail,
+      telefon: formData.value.cegTelszam,
+      elofiz: false // Default to false for new registrations
+    };
+
+    // Make API call to backend using axios
+    const response = await axios.post('http://localhost:3000/api/Ceg_ad', cegData);
+
+    if (response.data.ok) {
+      // Success
+      successMessage.value = response.data.uzenet || 'Sikeres regisztráció!';
+      showSuccess.value = true;
+      
+      // Reset form
+      formData.value = {
+        cegNeve: '',
+        cegCime: '',
+        adoszamMagyar: '',
+        adoszamEuropai: '',
+        cegTelszam: '',
+        cegEmail: '',
+        elfogadom: false
+      };
+
+      // Redirect to login page after 2 seconds
+      setTimeout(() => {
+        router.push('/bejelentkezes');
+      }, 2000);
+    } else {
+      // Error from backend
+      errorMessage.value = response.data.uzenet || 'Hiba történt a regisztráció során!';
+      showError.value = true;
+    }
+  } catch (error) {
+    console.error('Registration error:', error);
+    if (error.response) {
+      // Server responded with error
+      errorMessage.value = error.response.data.uzenet || error.response.data.error || 'Hiba történt a regisztráció során!';
+    } else if (error.request) {
+      // Request made but no response
+      errorMessage.value = 'Nem sikerült kapcsolódni a szerverhez. Kérjük, próbálja újra később!';
+    } else {
+      // Something else happened
+      errorMessage.value = 'Hiba történt a kérés feldolgozása során!';
+    }
+    showError.value = true;
+  } finally {
+    isSubmitting.value = false;
+  }
 };
 </script>
 <template>
@@ -41,9 +100,9 @@ const handleSubmit = () => {
     <h2 class="mb-4">Regisztráció</h2>
     
     <form @submit.prevent="handleSubmit">
-      <!-- I. Cég adatai -->
+      <!-- Cég adatai -->
       <section class="mb-4">
-        <h5 class="mb-3">I. Cég adatai</h5>
+        <h5 class="mb-3">Cég adatai</h5>
         
         <div class="mb-3">
           <label for="cegNeve" class="form-label">Cég neve</label>
@@ -112,7 +171,8 @@ const handleSubmit = () => {
         </div>
       </section>
 
-      <!-- II. Rendszerkezelő felhasználó adatai -->
+
+      <!-- II. Rendszerkezelő felhasználó adatai  nem ide kell
       <section class="mb-4">
         <h5 class="mb-3">II. Rendszerkezelő felhasználó adatai</h5>
         
@@ -160,6 +220,7 @@ const handleSubmit = () => {
           />
         </div>
       </section>
+      -->
 
       <!-- Checkbox -->
       <div class="form-check mb-4">
@@ -175,6 +236,7 @@ const handleSubmit = () => {
         </label>
       </div>
 
+      <!-- Error Alert -->
       <div
         v-if="showError"
         class="alert alert-danger d-flex justify-content-between align-items-center mb-4"
@@ -184,10 +246,30 @@ const handleSubmit = () => {
         <button type="button" class="btn-close" aria-label="Bezárás" @click="showError = false"></button>
       </div>
 
+      <!-- Success Alert -->
+      <div
+        v-if="showSuccess"
+        class="alert alert-success d-flex justify-content-between align-items-center mb-4"
+        role="alert"
+      >
+        <span>{{ successMessage }}</span>
+        <button type="button" class="btn-close" aria-label="Bezárás" @click="showSuccess = false"></button>
+      </div>
+
       <!-- Submit Button -->
       <div class="text-center">
-        <button type="submit" class="btn btn-primary btn-lg fw-bold px-5 rounded-pill">
-          Regisztráció elküldése
+        <button 
+          type="submit" 
+          class="btn btn-primary btn-lg fw-bold px-5 rounded-pill"
+          :disabled="isSubmitting || !formData.elfogadom"
+        >
+          <span v-if="isSubmitting">
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            Feldolgozás...
+          </span>
+          <span v-else>
+            Regisztráció elküldése
+          </span>
         </button>
       </div>
     </form>
@@ -208,6 +290,11 @@ const handleSubmit = () => {
 .btn-primary:hover {
   background-color: #007a72;
   border-color: #007a72;
+}
+
+.btn-primary:disabled {
+  background-color: #557976;
+  border-color: #557976;
 }
 
 .custom-input {

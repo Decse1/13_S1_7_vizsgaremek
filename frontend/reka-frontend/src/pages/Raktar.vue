@@ -1,19 +1,54 @@
 <script setup>
-  import { ref, computed } from 'vue'
+  import { ref, computed, onMounted } from 'vue'
+  import axios from 'axios'
+  import authStore from '../stores/auth'
 
-  // sample product list
-  const items = ref([
-    { id: 1, name: 'Coca-Cola 1,75l', kiszereles: '6 db zsugor', stock: 45 },
-    { id: 1, name: 'NaturAqua szénsavas 1,5l', kiszereles: '6 db zsugor', stock: 58 },
-  ])
+  // product list from database
+  const items = ref([])
+  const loading = ref(false)
+  const error = ref('')
 
   const search = ref('')
 
   const filteredItems = computed(() =>
     items.value.filter((item) =>
-      item.name.toLowerCase().includes(search.value.toLowerCase())
+      item.nev.toLowerCase().includes(search.value.toLowerCase())
     )
   )
+
+  // Fetch products from backend
+  const fetchProducts = async () => {
+    if (!authStore.ceg || !authStore.ceg.id) {
+      error.value = 'Nincs bejelentkezve cég!'
+      return
+    }
+
+    loading.value = true
+    error.value = ''
+
+    try {
+      const response = await axios.post('http://localhost:3000/api/Raktar', {
+        id: authStore.ceg.id
+      })
+
+      if (response.data.ok) {
+        items.value = response.data.termekek
+      } else {
+        error.value = response.data.uzenet || 'Hiba történt a termékek betöltése közben'
+        items.value = []
+      }
+    } catch (err) {
+      console.error('Axios error:', err)
+      error.value = 'Hiba történt a szerver kapcsolat során!'
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Load products on component mount
+  onMounted(() => {
+    fetchProducts()
+  })
 
   const edit = (item) => {
     console.log('Edit:', item)
@@ -86,7 +121,17 @@
     </div>
 
     <!-- First table -->
-    <table class="table custom-table" style="border-bottom: 1px solid black;">
+    <div v-if="loading" class="text-center my-4">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Betöltés...</span>
+      </div>
+    </div>
+
+    <div v-else-if="error" class="alert alert-warning" role="alert">
+      {{ error }}
+    </div>
+
+    <table v-else class="table custom-table" style="border-bottom: 1px solid black;">
       <thead>
         <tr>
           <th style="width: 60%;">Terméknév</th>
@@ -97,10 +142,13 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(item, index) in filteredItems" :key="index">
-          <td>{{ item.name }}</td>
+        <tr v-if="filteredItems.length === 0">
+          <td colspan="5" class="text-center">Nincs megjeleníthető termék</td>
+        </tr>
+        <tr v-for="(item, index) in filteredItems" :key="item.id || index">
+          <td>{{ item.nev }}</td>
           <td>{{ item.kiszereles }}</td>
-          <td class="text-end">{{ item.stock }} db</td>
+          <td class="text-end">{{ item.mennyiseg }}</td>
           <td><i class="bi bi-pencil" @click="edit(item)"/></td>
           <td><i class="bi bi-trash" @click="remove(item)"/></td>
         </tr>
@@ -122,6 +170,10 @@
               <h5 class="modal-title">Új termék felvétele</h5>
               <button type="button" class="btn-close" @click="closeAddModal"></button>
             </div>
+            <div class="modal-body">
+              <h4>A funkció fejlesztés alatt áll...</h4>
+            </div>
+            <!-- 
             <div class="modal-body">
               <form @submit.prevent="saveNewProduct">
                 <div class="mb-3">
@@ -210,11 +262,13 @@
                 </div>
               </form>
             </div>
+            -->
+            
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" @click="closeAddModal">
                 Mégse
               </button>
-              <button type="button" class="btn btn-primary" @click="saveNewProduct">
+              <button type="button" class="btn btn-primary" @click="closeAddModal">
                 Mentés
               </button>
             </div>
