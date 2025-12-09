@@ -8,8 +8,7 @@ app.use(express.json());
 app.use(express.static('public'));
 
 async function felhasznalo_ad(profil) {
-  const [rows] = await db.query(`INSERT INTO Felhasznalo (id, nev, jelszo, kategoria, telephely_cim, telefon)
-VALUES (41, 'Teszt János', 'jelszo123', 2, '6500 Baja, Fő tér 12.', '+36701234567');`);
+  const [rows] = await db.query(`INSERT INTO Felhasznalo (id, nev, jelszo, kategoria, telephely_cim, telefon) VALUES ("${profil.nev}","${profil.jelszo}","${profil.kategoria}","${profil.telephely_cim}","${profil.telefon}",);`);
   //console.log(rows);
   return rows;
 }
