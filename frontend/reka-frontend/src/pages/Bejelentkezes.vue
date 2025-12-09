@@ -1,64 +1,3 @@
-<!--/src/reka_logo_white.png-->
-<template>
-  <div class="d-flex flex-column justify-content-center align-items-center bg-teal min-vh-100">
-    <img src="/src/reka_logo_white.png" alt="RÉKA logo" class="logo mb-2" />
-
-    <div class="p-4 login-card shadow-lg rounded-5 bg-white">
-      <div class="text-center mb-4 mt-1">
-        <h3 class="fw-bold">Bejelentkezés a RÉKA-rendszerbe</h3>
-      </div>
-
-      <form @submit.prevent="onSubmit">
-        <div class="mb-3">
-          <input
-            id="username"
-            v-model="username"
-            type="text"
-            class="form-control form-control-lg custom-input"
-            placeholder="Felhasználónév"
-            required
-          />
-        </div>
-
-        <div class="mb-4">
-          <input
-            id="password"
-            v-model="password"
-            type="password"
-            class="form-control form-control-lg custom-input"
-            placeholder="Jelszó"
-            required
-          />
-        </div>
-
-        <!-- Error alert -->
-        <div
-          v-if="showError"
-          class="alert alert-danger d-flex justify-content-between align-items-center mb-4"
-          role="alert"
-        >
-          <span>{{ errorMessage }}</span>
-          <button type="button" class="btn-close" aria-label="Bezárás" @click="showError = false"></button>
-        </div>
-
-        <div class="text-center">
-          <button
-            type="submit"
-            class="btn btn-primary btn-login-teal btn-lg px-5 py-2 fw-bold rounded-pill w-100"
-          >
-            Bejelentkezés
-          </button>
-        </div>
-      </form>
-
-      <div class="text-center mt-4 small text-muted">
-        <p class="mb-1"><a href="#" @click.prevent="onForgotPassword">Elfelejtettem a jelszavamat</a></p>
-        <p><a href="#" @click.prevent="onRequestAccess">Hozzáférés kérése a RÉKA-rendszerhez</a></p>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script>
 import axios from "axios";
 import authStore, { setAuthState } from "../stores/auth.js";
@@ -130,6 +69,66 @@ export default {
   },
 };
 </script>
+
+<template>
+  <div class="d-flex flex-column justify-content-center align-items-center bg-teal min-vh-100">
+    <img src="/src/reka_logo_white.png" alt="RÉKA logo" class="logo mb-2" />
+
+    <div class="p-4 login-card shadow-lg rounded-5 bg-white">
+      <div class="text-center mb-4 mt-1">
+        <h3 class="fw-bold">Bejelentkezés a RÉKA-rendszerbe</h3>
+      </div>
+
+      <form @submit.prevent="onSubmit">
+        <div class="mb-3">
+          <input
+            id="username"
+            v-model="username"
+            type="text"
+            class="form-control form-control-lg custom-input"
+            placeholder="Felhasználónév"
+            required
+          />
+        </div>
+
+        <div class="mb-4">
+          <input
+            id="password"
+            v-model="password"
+            type="password"
+            class="form-control form-control-lg custom-input"
+            placeholder="Jelszó"
+            required
+          />
+        </div>
+
+        <!-- Error alert -->
+        <div
+          v-if="showError"
+          class="alert alert-danger d-flex justify-content-between align-items-center mb-4"
+          role="alert"
+        >
+          <span>{{ errorMessage }}</span>
+          <button type="button" class="btn-close" aria-label="Bezárás" @click="showError = false"></button>
+        </div>
+
+        <div class="text-center">
+          <button
+            type="submit"
+            class="btn btn-primary btn-login-teal btn-lg px-5 py-2 fw-bold rounded-pill w-100"
+          >
+            Bejelentkezés
+          </button>
+        </div>
+      </form>
+
+      <div class="text-center mt-4 small text-muted">
+        <p class="mb-1"><a href="#" @click.prevent="onForgotPassword">Elfelejtettem a jelszavamat</a></p>
+        <p><a href="/regisztracio">Hozzáférés kérése a RÉKA-rendszerhez</a></p>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .bg-teal {

@@ -117,7 +117,7 @@ onUnmounted(() => {
 
 /* Sidebar styling */
 .sidebar {
-  height: 100vh;
+  height: 105vh;
   width: 250px;
   position: fixed;
   top: 56px;
@@ -179,12 +179,12 @@ onUnmounted(() => {
 .overlay {
   display: none;
   position: fixed;
-  top: 56px;
+  top: 66px;
   left: 0;
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.4);
-  z-index: 1030;
+  z-index: 1020;
 }
 
 .overlay.show {

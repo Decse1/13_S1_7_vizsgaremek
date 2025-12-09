@@ -4,13 +4,20 @@ import { useRouter } from 'vue-router';
 
 const router = useRouter();
 
+const errorMessage = "Libalibaliba";
+const showError = ref(true);
+
 const formData = ref({
   cegNeve: '',
+  cegCime: '',
   adoszamMagyar: '',
   adoszamEuropai: '',
+  cegTelszam: '',
+  cegEmail: '',
   felhasznalonev: '',
   jelszo: '',
   telephelyCime: '',
+  felhszTel: '',
   elfogadom: false
 });
 
@@ -50,6 +57,17 @@ const handleSubmit = () => {
         </div>
 
         <div class="mb-3">
+          <label for="cegCime" class="form-label">Vállalkozás címe</label>
+          <input 
+            type="text" 
+            class="form-control custom-input" 
+            id="CegCime" 
+            v-model="formData.cegCime"
+            required
+          />
+        </div>
+
+        <div class="mb-3">
           <label for="adoszamMagyar" class="form-label">Adószám (magyar)</label>
           <input 
             type="text" 
@@ -67,6 +85,28 @@ const handleSubmit = () => {
             class="form-control custom-input" 
             id="adoszamEuropai" 
             v-model="formData.adoszamEuropai"
+            required
+          />
+        </div>
+
+        <div class="mb-3">
+          <label for="cegTelszam" class="form-label">Vállalkozás telefonszáma</label>
+          <input 
+            type="tel" 
+            class="form-control custom-input" 
+            id="cegTelszam" 
+            v-model="formData.cegTelszam"
+            required
+          />
+        </div>
+
+        <div class="mb-3">
+          <label for="cegEmail" class="form-label">Cég email címe</label>
+          <input 
+            type="email" 
+            class="form-control custom-input" 
+            id="cegEmail" 
+            v-model="formData.cegEmail"
             required
           />
         </div>
@@ -108,6 +148,17 @@ const handleSubmit = () => {
             required
           />
         </div>
+
+        <div class="mb-3">
+          <label for="" class="form-label">Telefonszám</label>
+          <input 
+            type="felhszTel" 
+            class="form-control custom-input" 
+            id="felhszTel" 
+            v-model="formData.felhszTel"
+            required
+          />
+        </div>
       </section>
 
       <!-- Checkbox -->
@@ -124,9 +175,18 @@ const handleSubmit = () => {
         </label>
       </div>
 
+      <div
+        v-if="showError"
+        class="alert alert-danger d-flex justify-content-between align-items-center mb-4"
+        role="alert"
+      >
+        <span>{{ errorMessage }}</span>
+        <button type="button" class="btn-close" aria-label="Bezárás" @click="showError = false"></button>
+      </div>
+
       <!-- Submit Button -->
       <div class="text-center">
-        <button type="submit" class="btn btn-primary btn-lg px-5">
+        <button type="submit" class="btn btn-primary btn-lg fw-bold px-5 rounded-pill">
           Regisztráció elküldése
         </button>
       </div>
@@ -140,14 +200,14 @@ const handleSubmit = () => {
 }
 
 .btn-primary {
-  background-color: #17a2b8;
-  border-color: #17a2b8;
+  background-color: #00948B;
+  border-color: #00948B;
   border-radius: 25px;
 }
 
 .btn-primary:hover {
-  background-color: #138496;
-  border-color: #117a8b;
+  background-color: #007a72;
+  border-color: #007a72;
 }
 
 .custom-input {

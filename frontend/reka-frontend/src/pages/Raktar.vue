@@ -3,8 +3,8 @@
 
   // sample product list
   const items = ref([
-    { name: 'Coca-Cola 1,75l', kiszereles: '6 db zsugor', stock: 45 },
-    { name: 'NaturAqua szénsavas 1,5l', kiszereles: '6 db zsugor', stock: 58 },
+    { id: 1, name: 'Coca-Cola 1,75l', kiszereles: '6 db zsugor', stock: 45 },
+    { id: 1, name: 'NaturAqua szénsavas 1,5l', kiszereles: '6 db zsugor', stock: 58 },
   ])
 
   const search = ref('')
