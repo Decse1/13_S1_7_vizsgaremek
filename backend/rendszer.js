@@ -9,8 +9,13 @@ app.use(express.static('public'));
 
 // API-k importálása és regisztrálása
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 require("./apik/post/raktar.js")(app);
 require("./apik/post&get/bejelent.js")(app);
+=======
+require("./apik/get/raktar.js")(app);
+require("./apik/post/bejelent.js")(app);
+>>>>>>> Stashed changes
 =======
 require("./apik/get/raktar.js")(app);
 require("./apik/post/bejelent.js")(app);
