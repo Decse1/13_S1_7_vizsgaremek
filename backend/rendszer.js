@@ -8,11 +8,13 @@ app.use(express.json());
 app.use(express.static('public'));
 
 // API-k importálása és regisztrálása
-require("./apik/get/raktar.js")(app);
+require("./apik/post/raktar.js")(app);
 require("./apik/post&get/bejelent.js")(app);
 require("./apik/post/felhasznalo_ad.js")(app);
 require("./apik/post/ceg_ad.js")(app);
+require("./apik/partnerek.js")(app);
+require("./apik/post/kategoriak.js")(app);
 
 app.listen(3000, () => 
-    console.log(`Szerver fut: ${url} | API-k: ${url}/api/Raktar, ${url}/api/Bejelent, ${url}/api/Fehasznalo_ad, ${url}/api/Ceg_ad`)
+    console.log(`Szerver fut: ${url}\nAPI-k:\n\t${url}/api/Raktar\n\t${url}/api/Bejelent\n\t${url}/api/Fehasznalo_ad\n\t${url}/api/Ceg_ad\n\t${url}/api/Partnerek_en_vevo\n\t${url}/api/Partnerek_en_elado\n\t${url}/api/Kategoriak`)
 );
