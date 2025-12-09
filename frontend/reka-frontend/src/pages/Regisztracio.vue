@@ -232,6 +232,9 @@ const handleSubmit = () => {
 @media (min-width: 992px) {
   .content {
     margin-left: 0px;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 850px;
     padding: 2rem;
     margin-top: 56px;
   }
@@ -241,6 +244,9 @@ const handleSubmit = () => {
 @media (max-width: 991.98px) {
   .content {
     margin-left: 0;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 850px;
     padding: 2rem;
     margin-top: 56px;
   }
