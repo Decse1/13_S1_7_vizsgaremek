@@ -1,61 +1,162 @@
+
+HTML
+
 <!DOCTYPE html>
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
-    <title>Cégadat Lekérdezés</title>
+    <title>Cégadat Teljes Funkció</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .input-group { margin-bottom: 20px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        input, select, button { padding: 8px; margin-right: 10px; }
+        pre { background-color: #f0f0f0; padding: 15px; border: 1px solid #ddd; overflow-x: auto; }
+    </style>
 </head>
 <body>
 
-    <h1>Cégadat Lekérdező</h1>
-    <p>Cég adószáma: 64261351133</p>
-    <button id="fetchDataButton">Adatok Lekérése</button>
+    <h1>Cégadat Kereső és Detail</h1>
 
-    <pre id="resultArea" style="background-color: #f0f0f0; padding: 10px; border: 1px solid #ccc;"></pre>
+    <div class="input-group">
+        <h2>1. Élő Keresés (Név alapján)</h2>
+        <label for="searchInput">Név:</label>
+        <input type="text" id="searchInput" placeholder="Pl. Építő Kft." style="width: 200px;">
+        
+        <label for="typeSelect">Típus:</label>
+        <select id="typeSelect">
+            <option value="hu" selected>Magyarország (Cég)</option>
+            <option value="sole-proprietor">Egyéni vállalkozás (EV)</option>
+            <option value="eu">Európai Unió</option>
+        </select>
+
+        <p id="searchInfo"></p>
+        <pre id="searchResultsArea"></pre>
+    </div>
+
+    <div class="input-group">
+        <h2>2. Részletes Lekérdezés (Adószám/ID alapján)</h2>
+        <label for="idInput">Adószám / ID:</label>
+        <input type="text" id="idInput" placeholder="Pl. 64261351133" style="width: 200px;">
+        <button id="fetchDetailButton">Adat Lekérése</button>
+
+        <pre id="detailResultsArea"></pre>
+    </div>
 
     <script>
-        // --- 1. Konfigurációs adatok ---
-        const API_URL = "https://cors-anywhere.herokuapp.com/https://api.cegadatapi.hu/v1/detail?id=64261351133";
-        // FIGYELEM: A valós API kulcsot soha ne hagyd így nyíltan a böngészőben futó kódban éles környezetben!
-        // Ez csak példa! Éles használatra backend (szerver oldali) megoldás ajánlott a kulcs védelmére.
-        const API_KEY = "29.ea35adea153cbc8896913d744548dafc"; 
+        // --- Konfiguráció ---
+        const PROXY_BASE_URL = "http://localhost:3000"; 
+        
+        // --- Elemek ---
+        const searchInput = document.getElementById('searchInput');
+        const typeSelect = document.getElementById('typeSelect');
+        const searchResultsArea = document.getElementById('searchResultsArea');
+        const searchInfo = document.getElementById('searchInfo');
 
-        const resultArea = document.getElementById('resultArea');
-        const fetchDataButton = document.getElementById('fetchDataButton');
+        const idInput = document.getElementById('idInput');
+        const fetchDetailButton = document.getElementById('fetchDetailButton');
+        const detailResultsArea = document.getElementById('detailResultsArea');
 
-        // --- 2. Az adatkérő függvény ---
-        async function fetchCompanyData() {
-            resultArea.textContent = "Adatok lekérése folyamatban...";
+        // --- Segédfüggvények ---
+
+        /**
+         * Debounce: Késlelteti a függvény futását gépelés után.
+         */
+        function debounce(func, delay) {
+            let timeoutId;
+            return function(...args) {
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => {
+                    func.apply(this, args);
+                }, delay);
+            };
+        }
+
+        // --- 1. SEARCH Funkció ---
+
+        async function fetchSearchResults() {
+            const searchTerm = searchInput.value.trim();
+            const selectedType = typeSelect.value; 
+
+            if (searchTerm.length < 4) {
+                searchInfo.textContent = 'Írj be legalább 4 karaktert a kereséshez.';
+                searchResultsArea.textContent = '';
+                return;
+            }
+            
+            searchInfo.textContent = `Keresés indítása: "${searchTerm}" (${selectedType}) a proxy szerveren...`;
+            searchResultsArea.textContent = 'Adatok betöltése...';
+
+            const searchURL = `${PROXY_BASE_URL}/api/search?name=${encodeURIComponent(searchTerm)}&businessType=all`;
 
             try {
-                const response = await fetch(API_URL, {
-                    method: 'GET', // A kérés típusa
-                    headers: {
-                        // Itt adjuk meg a "X-Api-Key" header-t, ahogy a curl-ben volt
-                        'X-Api-Key': API_KEY, 
-                        'Content-Type': 'application/json' 
-                    }
-                });
-
-                // Ellenőrizzük a HTTP státuszkódot (pl. 200 OK)
-                if (!response.ok) {
-                    throw new Error(`HTTP hiba! Státusz: ${response.status}`);
-                }
-
-                // Az API válaszának JSON formátumú feldolgozása
+                const response = await fetch(searchURL);
                 const data = await response.json();
 
-                // --- 3. Az adatok megjelenítése ---
-                resultArea.textContent = JSON.stringify(data, null, 2); // 2 szóközzel formázva
+                if (!response.ok) {
+                    // Hiba a proxy-n keresztül: pl. API hibaüzenet
+                    throw new Error(data.error || `HTTP hiba! Státusz: ${response.status}`);
+                }
+
+                // Eredmények megjelenítése
+                if (data.results && data.results.length > 0) {
+                    searchResultsArea.textContent = JSON.stringify(data.results, null, 2);
+                    searchInfo.textContent = `Találatok száma: ${data.totalHits}.`;
+                } else {
+                    searchResultsArea.textContent = 'Nincs találat a megadott keresési feltételre.';
+                    searchInfo.textContent = 'Keresés befejezve.';
+                }
 
             } catch (error) {
-                // Hiba esetén ide jutunk (pl. hálózati hiba, hibás API kulcs)
-                resultArea.textContent = `Hiba történt: ${error.message}`;
-                console.error("Lekérdezési hiba:", error);
+                searchInfo.textContent = `Hiba történt a keresés során: ${error.message}`;
+                searchResultsArea.textContent = '';
+                console.error("Keresési hiba:", error);
+            }
+        }
+        
+        // --- 2. DETAIL Funkció ---
+
+        async function fetchDetailData() {
+            const idTerm = idInput.value.trim();
+
+            if (idTerm === '') {
+                detailResultsArea.textContent = 'Kérlek adj meg egy adószámot vagy ID-t!';
+                return;
+            }
+
+            detailResultsArea.textContent = `Részletek lekérése ID: ${idTerm} a proxy szerveren...`;
+
+            const detailURL = `${PROXY_BASE_URL}/api/detail?id=${idTerm}`;
+
+            try {
+                const response = await fetch(detailURL);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || `HTTP hiba! Státusz: ${response.status}`);
+                }
+
+                // Eredmények megjelenítése
+                detailResultsArea.textContent = JSON.stringify(data, null, 2);
+
+            } catch (error) {
+                detailResultsArea.textContent = `Hiba történt a lekérés során: ${error.message}`;
+                console.error("Detail hiba:", error);
             }
         }
 
-        // --- 4. Eseménykezelő a gombhoz ---
-        fetchDataButton.addEventListener('click', fetchCompanyData);
+
+        // --- Eseménykezelők ---
+        
+        // Search: Debounced input és change eventek
+        const debouncedSearch = debounce(fetchSearchResults, 500);
+        searchInput.addEventListener('input', debouncedSearch);
+        typeSelect.addEventListener('change', fetchSearchResults);
+
+        // Detail: Gombnyomásra
+        fetchDetailButton.addEventListener('click', fetchDetailData);
+
+        // Kezdő üzenet
+        searchInfo.textContent = 'Írj be egy nevet a mezőbe, és válassz típust.';
 
     </script>
 </body>

@@ -15,7 +15,23 @@ require("./apik/ceg.js")(app);
 require("./apik/partnerek.js")(app);
 require("./apik/kategoriak.js")(app);
 require("./apik/ceg_osszes.js")(app);
+require("./apik/cegadat_api_hu.js")(app);
 
 app.listen(3000, () => 
-    console.log(`Szerver fut: ${url}\nAPI-k:\n\t${url}/api/Raktar\n\t${url}/api/Bejelent\n\t${url}/api/Fehasznalo_ad\n\t${url}/api/Ceg_ad\n\t${url}/api/Ceg_update\n\t${url}/api/Partnerek_en_vevo\n\t${url}/api/Partnerek_en_elado\n\t${url}/api/Kategoriak\n\t${url}/api/Ceg_osszes`)
+    console.log(`Szerver fut: ${url}\nAPI-k:
+        \n\t${url}/api/Raktar
+        \n\t${url}/api/Bejelent
+        \n\t${url}/api/Fehasznalo_ad
+        \n\t${url}/api/Felhasznalo_update
+        \n\t${url}/api/Felhasznalo_delete
+        \n\t${url}/api/Ceg_ad
+        \n\t${url}/api/Ceg_update
+        \n\t${url}/api/Ceg_delete
+        \n\t${url}/api/Partnerek_en_vevo
+        \n\t${url}/api/Partnerek_en_elado
+        \n\t${url}/api/Kategoriak
+        \n\t${url}/api/Ceg_osszes
+        \n\t${url}/api/detail
+        \n\t${url}/api/search/name
+        \n\t${url}/api/search/vat`)
 );
