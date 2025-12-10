@@ -7,63 +7,27 @@
   const items = ref([
     {
       id: 1,
-      nev: 'Coca-Cola',
-      kiszereles: '0.5L PET',
-      mennyiseg: 150
+      nev: 'Fundaluka Kft.',
+      kiszereles: 'Banki átutalás',
+      mennyiseg: 3
     },
     {
       id: 2,
-      nev: 'Fanta Narancs',
-      kiszereles: '0.5L PET',
-      mennyiseg: 80
+      nev: 'Rácz István e.v.',
+      kiszereles: 'Készpénz',
+      mennyiseg: 5
     },
     {
       id: 3,
-      nev: 'Sprite',
-      kiszereles: '0.5L PET',
-      mennyiseg: 120
+      nev: 'Fundaluka Kft.',
+      kiszereles: 'Banki átutalás',
+      mennyiseg: 3
     },
     {
       id: 4,
-      nev: 'Szentkirályi Ásványvíz',
-      kiszereles: '1.5L PET',
-      mennyiseg: 200
-    },
-    {
-      id: 5,
-      nev: 'Natur Aqua',
-      kiszereles: '0.5L PET',
-      mennyiseg: 180
-    },
-    {
-      id: 6,
-      nev: 'Hell Energy Drink',
-      kiszereles: '0.25L Doboz',
-      mennyiseg: 95
-    },
-    {
-      id: 7,
-      nev: 'Cappy Narancs',
-      kiszereles: '1L Karton',
-      mennyiseg: 65
-    },
-    {
-      id: 8,
-      nev: 'Nestea Citrom',
-      kiszereles: '0.5L PET',
-      mennyiseg: 110
-    },
-    {
-      id: 9,
-      nev: 'Kinley Gyömbér',
-      kiszereles: '0.5L PET',
-      mennyiseg: 75
-    },
-    {
-      id: 10,
-      nev: 'Fuzetea Barack',
-      kiszereles: '0.5L PET',
-      mennyiseg: 90
+      nev: 'Rácz István e.v.',
+      kiszereles: 'Készpénz',
+      mennyiseg: 5
     }
   ])
   const loading = ref(false)
@@ -123,7 +87,7 @@
 
 <template>
   <div class="content">
-    <!-- Header -->
+    <!-- Eladói partnerségek -->
     <div class="d-flex align-items-center justify-content-between flex-wrap mb-3">
       <div class="d-flex align-items-center flex-grow-1 mb-2 mb-md-0">
         <h2 class="me-3 mb-0">Eladói partnerségek</h2>
@@ -139,7 +103,7 @@
       </div>
 
       <button
-        class="btn btn-success add-btn rounded-5 d-flex align-items-center"
+        class="btn btn-success btn-teal add-btn rounded-5 d-flex align-items-center"
         @click="openAddModal"
       >
         <i class="bi bi-plus-lg"></i>
@@ -182,7 +146,7 @@
       </tbody>
     </table>
 
-    <!-- Add product modal -->
+    <!-- Add partnership modal -->
     <transition name="modal-fade">
       <div
         v-if="showAddModal"
@@ -194,7 +158,7 @@
         <div class="modal-dialog modal-dialog-centered modal-dialog-custom" role="document" @click.stop>
           <div class="modal-content custom-modal-content">
             <div class="modal-header">
-              <h5 class="modal-title">Új termék felvétele</h5>
+              <h5 class="modal-title">Új eladói partnerség felvétele</h5>
               <button type="button" class="btn-close" @click="closeAddModal"></button>
             </div>
             <div class="modal-body">
@@ -292,10 +256,10 @@
             -->
             
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" @click="closeAddModal">
+              <button type="button" class="btn btn-secondary rounded-pill" @click="closeAddModal">
                 Mégse
               </button>
-              <button type="button" class="btn btn-primary" @click="closeAddModal">
+              <button type="button" class="btn btn-primary rounded-pill" @click="closeAddModal">
                 Mentés
               </button>
             </div>
@@ -303,6 +267,58 @@
         </div>
       </div>
     </transition>
+
+    <br>
+    <!-- Vevői partnerségek -->
+    <div class="d-flex align-items-center justify-content-between flex-wrap mb-3">
+      <div class="d-flex align-items-center flex-grow-1 mb-2 mb-md-0">
+        <h2 class="me-3 mb-0">Vevői partnerségek</h2>
+
+        <div class="input-group" style="width: clamp(100px, 40vw, 300px);">
+          <input
+            v-model="search"
+            type="text"
+            class="form-control custom-search rounded-5"
+            placeholder="Keresés"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- First table -->
+    <div v-if="loading" class="text-center my-4">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Betöltés...</span>
+      </div>
+    </div>
+
+    <div v-else-if="error" class="alert alert-warning" role="alert">
+      {{ error }}
+    </div>
+
+    <table v-else class="table custom-table" style="border-bottom: 1px solid black;">
+      <thead>
+        <tr>
+          <th style="width: 45%;">Partner neve</th>
+          <th style="width: 33%;">Fizetési mód</th>
+          <th class="text-end" style="width: 17%;">Fizetési idő</th>
+          <th style="width: 2.5%;"></th>
+          <th style="width: 2.5%;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-if="filteredItems.length === 0">
+          <td colspan="5" class="text-center">Nincs megjeleníthető termék</td>
+        </tr>
+        <tr v-for="(item, index) in filteredItems" :key="item.id || index">
+          <td>{{ item.nev }}</td>
+          <td>{{ item.kiszereles }}</td>
+          <td class="text-end">{{ item.mennyiseg }} nap</td>
+          <td><i class="bi bi-pencil" @click="edit(item)"/></td>
+          <td><i class="bi bi-trash" @click="remove(item)"/></td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </template>
 
@@ -388,6 +404,17 @@
     display: none;
   }
 
+  .btn-teal {
+    background-color: #00948B !important;
+    border-color: #00948B !important;
+  }
+
+  .btn-teal:hover,
+  .btn-teal:focus {
+    background-color: #007a72 !important; /* a bit darker on hover */
+    border-color: #007a72 !important;
+  }
+
   .modal-backdrop-custom {
     position: fixed;
     inset: 0;
@@ -431,23 +458,48 @@
   /* Modal open/close animation */
   .modal-fade-enter-active,
   .modal-fade-leave-active {
-    transition: opacity 0.2s ease, transform 0.2s ease;
+    transition: opacity 0.15s ease;
   }
 
   .modal-fade-enter-from,
   .modal-fade-leave-to {
     opacity: 0;
-    transform: scale(0.95);
   }
 
   .modal-fade-enter-to,
   .modal-fade-leave-from {
     opacity: 1;
-    transform: scale(1);
   }
 
   /* Space between footer buttons */
   .custom-modal-content .modal-footer .btn + .btn {
     margin-left: 0.5rem;
+  }
+
+  /* Style for close button with gray shadow */
+  .custom-modal-content .btn-close {
+    width: 2.5rem;
+    height: 2.5rem;
+    background-color: #e0e0e0;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+  }
+
+  .custom-modal-content .btn-close:hover {
+    background-color: #d0d0d0;
+  }
+
+  .custom-modal-content .btn-close:focus {
+    outline: none;
+    box-shadow: none;
+  }
+
+  .custom-modal-content .btn-close:active {
+    outline: none;
+    box-shadow: none;
   }
 </style>

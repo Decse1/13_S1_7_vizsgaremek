@@ -31,7 +31,7 @@ const routes = [
     path: "/partnersegek",
     name: "Partnerségek",
     component: Partnersegek,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: false }
   },
   { 
     path: "/bejelentkezes", 
