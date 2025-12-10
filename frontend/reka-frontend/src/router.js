@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import Kezdolap from "./pages/Kezdolap.vue";
 import Raktar from "./pages/Raktar.vue";
 import CegInfo from "./pages/CegInfo.vue";
+import Partnersegek from './pages/Partnersegek.vue';
 import Bejelentkezes from './pages/Bejelentkezes.vue';
 import Regisztracio from './pages/Regisztracio.vue';
 import authStore from './stores/auth.js';
@@ -24,6 +25,12 @@ const routes = [
     path: "/ceginfo", 
     name: "Cégadatok", 
     component: CegInfo,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: "/partnersegek",
+    name: "Partnerségek",
+    component: Partnersegek,
     meta: { requiresAuth: true }
   },
   { 
