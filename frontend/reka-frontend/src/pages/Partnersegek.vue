@@ -139,7 +139,7 @@
       </div>
 
       <button
-        class="btn btn-success add-btn rounded-5 d-flex align-items-center"
+        class="btn btn-success btn-teal add-btn rounded-5 d-flex align-items-center"
         @click="openAddModal"
       >
         <i class="bi bi-plus-lg"></i>
@@ -194,7 +194,7 @@
         <div class="modal-dialog modal-dialog-centered modal-dialog-custom" role="document" @click.stop>
           <div class="modal-content custom-modal-content">
             <div class="modal-header">
-              <h5 class="modal-title">Új termék felvétele</h5>
+              <h5 class="modal-title">Új eladói partnerség felvétele</h5>
               <button type="button" class="btn-close" @click="closeAddModal"></button>
             </div>
             <div class="modal-body">
@@ -292,10 +292,10 @@
             -->
             
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" @click="closeAddModal">
+              <button type="button" class="btn btn-secondary rounded-pill" @click="closeAddModal">
                 Mégse
               </button>
-              <button type="button" class="btn btn-primary" @click="closeAddModal">
+              <button type="button" class="btn btn-primary rounded-pill" @click="closeAddModal">
                 Mentés
               </button>
             </div>
@@ -388,6 +388,17 @@
     display: none;
   }
 
+  .btn-teal {
+    background-color: #00948B !important;
+    border-color: #00948B !important;
+  }
+
+  .btn-teal:hover,
+  .btn-teal:focus {
+    background-color: #007a72 !important; /* a bit darker on hover */
+    border-color: #007a72 !important;
+  }
+
   .modal-backdrop-custom {
     position: fixed;
     inset: 0;
@@ -449,5 +460,32 @@
   /* Space between footer buttons */
   .custom-modal-content .modal-footer .btn + .btn {
     margin-left: 0.5rem;
+  }
+
+  /* Style for close button with gray shadow */
+  .custom-modal-content .btn-close {
+    width: 2.5rem;
+    height: 2.5rem;
+    background-color: #e0e0e0;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+  }
+
+  .custom-modal-content .btn-close:hover {
+    background-color: #d0d0d0;
+  }
+
+  .custom-modal-content .btn-close:focus {
+    outline: none;
+    box-shadow: none;
+  }
+
+  .custom-modal-content .btn-close:active {
+    outline: none;
+    box-shadow: none;
   }
 </style>
