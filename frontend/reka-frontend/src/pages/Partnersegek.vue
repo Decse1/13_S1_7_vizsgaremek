@@ -3,8 +3,8 @@
   import axios from 'axios'
   import authStore from '../stores/auth'
 
-  // product list with example data
-  const items = ref([
+  // Eladói partnerségek (seller partnerships) list
+  const sellerItems = ref([
     {
       id: 1,
       nev: 'Fundaluka Kft.',
@@ -30,14 +30,50 @@
       mennyiseg: 5
     }
   ])
+
+  // Vevői partnerségek (buyer partnerships) list
+  const buyerItems = ref([
+    {
+      id: 1,
+      nev: 'Fundaluka Kft.',
+      kiszereles: 'Banki átutalás',
+      mennyiseg: 3
+    },
+    {
+      id: 2,
+      nev: 'Rácz István e.v.',
+      kiszereles: 'Készpénz',
+      mennyiseg: 5
+    },
+    {
+      id: 3,
+      nev: 'Fundaluka Kft.',
+      kiszereles: 'Banki átutalás',
+      mennyiseg: 3
+    },
+    {
+      id: 4,
+      nev: 'Rácz István e.v.',
+      kiszereles: 'Készpénz',
+      mennyiseg: 5
+    }
+  ])
+
   const loading = ref(false)
   const error = ref('')
 
-  const search = ref('')
+  const sellerSearch = ref('')
+  const buyerSearch = ref('')
 
-  const filteredItems = computed(() =>
-    items.value.filter((item) =>
-      item.nev.toLowerCase().includes(search.value.toLowerCase())
+  const filteredSellerItems = computed(() =>
+    sellerItems.value.filter((item) =>
+      item.nev.toLowerCase().includes(sellerSearch.value.toLowerCase())
+    )
+  )
+
+  const filteredBuyerItems = computed(() =>
+    buyerItems.value.filter((item) =>
+      item.nev.toLowerCase().includes(buyerSearch.value.toLowerCase())
     )
   )
 
@@ -87,14 +123,14 @@
 
 <template>
   <div class="content">
-    <!-- Eladói partnerségek -->
+    <!-- Eladói partnerségek section -->
     <div class="d-flex align-items-center justify-content-between flex-wrap mb-3">
       <div class="d-flex align-items-center flex-grow-1 mb-2 mb-md-0">
         <h2 class="me-3 mb-0">Eladói partnerségek</h2>
 
         <div class="input-group" style="width: clamp(100px, 40vw, 300px);">
           <input
-            v-model="search"
+            v-model="sellerSearch"
             type="text"
             class="form-control custom-search rounded-5"
             placeholder="Keresés"
@@ -111,7 +147,7 @@
       </button>
     </div>
 
-    <!-- First table -->
+    <!-- Eladói partnerségek table -->
     <div v-if="loading" class="text-center my-4">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Betöltés...</span>
@@ -133,10 +169,10 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-if="filteredItems.length === 0">
+        <tr v-if="filteredSellerItems.length === 0">
           <td colspan="5" class="text-center">Nincs megjeleníthető termék</td>
         </tr>
-        <tr v-for="(item, index) in filteredItems" :key="item.id || index">
+        <tr v-for="(item, index) in filteredSellerItems" :key="item.id || index">
           <td>{{ item.nev }}</td>
           <td>{{ item.kiszereles }}</td>
           <td class="text-end">{{ item.mennyiseg }} nap</td>
@@ -269,14 +305,14 @@
     </transition>
 
     <br>
-    <!-- Vevői partnerségek -->
+    <!-- Vevői partnerségek section -->
     <div class="d-flex align-items-center justify-content-between flex-wrap mb-3">
       <div class="d-flex align-items-center flex-grow-1 mb-2 mb-md-0">
         <h2 class="me-3 mb-0">Vevői partnerségek</h2>
 
         <div class="input-group" style="width: clamp(100px, 40vw, 300px);">
           <input
-            v-model="search"
+            v-model="buyerSearch"
             type="text"
             class="form-control custom-search rounded-5"
             placeholder="Keresés"
@@ -285,7 +321,7 @@
       </div>
     </div>
 
-    <!-- First table -->
+    <!-- Vevői partnerségek table -->
     <div v-if="loading" class="text-center my-4">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Betöltés...</span>
@@ -307,10 +343,10 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-if="filteredItems.length === 0">
+        <tr v-if="filteredBuyerItems.length === 0">
           <td colspan="5" class="text-center">Nincs megjeleníthető termék</td>
         </tr>
-        <tr v-for="(item, index) in filteredItems" :key="item.id || index">
+        <tr v-for="(item, index) in filteredBuyerItems" :key="item.id || index">
           <td>{{ item.nev }}</td>
           <td>{{ item.kiszereles }}</td>
           <td class="text-end">{{ item.mennyiseg }} nap</td>
