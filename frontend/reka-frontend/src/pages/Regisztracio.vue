@@ -55,6 +55,7 @@ const handleSubmit = async () => {
         adoszamEuropai: '',
         cegTelszam: '',
         cegEmail: '',
+
         elfogadom: false
       };
 
@@ -102,7 +103,7 @@ const handleSubmit = async () => {
     <form @submit.prevent="handleSubmit">
       <!-- Cég adatai -->
       <section class="mb-4">
-        <h5 class="mb-3">Cég adatai</h5>
+        <h5 class="mb-3">I. Cég adatai</h5>
         
         <div class="mb-3">
           <label for="cegNeve" class="form-label">Cég neve</label>
@@ -172,7 +173,7 @@ const handleSubmit = async () => {
       </section>
 
 
-      <!-- II. Rendszerkezelő felhasználó adatai  nem ide kell
+      <!-- asd
       <section class="mb-4">
         <h5 class="mb-3">II. Rendszerkezelő felhasználó adatai</h5>
         

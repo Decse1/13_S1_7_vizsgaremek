@@ -23,13 +23,14 @@ const closeError = () => {
 <template>
   <div class="content">
     <h2>Cégadatok</h2>
-    <p>Cég neve: {{ authStore.ceg.nev }}</p>
     <p>Cég azonosítója: {{ authStore.ceg.id }}</p>
-    <p>Cég címe: {{ authStore.ceg.cim }}</p>
-    <p>Cég email címe: {{ authStore.ceg.email }}</p>
-    <p>Cég telefonszáma: {{ authStore.ceg.telefon }}</p>
-    <p>Cég adószáma: {{ authStore.ceg.adoszam }}</p>
-    <p>Cég EU-s adószáma: {{ authStore.ceg.euAdoszam }}</p>
+    <p>Cég neve: {{ authStore.ceg.nev }}</p>
+    <p>Adószám: {{ authStore.ceg.adoszam }}</p>
+    <p>Adószám (EU): {{ authStore.ceg.euAdoszam }}</p>
+    <p>Székhely: {{ authStore.ceg.cim }}</p>
+    <p>Email: {{ authStore.ceg.email }}</p>
+    <p>Telefonszám: {{ authStore.ceg.telefon }}</p>
+    <h2>Előfizetés állapota</h2>
     <p>Előfizet-e a RÉKA vállalatirányítási rendszerére: {{ elofizText }}</p>
   </div>
 </template>
