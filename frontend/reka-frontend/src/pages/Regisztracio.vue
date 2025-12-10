@@ -20,6 +20,7 @@ const errorMessage = ref('');
 const showSuccess = ref(false);
 const successMessage = ref('');
 const isSubmitting = ref(false);
+const registeredCegId = ref(null);
 
 const handleSubmit = async () => {
   // Reset messages
@@ -43,26 +44,53 @@ const handleSubmit = async () => {
     const response = await axios.post('http://localhost:3000/api/Ceg_ad', cegData);
 
     if (response.data.ok) {
-      // Success
-      successMessage.value = response.data.uzenet || 'Sikeres regisztráció!';
-      showSuccess.value = true;
+      // Store the company ID for later use
+      console.log('Full backend response:', response.data);
+      registeredCegId.value = response.data.cegId;
+      console.log('Stored company ID:', registeredCegId.value);
       
-      // Reset form
-      formData.value = {
-        cegNeve: '',
-        cegCime: '',
-        adoszamMagyar: '',
-        adoszamEuropai: '',
-        cegTelszam: '',
-        cegEmail: '',
-
-        elfogadom: false
+      // Now create the system manager user
+      const felhasznaloData = {
+        nev: formData.value.felhasznalonev,
+        jelszo: formData.value.jelszo,
+        kategoria: 1, // System manager category
+        telephely_cim: formData.value.telephelyCime,
+        telefon: formData.value.felhszTel,
+        cegId: registeredCegId.value
       };
 
-      // Redirect to login page after 2 seconds
-      setTimeout(() => {
-        router.push('/bejelentkezes');
-      }, 2000);
+      console.log('Creating user with data:', felhasznaloData);
+      const userResponse = await axios.post('http://localhost:3000/api/Felhasznalo_ad', felhasznaloData);
+
+      if (userResponse.data.ok) {
+        // Both company and user created successfully
+        successMessage.value = 'Sikeres regisztráció! A cég és a rendszerkezelő felhasználó létrehozva. Jelentkezzen be fiókjába a folytatáshoz!';
+        showSuccess.value = true;
+        
+        // Reset form
+        formData.value = {
+          cegNeve: '',
+          cegCime: '',
+          adoszamMagyar: '',
+          adoszamEuropai: '',
+          cegTelszam: '',
+          cegEmail: '',
+          felhasznalonev: '',
+          jelszo: '',
+          telephelyCime: '',
+          felhszTel: '',
+          elfogadom: false
+        };
+
+        // Redirect to login page after 2 seconds
+        setTimeout(() => {
+          router.push('/bejelentkezes');
+        }, 2000);
+      } else {
+        // User creation failed
+        errorMessage.value = 'A cég létrehozva, de a felhasználó létrehozása sikertelen: ' + (userResponse.data.uzenet || 'Ismeretlen hiba');
+        showError.value = true;
+      }
     } else {
       // Error from backend
       errorMessage.value = response.data.uzenet || 'Hiba történt a regisztráció során!';
@@ -172,8 +200,6 @@ const handleSubmit = async () => {
         </div>
       </section>
 
-
-      <!-- asd
       <section class="mb-4">
         <h5 class="mb-3">II. Rendszerkezelő felhasználó adatai</h5>
         
@@ -221,7 +247,6 @@ const handleSubmit = async () => {
           />
         </div>
       </section>
-      -->
 
       <!-- Checkbox -->
       <div class="form-check mb-4">
