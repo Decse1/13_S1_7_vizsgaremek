@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <title>Cégadat Lekérdezés</title>
+</head>
+<body>
+
+    <h1>Cégadat Lekérdező</h1>
+    <p>Cég adószáma: 64261351133</p>
+    <button id="fetchDataButton">Adatok Lekérése</button>
+
+    <pre id="resultArea" style="background-color: #f0f0f0; padding: 10px; border: 1px solid #ccc;"></pre>
+
+    <script>
+        // --- 1. Konfigurációs adatok ---
+        const API_URL = "https://cors-anywhere.herokuapp.com/https://api.cegadatapi.hu/v1/detail?id=64261351133";
+        // FIGYELEM: A valós API kulcsot soha ne hagyd így nyíltan a böngészőben futó kódban éles környezetben!
+        // Ez csak példa! Éles használatra backend (szerver oldali) megoldás ajánlott a kulcs védelmére.
+        const API_KEY = "29.ea35adea153cbc8896913d744548dafc"; 
+
+        const resultArea = document.getElementById('resultArea');
+        const fetchDataButton = document.getElementById('fetchDataButton');
+
+        // --- 2. Az adatkérő függvény ---
+        async function fetchCompanyData() {
+            resultArea.textContent = "Adatok lekérése folyamatban...";
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'GET', // A kérés típusa
+                    headers: {
+                        // Itt adjuk meg a "X-Api-Key" header-t, ahogy a curl-ben volt
+                        'X-Api-Key': API_KEY, 
+                        'Content-Type': 'application/json' 
+                    }
+                });
+
+                // Ellenőrizzük a HTTP státuszkódot (pl. 200 OK)
+                if (!response.ok) {
+                    throw new Error(`HTTP hiba! Státusz: ${response.status}`);
+                }
+
+                // Az API válaszának JSON formátumú feldolgozása
+                const data = await response.json();
+
+                // --- 3. Az adatok megjelenítése ---
+                resultArea.textContent = JSON.stringify(data, null, 2); // 2 szóközzel formázva
+
+            } catch (error) {
+                // Hiba esetén ide jutunk (pl. hálózati hiba, hibás API kulcs)
+                resultArea.textContent = `Hiba történt: ${error.message}`;
+                console.error("Lekérdezési hiba:", error);
+            }
+        }
+
+        // --- 4. Eseménykezelő a gombhoz ---
+        fetchDataButton.addEventListener('click', fetchCompanyData);
+
+    </script>
+</body>
+</html>

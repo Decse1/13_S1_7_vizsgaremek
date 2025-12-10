@@ -15,6 +15,11 @@ async function felhasznalo_ad(profil) {
 async function alkalmazott_ad(profil, tmp){
   await db.query(`INSERT INTO Ceg_alkalmazott (cegId, felhasznaloId) VALUES ("${profil.cegId}", "${tmp.insertId}")`)
 }
+
+async function felhasznalo_update(profil) {
+  const [rows] = await db.query(`UPDATE Felhasznalo (nev = "${profil.nev}", jelszo = "${profil.jelszo}", kategoria = "${profil.kategoria}", telephely_cim = "${profil.telephely_cim}", telefon = "${profil.telefon}") WHERE id = "${profil.id}";`);
+}
+
 module.exports = (app) => {
   app.post('/api/Felhasznalo_ad', async (req, res) => {
     try {
@@ -59,6 +64,69 @@ module.exports = (app) => {
       else{
         return res.status(200).json({ ok:false, uzenet: "Hiányzó adatok!" });
       }
+    } catch (err) {
+      res.status(500).json({ error: "Adatbázis hiba!" });
+      console.log(err);
+    }
+  });
+
+
+  app.post('/api/Felhasznalo_update', async (req, res) => {
+    try {
+      const profil = req.body;
+      let tmp;
+      if(Object.keys(profil).length == 6){
+        if (profil.nev != ""){
+          if(profil.jelszo != ""){
+            if(profil.kategoria != ""){
+              if(profil.telephely_cim != ""){
+                if(profil.telefon != ""){
+                  if(profil.cegId != ""){
+                    if(profil.id != ""){
+                      felhasznalo_update(profil);
+                      return res.status(200).json({ ok:true, uzenet:"Sikeres adatfelvétel!" });
+                    }
+                    else{
+                      return res.status(200).json({ ok:false, uzenet:"Hiányzó azonosító"})
+                    }
+                  }
+                  else{
+                    return res.status(200).json({ ok:false, uzenet:"Kérem adjon meg egy céget"});
+                  }
+                }
+                else{
+                  return res.status(200).json({ ok:false, uzenet: "Kérem adjon meg egy telefonszámot!" });
+                }
+              }
+              else{
+                return res.status(200).json({ ok:false, uzenet: "Kérem adja meg a telephely címét!" });
+              }
+            }
+            else{
+              return res.status(200).json({ ok:false, uzenet: "Kérem adja meg a profil kategóriát!" });
+            }
+          }
+          else{
+            return res.status(200).json({ ok:false, uzenet: "Kérem adja meg a jelszót!" });
+          }
+        }
+        else{
+          return res.status(200).json({ ok:false, uzenet: "Kérem adja meg a nevet!" });
+        }
+      }
+      else{
+        return res.status(200).json({ ok:false, uzenet: "Hiányzó adatok!" });
+      }
+    } catch (err) {
+      res.status(500).json({ error: "Adatbázis hiba!" });
+      console.log(err);
+    }
+  });
+
+  app.post('/api/Felhasznalo_delete', async (req, res) => {
+    try{
+      const [row] = await db.query(`DELETE Felhasznalo WHERE id = "${req.body.id}"`)
+      return res.status(200).json({ok:true, uzenet: "Sikeres törlés"});
     } catch (err) {
       res.status(500).json({ error: "Adatbázis hiba!" });
       console.log(err);

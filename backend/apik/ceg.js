@@ -59,6 +59,8 @@ module.exports = (app) => {
       console.log(err);
     }
   });
+
+
   app.post('/api/Ceg_update', async (req, res) =>{
     try {
       const ceg = req.body;
@@ -70,7 +72,7 @@ module.exports = (app) => {
               if(ceg.email != "" || ceg.telefon != ""){
                 if(ceg.id != ""){
                   ceg_update(ceg);
-                  return res.status(200).json({ ok:true, uzenet:"Sikeres adatfelvétel!", cegId: `${tmp.inserId}`});
+                  return res.status(200).json({ ok:true, uzenet:"Sikeres adatfelvétel!", cegId: `${tmp.insertId}`});
                 }
                 else{
                   return res.status(200).json({ ok:false, uzenet:"Hiányzó cég azonosító"});
@@ -95,6 +97,16 @@ module.exports = (app) => {
       else{
         return res.status(200).json({ ok:false, uzenet: "Hiányzó adatok!" });
       }
+    } catch (err) {
+      res.status(500).json({ error: "Adatbázis hiba!" });
+      console.log(err);
+    }
+  });
+
+  app.post('/api/Ceg_delete', async (req, res) => {
+    try{
+      const [row] = await db.query(`DELETE Ceg WHERE id = "${req.body.id}"`)
+      return res.status(200).json({ok:true, uzenet: "Sikeres törlés"});
     } catch (err) {
       res.status(500).json({ error: "Adatbázis hiba!" });
       console.log(err);
