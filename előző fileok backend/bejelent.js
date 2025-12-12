@@ -59,7 +59,7 @@ module.exports = (app) => {
 
         // JWT generálás
         const token = jwt.sign(
-            { id: felhasznalo.id, username: felhasznalo.nev },
+            { id: felhasznalo.id, username: felhasznalo.username },
             JWT_SECRET,
             { expiresIn: "1h" }
         );

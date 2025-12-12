@@ -7,20 +7,11 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-const bcrypt = require("bcrypt");
-
 async function felhasznalo_ad(profil) {
-  // Hash the password before storing
-  const hashedPassword = await bcrypt.hash(profil.jelszo, 10);
-  
-  const [rows] = await db.query(
-    `INSERT INTO Felhasznalo (nev, jelszo, kategoria, telephely_cim, telefon) VALUES (?, ?, ?, ?, ?)`,
-    [profil.nev, hashedPassword, profil.kategoria, profil.telephely_cim, profil.telefon]
-  );
+  const [rows] = await db.query(`INSERT INTO Felhasznalo (nev, jelszo, kategoria, telephely_cim, telefon) VALUES ("${profil.nev}","${profil.jelszo}","${profil.kategoria}","${profil.telephely_cim}","${profil.telefon}");`);
   console.log(rows);
   return rows;
 }
-
 async function alkalmazott_ad(profil, tmp){
   await db.query(`INSERT INTO Ceg_alkalmazott (cegId, felhasznaloId) VALUES ("${profil.cegId}", "${tmp.insertId}")`)
 }

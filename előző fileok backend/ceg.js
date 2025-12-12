@@ -17,8 +17,7 @@ async function ceg_ad(ceg) {
 }
 
 async function ceg_update(ceg) {
-  const [rows] = await db.query(`UPDATE Ceg SET nev = "${ceg.nev}", adoszam = "${ceg.adoszam}", euAdoszam = "${ceg.euAdoszam}", cim = "${ceg.cim}", email = "${ceg.email}", telefon = "${ceg.telefon}", elofiz = "${ceg.elofiz}" WHERE id = "${ceg.id}";`);
-  return rows;
+  const [rows] = await db.query(`UPDATE Ceg nev = "${ceg.nev}", adoszam = "${ceg.adoszam}", euAdoszam = "${ceg.euAdoszam}", cim = "${ceg.cim}", email = "${ceg.email}", telefon = "${ceg.telefon}", elofiz = "${ceg.elofiz}") WHERE id = "${ceg.id}",;`);
 }
 
 
@@ -34,7 +33,7 @@ module.exports = (app) => {
             if(ceg.cim != ""){
               if(ceg.email != "" || ceg.telefon != ""){
                 tmp = await ceg_ad(ceg);
-                return res.status(200).json({ ok:true, uzenet:"Sikeres adatfelvétel!", cegId: `${tmp.insertId}`});
+                return res.status(200).json({ ok:true, uzenet:"Sikeres adatfelvétel!", cegId: `${tmp.inserId}`});
               }
               else{
                 return res.status(200).json({ ok:false, uzenet: "Kérem adjon meg legalább egy elérhetőséget (email vagy telefon)!" });
@@ -73,7 +72,7 @@ module.exports = (app) => {
               if(ceg.email != "" || ceg.telefon != ""){
                 if(ceg.id != ""){
                   ceg_update(ceg);
-                  return res.status(200).json({ ok:true, uzenet:"Sikeres adatfelvétel!", cegId: tmp.insertId});
+                  return res.status(200).json({ ok:true, uzenet:"Sikeres adatfelvétel!", cegId: `${tmp.insertId}`});
                 }
                 else{
                   return res.status(200).json({ ok:false, uzenet:"Hiányzó cég azonosító"});
