@@ -17,7 +17,7 @@ async function felhasznalo_ad(profil) {
     `INSERT INTO Felhasznalo (nev, jelszo, kategoria, telephely_cim, telefon) VALUES (?, ?, ?, ?, ?)`,
     [profil.nev, hashedPassword, profil.kategoria, profil.telephely_cim, profil.telefon]
   );
-  console.log(rows);
+  //console.log(rows);
   return rows;
 }
 
@@ -42,7 +42,7 @@ module.exports = (app) => {
                 if(profil.telefon != ""){
                   if(profil.cegId != ""){
                     tmp = await felhasznalo_ad(profil);
-                    console.log(tmp);
+                    //onsole.log(tmp);
                     alkalmazott_ad(profil, tmp);
                     return res.status(200).json({ ok:true, uzenet:"Sikeres adatfelvétel!" });
                   }
@@ -83,7 +83,6 @@ module.exports = (app) => {
   app.post('/api/Felhasznalo_update', async (req, res) => {
     try {
       const profil = req.body;
-      let tmp;
       if(Object.keys(profil).length == 6){
         if (profil.nev != ""){
           if(profil.jelszo != ""){

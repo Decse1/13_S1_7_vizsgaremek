@@ -13,25 +13,30 @@ require("./apik/bejelent.js")(app);
 require("./apik/felhasznalo.js")(app);
 require("./apik/ceg.js")(app);
 require("./apik/partnerek.js")(app);
-require("./apik/kategoriak.js")(app);
+require("./apik/termek.js")(app);
 require("./apik/ceg_osszes.js")(app);
 require("./apik/cegadat_api_hu.js")(app);
+require("./apik/rendeles.js")(app);
 
 app.listen(3000, () => 
     console.log(`Szerver fut: ${url}\nAPI-k:
-        \n\t${url}/api/Raktar
-        \n\t${url}/api/Bejelent
-        \n\t${url}/api/Fehasznalo_ad
-        \n\t${url}/api/Felhasznalo_update
-        \n\t${url}/api/Felhasznalo_delete
-        \n\t${url}/api/Ceg_ad
-        \n\t${url}/api/Ceg_update
-        \n\t${url}/api/Ceg_delete
-        \n\t${url}/api/Partnerek_en_vevo
-        \n\t${url}/api/Partnerek_en_elado
-        \n\t${url}/api/Kategoriak
-        \n\t${url}/api/Ceg_osszes
-        \n\t${url}/api/detail
-        \n\t${url}/api/search/name
-        \n\t${url}/api/search/vat`)
+        \t${url}/api/Raktar
+        \t${url}/api/Bejelent
+        \t${url}/api/Fehasznalo_ad
+        \t${url}/api/Felhasznalo_update
+        \t${url}/api/Felhasznalo_delete
+        \t${url}/api/Ceg_ad
+        \t${url}/api/Ceg_update
+        \t${url}/api/Ceg_delete
+        \t${url}/api/Partnerek_en_vevo
+        \t${url}/api/Partnerek_en_elado
+        \t${url}/api/Kategoriak
+        \t${url}/api/Szurt_termek
+        \t${url}/api/Osszes_termek
+        \t${url}/api/Ceg_osszes
+        \t${url}/api/Rendeles_ad
+        \t${url}/api/Beerkezett_rendeles
+        \t${url}/api/detail
+        \t${url}/api/search/name
+        \t${url}/api/search/vat`)
 );
