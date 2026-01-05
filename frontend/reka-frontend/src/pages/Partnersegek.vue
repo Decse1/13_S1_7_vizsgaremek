@@ -4,60 +4,10 @@
   import authStore from '../stores/auth'
 
   // Eladói partnerségek (seller partnerships) list
-  const sellerItems = ref([
-    {
-      id: 1,
-      nev: 'Fundaluka Kft.',
-      kiszereles: 'Banki átutalás',
-      mennyiseg: 3
-    },
-    {
-      id: 2,
-      nev: 'Rácz István e.v.',
-      kiszereles: 'Készpénz',
-      mennyiseg: 5
-    },
-    {
-      id: 3,
-      nev: 'Fundaluka Kft.',
-      kiszereles: 'Banki átutalás',
-      mennyiseg: 3
-    },
-    {
-      id: 4,
-      nev: 'Rácz István e.v.',
-      kiszereles: 'Készpénz',
-      mennyiseg: 5
-    }
-  ])
+  const sellerItems = ref([])
 
   // Vevői partnerségek (buyer partnerships) list
-  const buyerItems = ref([
-    {
-      id: 1,
-      nev: 'Fundaluka Kft.',
-      kiszereles: 'Banki átutalás',
-      mennyiseg: 3
-    },
-    {
-      id: 2,
-      nev: 'Rácz István e.v.',
-      kiszereles: 'Készpénz',
-      mennyiseg: 5
-    },
-    {
-      id: 3,
-      nev: 'Fundaluka Kft.',
-      kiszereles: 'Banki átutalás',
-      mennyiseg: 3
-    },
-    {
-      id: 4,
-      nev: 'Rácz István e.v.',
-      kiszereles: 'Készpénz',
-      mennyiseg: 5
-    }
-  ])
+  const buyerItems = ref([])
 
   const loading = ref(false)
   const error = ref('')
@@ -76,6 +26,70 @@
       item.nev.toLowerCase().includes(buyerSearch.value.toLowerCase())
     )
   )
+
+  // Fetch partnerships from backend
+  const fetchPartnerships = async () => {
+    loading.value = true
+    error.value = ''
+
+    try {
+      // Get ceg_id from authStore
+      const cegId = authStore.ceg.id
+
+      if (!cegId) {
+        error.value = 'Nincs bejelentkezve vagy hiányzik a cég azonosító'
+        loading.value = false
+        return
+      }
+
+      // Fetch seller partnerships (where we are the buyer)
+      const sellerResponse = await axios.post('http://localhost:3000/api/Partnerek_en_elado', {
+        id: cegId
+      })
+
+      if (sellerResponse.data.ok) {
+        // Map backend data to frontend structure
+        sellerItems.value = sellerResponse.data.partnerek.map(partner => ({
+          id: partner.id,
+          nev: partner.nev,
+          kiszereles: partner.fizetesi_forma,
+          mennyiseg: partner.fizetesi_ido
+        }))
+      } else {
+        // If no seller partnerships found, set empty array
+        sellerItems.value = []
+      }
+
+      // Fetch buyer partnerships (where we are the seller)
+      const buyerResponse = await axios.post('http://localhost:3000/api/Partnerek_en_vevo', {
+        id: cegId
+      })
+
+      if (buyerResponse.data.ok) {
+        // Map backend data to frontend structure
+        buyerItems.value = buyerResponse.data.partnerek.map(partner => ({
+          id: partner.id,
+          nev: partner.nev,
+          kiszereles: partner.fizetesi_forma,
+          mennyiseg: partner.fizetesi_ido
+        }))
+      } else {
+        // If no buyer partnerships found, set empty array
+        buyerItems.value = []
+      }
+
+    } catch (err) {
+      console.error('Hiba a partnerségek lekérdezése során:', err)
+      error.value = 'Hiba történt az adatok betöltése során'
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Fetch data on component mount
+  onMounted(() => {
+    fetchPartnerships()
+  })
 
   const edit = (item) => {
     console.log('Edit:', item)
@@ -170,7 +184,7 @@
       </thead>
       <tbody>
         <tr v-if="filteredSellerItems.length === 0">
-          <td colspan="5" class="text-center">Nincs megjeleníthető termék</td>
+          <td colspan="5" class="text-center">Nincs megjeleníthető eladói partner</td>
         </tr>
         <tr v-for="(item, index) in filteredSellerItems" :key="item.id || index">
           <td>{{ item.nev }}</td>
@@ -344,7 +358,7 @@
       </thead>
       <tbody>
         <tr v-if="filteredBuyerItems.length === 0">
-          <td colspan="5" class="text-center">Nincs megjeleníthető termék</td>
+          <td colspan="5" class="text-center">Nincs megjeleníthető vevői partner</td>
         </tr>
         <tr v-for="(item, index) in filteredBuyerItems" :key="item.id || index">
           <td>{{ item.nev }}</td>
