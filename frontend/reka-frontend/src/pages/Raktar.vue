@@ -10,6 +10,9 @@
 
   const search = ref('')
 
+  // Categories from database
+  const categories = ref([])
+
   const filteredItems = computed(() =>
     items.value.filter((item) =>
       item.nev.toLowerCase().includes(search.value.toLowerCase())
@@ -45,9 +48,32 @@
     }
   }
 
+  // Fetch categories from backend
+  const fetchCategories = async () => {
+    if (!authStore.ceg || !authStore.ceg.id) {
+      return
+    }
+
+    try {
+      const response = await axios.post('http://localhost:3000/api/Kategoriak', {
+        id: authStore.ceg.id
+      })
+      
+      if (response.data.ok && response.data.szurok) {
+        categories.value = response.data.szurok
+      } else {
+        categories.value = []
+      }
+    } catch (err) {
+      console.error('Error fetching categories:', err)
+      categories.value = []
+    }
+  }
+
   // Load products on component mount
   onMounted(() => {
     fetchProducts()
+    fetchCategories()
   })
 
   const edit = (item) => {
@@ -60,31 +86,90 @@
 
   // Modal state and form model for new product
   const showAddModal = ref(false)
+  const formError = ref('')
   const newProduct = ref({
     name: '',
     stock: 0,
     kiszereles: '',
     category: '',
+    cikkszam: '',
+    min_vas_menny: 1,
+    leiras: '',
+    ar: 0,
+    afa_kulcs: 27
   })
 
-  // Category options
-  const categories = ref([
-    'Üdítők',
-    'Ásványvizek',
-    'Élelmiszerek'
-  ])
-
   const openAddModal = () => {
-    newProduct.value = { name: '', stock: 0, kiszereles: '', category: '' }
+    newProduct.value = {
+      name: '',
+      stock: 0,
+      kiszereles: '',
+      category: '',
+      cikkszam: '',
+      min_vas_menny: 1,
+      leiras: '',
+      ar: 0,
+      afa_kulcs: 27
+    }
+    formError.value = ''
     showAddModal.value = true
   }
 
   const closeAddModal = () => {
     showAddModal.value = false
+    formError.value = ''
   }
 
   const saveNewProduct = () => {
-    if (!newProduct.value.name) return
+    // Validate form fields
+    formError.value = ''
+
+    if (!newProduct.value.name || newProduct.value.name.trim() === '') {
+      formError.value = 'A terméknév megadása kötelező!'
+      return
+    }
+
+    if (!newProduct.value.cikkszam || newProduct.value.cikkszam.trim() === '') {
+      formError.value = 'A cikkszám megadása kötelező!'
+      return
+    }
+
+    if (!newProduct.value.kiszereles || newProduct.value.kiszereles.trim() === '') {
+      formError.value = 'A kiszerelés megadása kötelező!'
+      return
+    }
+
+    if (!newProduct.value.leiras || newProduct.value.leiras.trim() === '') {
+      formError.value = 'A termék leírása kötelező!'
+      return
+    }
+
+    if (!newProduct.value.category) {
+      formError.value = 'A kategória kiválasztása kötelező!'
+      return
+    }
+
+    if (newProduct.value.stock < 0) {
+      formError.value = 'A készlet nem lehet negatív szám!'
+      return
+    }
+
+    if (newProduct.value.min_vas_menny < 1) {
+      formError.value = 'A minimum vásárlási mennyiség legalább 1 kell legyen!'
+      return
+    }
+
+    if (newProduct.value.ar < 1) {
+      formError.value = 'Az ár legalább 1 Ft kell legyen!'
+      return
+    }
+
+    if (newProduct.value.afa_kulcs < 0) {
+      formError.value = 'Az áfakulcs nem lehet negatív!'
+      return
+    }
+
+    // If all validations pass, save the product
     items.value.push({
       name: newProduct.value.name,
       stock: Number(newProduct.value.stock) || 0,
@@ -105,14 +190,14 @@
           <input
             v-model="search"
             type="text"
-            class="form-control custom-search rounded-5"
+            class="form-control custom-input rounded-5"
             placeholder="Keresés"
           />
         </div>
       </div>
 
       <button
-        class="btn btn-success add-btn rounded-5 d-flex align-items-center"
+        class="btn btn-success btn-teal add-btn rounded-5 d-flex align-items-center"
         @click="openAddModal"
       >
         <i class="bi bi-plus-lg"></i>
@@ -135,7 +220,8 @@
       <thead>
         <tr>
           <th style="width: 60%;">Terméknév</th>
-          <th style="width: 23%;">Kiszerelés</th>
+          <!-- th style="width: 20%;">Kategória</th -->
+          <th style="width: 23%;">Ár (nettó)</th>
           <th class="text-end" style="width: 12%;">Készlet</th>
           <th style="width: 2.5%;"></th>
           <th style="width: 2.5%;"></th>
@@ -147,8 +233,9 @@
         </tr>
         <tr v-for="(item, index) in filteredItems" :key="item.id || index">
           <td>{{ item.nev }}</td>
-          <td>{{ item.kiszereles }}</td>
-          <td class="text-end">{{ item.mennyiseg }}</td>
+          <!-- td>asd</td -->
+          <td>{{ item.ar }} Ft</td>
+          <td class="text-end">{{ item.mennyiseg }} {{ item.kiszereles }}</td>
           <td><i class="bi bi-pencil" @click="edit(item)"/></td>
           <td><i class="bi bi-trash" @click="remove(item)"/></td>
         </tr>
@@ -169,11 +256,7 @@
             <div class="modal-header">
               <h5 class="modal-title">Új termék felvétele</h5>
               <button type="button" class="btn-close" @click="closeAddModal"></button>
-            </div>
-            <div class="modal-body">
-              <h4>A funkció fejlesztés alatt áll...</h4>
-            </div>
-            <!-- 
+            </div> 
             <div class="modal-body">
               <form @submit.prevent="saveNewProduct">
                 <div class="mb-3">
@@ -181,7 +264,7 @@
                   <input
                     v-model="newProduct.name"
                     type="text"
-                    class="form-control"
+                    class="form-control custom-input"
                     required
                   />
                 </div>
@@ -191,15 +274,16 @@
                     v-model.number="newProduct.stock"
                     type="number"
                     min="0"
-                    class="form-control"
+                    class="form-control custom-input"
                     required
                   />
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Cikkszám</label>
                   <input
+                    v-model="newProduct.cikkszam"
                     type="text"
-                    class="form-control"
+                    class="form-control custom-input"
                     required
                   />
                 </div>
@@ -208,33 +292,36 @@
                   <input
                     v-model="newProduct.kiszereles"
                     type="text"
-                    class="form-control"
+                    class="form-control custom-input"
                     required
                   />
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Minimum vásárlási mennyiség</label>
                   <input
+                    v-model.number="newProduct.min_vas_menny"
                     type="number"
                     min="1"
-                    class="form-control"
+                    class="form-control custom-input"
                     required
                   />
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Termék leírása</label>
                   <input
+                    v-model="newProduct.leiras"
                     type="text"
-                    class="form-control"
+                    class="form-control custom-input"
                     required
                   />
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Ár (magyar forint, nettó)</label>
                   <input
+                    v-model.number="newProduct.ar"
                     type="number"
                     min="1"
-                    class="form-control"
+                    class="form-control custom-input"
                     required
                   />
                 </div>
@@ -242,33 +329,40 @@
                   <label class="form-label">Termék kategóriája</label>
                   <select
                     v-model="newProduct.category"
-                    class="form-select"
+                    class="form-select custom-input"
                     required
                   >
                     <option value="" disabled>Válasszon kategóriát...</option>
-                    <option v-for="category in categories" :key="category" :value="category">
-                      {{ category }}
+                    <option 
+                      v-for="category in categories" 
+                      :key="category.katId" 
+                      :value="category.katId"
+                    >
+                      {{ category.katNev }}
                     </option>
                   </select>
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Áfakulcs</label>
                   <input
+                    v-model.number="newProduct.afa_kulcs"
                     type="number"
                     min="0"
-                    class="form-control"
+                    class="form-control custom-input"
                     required
                   />
                 </div>
               </form>
-            </div>
-            -->
-            
+              <!-- Error message display -->
+              <div v-if="formError" class="alert alert-danger mt-3 mb-0" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ formError }}
+              </div>
+            </div>            
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" @click="closeAddModal">
+              <button type="button" class="btn btn-secondary rounded-pill" @click="closeAddModal">
                 Mégse
               </button>
-              <button type="button" class="btn btn-primary" @click="closeAddModal">
+              <button type="button" class="btn btn-primary btn-teal rounded-pill" @click="saveNewProduct">
                 Mentés
               </button>
             </div>
@@ -344,14 +438,14 @@
     --bs-table-bg: lightgray;
   }
 
-  .custom-search {
+  .custom-input {
     border: 2px solid #ccc;
     background-color: white;
     outline: none;
     transition: border-color 0.2s;
   }
 
-  .custom-search:focus {
+  .custom-input:focus {
     border-color: #00948B;
     background-color: white;
     box-shadow: none;
@@ -359,6 +453,17 @@
 
   .modal-backdrop {
     display: none;
+  }
+
+  .btn-teal {
+    background-color: #00948B !important;
+    border-color: #00948B !important;
+  }
+
+  .btn-teal:hover,
+  .btn-teal:focus {
+    background-color: #007a72 !important; /* a bit darker on hover */
+    border-color: #007a72 !important;
   }
 
   .modal-backdrop-custom {
@@ -404,23 +509,48 @@
   /* Modal open/close animation */
   .modal-fade-enter-active,
   .modal-fade-leave-active {
-    transition: opacity 0.2s ease, transform 0.2s ease;
+    transition: opacity 0.15s ease;
   }
 
   .modal-fade-enter-from,
   .modal-fade-leave-to {
     opacity: 0;
-    transform: scale(0.95);
   }
 
   .modal-fade-enter-to,
   .modal-fade-leave-from {
     opacity: 1;
-    transform: scale(1);
   }
 
   /* Space between footer buttons */
   .custom-modal-content .modal-footer .btn + .btn {
     margin-left: 0.5rem;
+  }
+
+  /* Style for close button with gray shadow */
+  .custom-modal-content .btn-close {
+    width: 2.5rem;
+    height: 2.5rem;
+    background-color: #e0e0e0;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+  }
+
+  .custom-modal-content .btn-close:hover {
+    background-color: #d0d0d0;
+  }
+
+  .custom-modal-content .btn-close:focus {
+    outline: none;
+    box-shadow: none;
+  }
+
+  .custom-modal-content .btn-close:active {
+    outline: none;
+    box-shadow: none;
   }
 </style>

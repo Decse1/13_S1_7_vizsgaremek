@@ -12,6 +12,10 @@ const formData = ref({
   adoszamEuropai: '',
   cegTelszam: '',
   cegEmail: '',
+  felhasznalonev: '',
+  jelszo: '',
+  telephelyCime: '',
+  felhszTel: '',
   elfogadom: false
 });
 
@@ -21,6 +25,69 @@ const showSuccess = ref(false);
 const successMessage = ref('');
 const isSubmitting = ref(false);
 const registeredCegId = ref(null);
+
+// Autocomplete functionality
+const showSuggestions = ref(false);
+const filteredCompanies = ref([]);
+
+// Hardcoded test companies
+const testCompanies = [
+  {
+    nev: 'Teszt Kereskedelmi Kft.',
+    cim: '1055 Budapest, Kossuth Lajos utca 10.',
+    adoszamMagyar: '12345678241',
+    telefon: '+36 1 234 5678',
+    email: 'info@tesztkereskedelmi.hu'
+  },
+  {
+    nev: 'Mintavállalat Zrt.',
+    cim: '1134 Budapest, Váci út 45.',
+    adoszamMagyar: '87654321242',
+    telefon: '+36 1 876 5432',
+    email: 'kapcsolat@mintavallalat.hu'
+  },
+  {
+    nev: 'Példa Szolgáltató Bt.',
+    cim: '6720 Szeged, Tisza Lajos körút 25.',
+    adoszamMagyar: '11223344243',
+    telefon: '+36 62 111 222',
+    email: 'info@peldaszolgaltato.hu'
+  }
+];
+
+// Filter companies based on input
+const handleCegNeveInput = () => {
+  const searchTerm = formData.value.cegNeve;
+  
+  if (searchTerm.length >= 4) {
+    filteredCompanies.value = testCompanies.filter(company =>
+      company.nev.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    showSuggestions.value = filteredCompanies.value.length > 0;
+  } else {
+    showSuggestions.value = false;
+    filteredCompanies.value = [];
+  }
+};
+
+// Select a company from suggestions
+const selectCompany = (company) => {
+  formData.value.cegNeve = company.nev;
+  formData.value.cegCime = company.cim;
+  formData.value.adoszamMagyar = company.adoszamMagyar;
+  formData.value.adoszamEuropai = company.adoszamEuropai;
+  formData.value.cegTelszam = company.telefon;
+  formData.value.cegEmail = company.email;
+  
+  showSuggestions.value = false;
+};
+
+// Close suggestions when clicking outside
+const closeSuggestions = () => {
+  setTimeout(() => {
+    showSuggestions.value = false;
+  }, 200);
+};
 
 const handleSubmit = async () => {
   // Reset messages
@@ -135,13 +202,29 @@ const handleSubmit = async () => {
         
         <div class="mb-3">
           <label for="cegNeve" class="form-label">Cég neve</label>
-          <input 
-            type="text" 
-            class="form-control custom-input" 
-            id="cegNeve" 
-            v-model="formData.cegNeve"
-            required
-          />
+          <div class="autocomplete-wrapper">
+            <input 
+              type="text" 
+              class="form-control custom-input" 
+              id="cegNeve" 
+              v-model="formData.cegNeve"
+              @input="handleCegNeveInput"
+              @blur="closeSuggestions"
+              autocomplete="off"
+              required
+              maxlength="100"
+            />
+            <div v-if="showSuggestions" class="autocomplete-dropdown">
+              <div 
+                v-for="(company, index) in filteredCompanies" 
+                :key="index"
+                class="autocomplete-item"
+                @click="selectCompany(company)"
+              >
+                {{ company.nev }}
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="mb-3">
@@ -152,6 +235,7 @@ const handleSubmit = async () => {
             id="CegCime" 
             v-model="formData.cegCime"
             required
+            maxlength="255"
           />
         </div>
 
@@ -163,6 +247,7 @@ const handleSubmit = async () => {
             id="adoszamMagyar" 
             v-model="formData.adoszamMagyar"
             required
+            maxlength="11"
           />
         </div>
 
@@ -173,7 +258,7 @@ const handleSubmit = async () => {
             class="form-control custom-input" 
             id="adoszamEuropai" 
             v-model="formData.adoszamEuropai"
-            required
+            maxlength="20"
           />
         </div>
 
@@ -185,6 +270,7 @@ const handleSubmit = async () => {
             id="cegTelszam" 
             v-model="formData.cegTelszam"
             required
+            maxlength="15"
           />
         </div>
 
@@ -196,6 +282,7 @@ const handleSubmit = async () => {
             id="cegEmail" 
             v-model="formData.cegEmail"
             required
+            maxlength="100"
           />
         </div>
       </section>
@@ -211,6 +298,7 @@ const handleSubmit = async () => {
             id="felhasznalonev" 
             v-model="formData.felhasznalonev"
             required
+            maxlength="100"
           />
         </div>
 
@@ -233,6 +321,7 @@ const handleSubmit = async () => {
             id="telephelyCime" 
             v-model="formData.telephelyCime"
             required
+            maxlength="255"
           />
         </div>
 
@@ -244,6 +333,7 @@ const handleSubmit = async () => {
             id="felhszTel" 
             v-model="formData.felhszTel"
             required
+            maxlength="15"
           />
         </div>
       </section>
@@ -341,6 +431,39 @@ const handleSubmit = async () => {
     background-color: white;
     outline: none;
   }
+
+.autocomplete-wrapper {
+  position: relative;
+}
+
+.autocomplete-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: white;
+  border: 2px solid #00948B;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.autocomplete-item {
+  padding: 10px 15px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.autocomplete-item:hover {
+  background-color: #e6f7f6;
+}
+
+.autocomplete-item:not(:last-child) {
+  border-bottom: 1px solid #e0e0e0;
+}
 
 @media (min-width: 992px) {
   .content {

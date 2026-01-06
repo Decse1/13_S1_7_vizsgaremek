@@ -309,7 +309,7 @@
               <button type="button" class="btn btn-secondary rounded-pill" @click="closeAddModal">
                 Mégse
               </button>
-              <button type="button" class="btn btn-primary rounded-pill" @click="closeAddModal">
+              <button type="button" class="btn btn-primary btn-teal rounded-pill" @click="closeAddModal">
                 Mentés
               </button>
             </div>
