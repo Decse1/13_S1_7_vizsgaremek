@@ -9,6 +9,13 @@ app.use(express.static('public'));
 
 const bcrypt = require("bcrypt");
 
+async function felhasznalo_all(){
+  const [rows] = await db.query(
+    `SELECT nev FROM felhasznalo`
+  );
+  return rows;
+}
+
 async function felhasznalo_ad(profil) {
   // Hash the password before storing
   const hashedPassword = await bcrypt.hash(profil.jelszo, 10);
@@ -41,10 +48,20 @@ module.exports = (app) => {
               if(profil.telephely_cim != ""){
                 if(profil.telefon != ""){
                   if(profil.cegId != ""){
-                    tmp = await felhasznalo_ad(profil);
-                    //onsole.log(tmp);
-                    alkalmazott_ad(profil, tmp);
-                    return res.status(200).json({ ok:true, uzenet:"Sikeres adatfelvétel!" });
+                    let felhasznaloAll  = [felhasznalo_all()]
+                    let i = 0;
+                    while (i < felhasznaloAll.length && profil.nev != felhasznaloAll[i]){
+                      i++
+                    }
+                    if( i > felhasznaloAll.length){
+                      tmp = await felhasznalo_ad(profil);
+                      //onsole.log(tmp);
+                      alkalmazott_ad(profil, tmp);
+                      return res.status(200).json({ ok:true, uzenet:"Sikeres adatfelvétel!" });
+                    }
+                    else{
+                      return res.status(200).json({ ok:false, uzenet:"A felhasználó név már létezik"})
+                    }       
                   }
                   else{
                     return res.status(200).json({ ok:false, uzenet:"Kérem adjon meg egy céget"});

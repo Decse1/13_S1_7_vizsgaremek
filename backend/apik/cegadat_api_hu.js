@@ -7,7 +7,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-const CEG_API_KEY = ""; 
+const CEG_API_KEY= "213.6ace6e05f1c1097d79e445d8dad7ba44";
 const API_BASE_URL = "https://api.cegadatapi.hu";
 
 // --- CORS engedélyezése ---

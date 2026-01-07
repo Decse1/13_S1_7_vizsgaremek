@@ -45,7 +45,14 @@ module.exports = (app) => {
             return res.json({
                 ok: true,
                 uzenet: "Sikeres bejelentkezés!",
-                felhasznalo: { id: felhasznalo.id, nev: felhasznalo.nev }, // Ne küldjük vissza a jelszót a kliensnek!
+                felhasznalo: 
+                { 
+                    id: felhasznalo.id,
+                    nev: felhasznalo.nev,
+                    kategoria: felhasznalo.kategoria,
+                    telephely_cim: felhasznalo.telephely_cim,
+                    telefon: felhasznalo.telefon
+                },
                 ceg
             });
 

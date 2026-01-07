@@ -22,7 +22,7 @@ app.listen(3000, () =>
     console.log(`Szerver fut: ${url}\nAPI-k:
         \t${url}/api/Raktar
         \t${url}/api/Bejelent
-        \t${url}/api/Fehasznalo_ad
+        \t${url}/api/Felhasznalo_ad
         \t${url}/api/Felhasznalo_update
         \t${url}/api/Felhasznalo_delete
         \t${url}/api/Ceg_ad
@@ -36,6 +36,8 @@ app.listen(3000, () =>
         \t${url}/api/Ceg_osszes
         \t${url}/api/Rendeles_ad
         \t${url}/api/Beerkezett_rendeles
+        \t${url}/api/Termek_ad
+        \t${url}/api/Termek_update
         \t${url}/api/detail
         \t${url}/api/search/name
         \t${url}/api/search/vat`)
