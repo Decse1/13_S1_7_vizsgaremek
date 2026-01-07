@@ -17,7 +17,10 @@ async function ceg_ad(ceg) {
 }
 
 async function ceg_update(ceg) {
-  const [rows] = await db.query(`UPDATE Ceg SET nev = "${ceg.nev}", adoszam = "${ceg.adoszam}", euAdoszam = "${ceg.euAdoszam}", cim = "${ceg.cim}", email = "${ceg.email}", telefon = "${ceg.telefon}", elofiz = "${ceg.elofiz}" WHERE id = "${ceg.id}";`);
+  const [rows] = await db.query(
+    `UPDATE Ceg SET nev = ?, adoszam = ?, euAdoszam = ?, cim = ?, email = ?, telefon = ?, elofiz = ? WHERE id = ?`,
+    [ceg.nev, ceg.adoszam, ceg.euAdoszam, ceg.cim, ceg.email, ceg.telefon, ceg.elofiz, ceg.id]
+  );
   return rows;
 }
 
@@ -66,14 +69,14 @@ module.exports = (app) => {
     try {
       const ceg = req.body;
       let tmp;
-      if(Object.keys(ceg).length == 7){
+      if(Object.keys(ceg).length == 8){
         if (ceg.nev != ""){
           if(ceg.adoszam != ""){
             if(ceg.cim != ""){
               if(ceg.email != "" || ceg.telefon != ""){
                 if(ceg.id != ""){
                   ceg_update(ceg);
-                  return res.status(200).json({ ok:true, uzenet:"Sikeres adatfelvétel!", cegId: tmp.insertId});
+                    return res.status(200).json({ ok:true, uzenet:"Sikeres módosítás!" });
                 }
                 else{
                   return res.status(200).json({ ok:false, uzenet:"Hiányzó cég azonosító"});
