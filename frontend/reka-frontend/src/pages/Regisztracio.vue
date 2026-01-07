@@ -29,57 +29,103 @@ const registeredCegId = ref(null);
 // Autocomplete functionality
 const showSuggestions = ref(false);
 const filteredCompanies = ref([]);
+const isLoadingCompanies = ref(false);
 
-// Hardcoded test companies
-const testCompanies = [
-  {
-    nev: 'Teszt Kereskedelmi Kft.',
-    cim: '1055 Budapest, Kossuth Lajos utca 10.',
-    adoszamMagyar: '12345678241',
-    telefon: '+36 1 234 5678',
-    email: 'info@tesztkereskedelmi.hu'
-  },
-  {
-    nev: 'Mintavállalat Zrt.',
-    cim: '1134 Budapest, Váci út 45.',
-    adoszamMagyar: '87654321242',
-    telefon: '+36 1 876 5432',
-    email: 'kapcsolat@mintavallalat.hu'
-  },
-  {
-    nev: 'Példa Szolgáltató Bt.',
-    cim: '6720 Szeged, Tisza Lajos körút 25.',
-    adoszamMagyar: '11223344243',
-    telefon: '+36 62 111 222',
-    email: 'info@peldaszolgaltato.hu'
-  }
-];
-
-// Filter companies based on input
-const handleCegNeveInput = () => {
+// Search companies by name - using API
+const handleCegNeveInput = async () => {
   const searchTerm = formData.value.cegNeve;
   
   if (searchTerm.length >= 4) {
-    filteredCompanies.value = testCompanies.filter(company =>
-      company.nev.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    showSuggestions.value = filteredCompanies.value.length > 0;
+    isLoadingCompanies.value = true;
+    try {
+      // Search companies by name using /v1/search endpoint
+      const response = await axios.post('http://localhost:3000/api/search/name', {
+        nev: searchTerm
+      });
+      
+      if (response.data && Array.isArray(response.data)) {
+        // Log the raw response to see the structure
+        console.log('Search API response:', response.data);
+        
+        // Limit to first 4 companies and store basic info
+        filteredCompanies.value = response.data.slice(0, 4).map(company => {
+          console.log('Company data:', company);
+          return {
+            shortName: company.shortName || company.fullName || 'N/A',
+            taxNumber: company.taxNumber || company.vatNumber,
+            companyId: company.id || company.taxNumber || company.vatNumber,
+            id: company.taxNumber || company.vatNumber // Use taxNumber as unique identifier
+          };
+        });
+        showSuggestions.value = filteredCompanies.value.length > 0;
+      } else {
+        filteredCompanies.value = [];
+        showSuggestions.value = false;
+      }
+    } catch (error) {
+      console.error('Error searching companies:', error);
+      filteredCompanies.value = [];
+      showSuggestions.value = false;
+    } finally {
+      isLoadingCompanies.value = false;
+    }
   } else {
     showSuggestions.value = false;
     filteredCompanies.value = [];
   }
 };
 
-// Select a company from suggestions
-const selectCompany = (company) => {
-  formData.value.cegNeve = company.nev;
-  formData.value.cegCime = company.cim;
-  formData.value.adoszamMagyar = company.adoszamMagyar;
-  formData.value.adoszamEuropai = company.adoszamEuropai;
-  formData.value.cegTelszam = company.telefon;
-  formData.value.cegEmail = company.email;
-  
+// Select a company from suggestions and fetch detailed information
+const selectCompany = async (company) => {
+  // Close suggestions immediately and show loading
   showSuggestions.value = false;
+  isLoadingCompanies.value = true;
+  
+  console.log('Selected company:', company);
+  
+  try {
+    // Fetch detailed information using /v1/detail endpoint
+    // Try with the companyId first, then taxNumber
+    const identifier = company.companyId || company.taxNumber || company.id;
+    console.log('Fetching details for identifier:', identifier);
+    
+    const detailResponse = await axios.post('http://localhost:3000/api/detail', {
+      adoszam: identifier
+    });
+    
+    console.log('Detail API response:', detailResponse.data);
+    
+    // Check if response is an object (not an array)
+    const detail = Array.isArray(detailResponse.data) 
+      ? detailResponse.data[0] 
+      : detailResponse.data;
+    
+    if (detail && (detail.shortName || detail.fullName)) {
+      console.log('Detail data:', detail);
+      
+      // Fill in the form with detailed data
+      formData.value.cegNeve = detail.shortName || detail.fullName || company.shortName;
+      formData.value.cegCime = detail.fullAddress || '';
+      formData.value.adoszamMagyar = detail.vatNumber || company.taxNumber;
+      formData.value.cegTelszam = detail.phoneNumber || '';
+      formData.value.cegEmail = detail.emailAddress || '';
+    } else {
+      console.log('No detail data received, using fallback');
+      // Fallback to basic info if detail fetch fails
+      formData.value.cegNeve = company.shortName;
+      formData.value.adoszamMagyar = company.taxNumber;
+    }
+  } catch (error) {
+    console.error('Error fetching company details:', error);
+    console.error('Error response:', error.response?.data);
+    // Fallback to basic info
+    formData.value.cegNeve = company.shortName;
+    formData.value.adoszamMagyar = company.taxNumber;
+    errorMessage.value = 'Nem sikerült betölteni a cég részletes adatait. Kérjük, töltse ki kézzel!';
+    showError.value = true;
+  } finally {
+    isLoadingCompanies.value = false;
+  }
 };
 
 // Close suggestions when clicking outside
@@ -214,14 +260,19 @@ const handleSubmit = async () => {
               required
               maxlength="100"
             />
-            <div v-if="showSuggestions" class="autocomplete-dropdown">
+            <div v-if="isLoadingCompanies" class="autocomplete-loading">
+              <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              Keresés...
+            </div>
+            <div v-else-if="showSuggestions" class="autocomplete-dropdown">
               <div 
                 v-for="(company, index) in filteredCompanies" 
                 :key="index"
                 class="autocomplete-item"
                 @click="selectCompany(company)"
               >
-                {{ company.nev }}
+                <div class="company-name">{{ company.shortName }}</div>
+                <div class="company-details">{{ company.taxNumber }}</div>
               </div>
             </div>
           </div>
@@ -436,6 +487,22 @@ const handleSubmit = async () => {
   position: relative;
 }
 
+.autocomplete-loading {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: white;
+  border: 2px solid #00948B;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  padding: 10px 15px;
+  z-index: 1000;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  color: #00948B;
+  font-size: 14px;
+}
+
 .autocomplete-dropdown {
   position: absolute;
   top: 100%;
@@ -445,7 +512,7 @@ const handleSubmit = async () => {
   border: 2px solid #00948B;
   border-top: none;
   border-radius: 0 0 4px 4px;
-  max-height: 200px;
+  max-height: 261px;
   overflow-y: auto;
   z-index: 1000;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -463,6 +530,17 @@ const handleSubmit = async () => {
 
 .autocomplete-item:not(:last-child) {
   border-bottom: 1px solid #e0e0e0;
+}
+
+.company-name {
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 2px;
+}
+
+.company-details {
+  font-size: 12px;
+  color: #666;
 }
 
 @media (min-width: 992px) {
