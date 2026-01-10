@@ -1,23 +1,25 @@
 let url = "http://localhost:3000";
 const express = require('express');
 const cors = require('cors');
+const { initDatabase } = require('./connect');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-// API-k importálása és regisztrálása
-require("./apik/raktar.js")(app);
-require("./apik/bejelent.js")(app);
-require("./apik/felhasznalo.js")(app);
-require("./apik/ceg.js")(app);
-require("./apik/partnerek.js")(app);
-require("./apik/termek.js")(app);
-require("./apik/ceg_osszes.js")(app);
-require("./apik/cegadat_api_hu.js")(app);
-require("./apik/rendeles.js")(app);
-
+async function startServer() {
+    await initDatabase();
+    require("./apik/raktar.js")(app);
+    require("./apik/bejelent.js")(app);
+    require("./apik/felhasznalo.js")(app);
+    require("./apik/ceg.js")(app);
+    require("./apik/partnerek.js")(app);
+    require("./apik/termek.js")(app);
+    require("./apik/ceg_osszes.js")(app);
+    require("./apik/cegadat_api_hu.js")(app);
+    require("./apik/rendeles.js")(app);
+}
 app.listen(3000, () => 
     console.log(`Szerver fut: ${url}\nAPI-k:
         \t${url}/api/Raktar
@@ -42,3 +44,5 @@ app.listen(3000, () =>
         \t${url}/api/search/name
         \t${url}/api/search/vat`)
 );
+
+startServer();
