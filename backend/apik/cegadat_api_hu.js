@@ -28,8 +28,8 @@ function runCurlProxy(endpoint, params) {
         }
 
         // A CURL parancs összeállítása a kulccsal és az URL-enkódoláshoz szükséges --data-urlencode kapcsolóval
-        const fullCurlCommand = `curl -G "${API_BASE_URL}${endpoint}" -H "X-Api-Key: ${CEG_API_KEY}" --data-urlencode "${params}"`;
-        console.log(fullCurlCommand);
+        const fullCurlCommand = `curl --ssl-no-revoke -G "${API_BASE_URL}${endpoint}" -H "X-Api-Key: ${CEG_API_KEY}" --data-urlencode "${params}"`;
+        //console.log(fullCurlCommand);
         
         console.log(`[CURL]: ${endpoint} hívása...`);
         //console.log(`[PARANCS]: ${fullCurlCommand}`); // Ezt vedd ki, ha már nem kell debugolni
@@ -69,7 +69,8 @@ module.exports =  (app) => {
 
     // 2. SEARCH VÉGPONT (/api/search)
     app.post('/api/search/name', async (req, res) => {
-        const {nev}= req.body; 
+        const nev = req.body.name;
+        console.log(nev); 
 
         if (!nev) {
             return res.status(400).json({ error: 'Hiányzó paraméterek: name és businessType kötelező.' });
@@ -77,7 +78,7 @@ module.exports =  (app) => {
         
         try {
             // A paraméterek string formájú összeállítása a CURL --data-urlencode kapcsolójához
-            const params = `name=${nev}" --data-urlencode "businessType=all}"`;
+            const params = `name=${nev}" --data-urlencode "businessType=all`;
             const result = await runCurlProxy('/v1/search', params);
             console.log(result.data);
             res.status(result.status).json(result.data);
@@ -87,7 +88,7 @@ module.exports =  (app) => {
     });
 
     app.post('/api/search/vat', async (req, res) => {
-        const {adoszam}= req.body; 
+        const adoszam = req.body.vatNumber; 
 
         if (!adoszam) {
             return res.status(400).json({ error: 'Hiányzó paraméterek: name és businessType kötelező.' });
@@ -95,7 +96,7 @@ module.exports =  (app) => {
         
         try {
             // A paraméterek string formájú összeállítása a CURL --data-urlencode kapcsolójához
-            const params = `vatNumber=${adoszam}" --data-urlencode "businessType=all}"`;
+            const params = `vatNumber=${adoszam}" --data-urlencode "businessType=all`;
             const result = await runCurlProxy('/v1/search', params);
             console.log(result.data);
             res.status(result.status).json(result.data);
