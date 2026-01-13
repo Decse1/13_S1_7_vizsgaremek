@@ -1,11 +1,4 @@
-const express = require('express');
-const cors = require('cors');
 const db = require('../connect');
-
-const app = express();
-app.use(cors());
-app.use(express.json());
-app.use(express.static('public'));
 
 async function szuro_pCeg(pCeg) {
     const [rows] = await db.query(`SELECT termek_kategoria.id AS katId, termek_kategoria.nev AS katNev FROM Termek_kategoria INNER JOIN Termek ON Termek_kategoria.id = Termek.kategoria WHERE Termek.tulajdonos = "${pCeg}" GROUP BY termek_kategoria.id;`);

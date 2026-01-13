@@ -1,12 +1,4 @@
-const express = require('express');
-const cors = require('cors');
 const db = require('../connect');
-
-const app = express();
-app.use(cors());
-app.use(express.json());
-app.use(express.static('public'));
-
 const bcrypt = require("bcrypt");
 
 async function felhasznalo_all(){
@@ -53,7 +45,7 @@ module.exports = (app) => {
                     while (i < felhasznaloAll.length && profil.nev != felhasznaloAll[i]){
                       i++
                     }
-                    if( i > felhasznaloAll.length){
+                    if( i >= felhasznaloAll.length){
                       tmp = await felhasznalo_ad(profil);
                       //onsole.log(tmp);
                       alkalmazott_ad(profil, tmp);
