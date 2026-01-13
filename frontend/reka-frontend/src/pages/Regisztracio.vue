@@ -40,7 +40,7 @@ const handleCegNeveInput = async () => {
     try {
       // Search companies by name using /v1/search endpoint
       const response = await axios.post('http://localhost:3000/api/search/name', {
-        nev: searchTerm
+        name: searchTerm
       });
       
       if (response.data && Array.isArray(response.data)) {
