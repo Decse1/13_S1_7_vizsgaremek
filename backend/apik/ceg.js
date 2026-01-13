@@ -1,11 +1,4 @@
-const express = require('express');
-const cors = require('cors');
 const db = require('../connect');
-
-const app = express();
-app.use(cors());
-app.use(express.json());
-app.use(express.static('public'));
 
 async function ceg_ad(ceg) {
   let fizet = 0; 
@@ -24,36 +17,59 @@ async function ceg_update(ceg) {
   return rows;
 }
 
+async function ceg_all(){
+  const [rows] = await db.query(`SELECT id, nev FROM Ceg`);
+  return rows;
+}
 
 
 module.exports = (app) => {
+  app.get('/api/Ceg_osszes', async (req, res) => {
+          try {
+              const cegek = await ceg_all();
+              return res.status(200).json({ ok: true, cegek});
+          } catch (err) {
+              res.status(500).json({ error: "Adatbázis hiba!" });
+              console.log(err);
+          }
+      });
   app.post('/api/Ceg_ad', async (req, res) => {
     try {
       const ceg = req.body;
       let tmp;
       if(Object.keys(ceg).length == 7){
-        if (ceg.nev != ""){
-          if(ceg.adoszam != ""){
-            if(ceg.cim != ""){
-              if(ceg.email != "" || ceg.telefon != ""){
-                tmp = await ceg_ad(ceg);
-                return res.status(200).json({ ok:true, uzenet:"Sikeres adatfelvétel!", cegId: `${tmp.insertId}`});
+        if(ceg.adoszam != ""){
+          const cegek = await ceg_all();
+          let i = 0;
+          while(i < cegek.length && cegek[i].adoszam != ceg.adoszam){
+            i++;
+          }
+          if(i >= cegek.length){
+            if (ceg.nev != ""){
+              if(ceg.cim != ""){
+                if(ceg.email != "" || ceg.telefon != ""){
+                  tmp = await ceg_ad(ceg);
+                  return res.status(200).json({ ok:true, uzenet:"Sikeres adatfelvétel!", cegId: `${tmp.insertId}`});
+                }
+                else{
+                  return res.status(200).json({ ok:false, uzenet: "Kérem adjon meg legalább egy elérhetőséget (email vagy telefon)!" });
+                }
               }
               else{
-                return res.status(200).json({ ok:false, uzenet: "Kérem adjon meg legalább egy elérhetőséget (email vagy telefon)!" });
+                return res.status(200).json({ ok:false, uzenet: "Kérem adja meg a cég címét!" });
               }
             }
             else{
-              return res.status(200).json({ ok:false, uzenet: "Kérem adja meg a cég címét!" });
+              return res.status(200).json({ ok:false, uzenet: "Kérem adja meg a cég nevét!" });
             }
           }
           else{
-            return res.status(200).json({ ok:false, uzenet: "Kérem adja meg a cég adószámát!" });
+            return res.status(200).json({ ok:false, uzenet: "Már létező adószám!", cegId: `${cegek[i].id}`});
           }
         }
         else{
-          return res.status(200).json({ ok:false, uzenet: "Kérem adja meg a cég nevét!" });
-        }
+          return res.status(200).json({ ok:false, uzenet: "Kérem adja meg a cég adószámát!" });
+        } 
       }
       else{
         return res.status(200).json({ ok:false, uzenet: "Hiányzó adatok!" });
@@ -101,16 +117,6 @@ module.exports = (app) => {
       else{
         return res.status(200).json({ ok:false, uzenet: "Hiányzó adatok!" });
       }
-    } catch (err) {
-      res.status(500).json({ error: "Adatbázis hiba!" });
-      console.log(err);
-    }
-  });
-
-  app.post('/api/Ceg_delete', async (req, res) => {
-    try{
-      const [row] = await db.query(`DELETE Ceg WHERE id = "${req.body.id}"`)
-      return res.status(200).json({ok:true, uzenet: "Sikeres törlés"});
     } catch (err) {
       res.status(500).json({ error: "Adatbázis hiba!" });
       console.log(err);

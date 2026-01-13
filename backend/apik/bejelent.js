@@ -1,12 +1,5 @@
-const express = require('express');
-const cors = require('cors');
 const db = require('../connect');
-const bcrypt = require('bcrypt'); // 1. Importálás
-
-const app = express();
-app.use(cors());
-app.use(express.json());
-app.use(express.static('public'));
+const bcrypt = require('bcrypt');
 
 // Segédfüggvények
 async function Felhasznalo(username) {
