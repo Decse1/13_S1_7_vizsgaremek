@@ -399,7 +399,7 @@ const handleSubmit = async () => {
           required
         />
         <label class="form-check-label" for="elfogadom">
-          Elfogadom a RÉKA általános szerződési feltételeit és adatkezelési nyilatkozatát
+          Elfogadom a <a href="/aszf">RÉKA általános szerződési feltételeit és adatkezelési nyilatkozatát</a>.
         </label>
       </div>
 
@@ -541,6 +541,15 @@ const handleSubmit = async () => {
 .company-details {
   font-size: 12px;
   color: #666;
+}
+
+a {
+  color: #00948B;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #007a72;
 }
 
 @media (min-width: 992px) {

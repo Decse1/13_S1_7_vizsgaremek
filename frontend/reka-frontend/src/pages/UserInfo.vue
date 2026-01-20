@@ -160,21 +160,11 @@ const deactivateReka = async () => {
       <div class="d-flex align-items-center flex-grow-1 mb-2 mb-md-0">
         <h2 class="me-3 mb-0">Felhasználói adatok</h2>
       </div>
-
-      <button
-        v-if="authStore.user.kategoria == 1"
-        class="btn btn-success btn-teal add-btn rounded-5 d-flex align-items-center"
-        @click="openAddModal"
-      >
-        <i class="bi bi-pencil"></i>
-        <span class="d-none d-sm-inline ms-2">Felhasználói adatok módosítása</span>
-      </button>
     </div>
     <p>Felhasználónév: {{ authStore.user.nev }}</p>
-    <p>Telephely címe: {{ authStore.user.telephely_cim }}</p>
     <p>Telefonszám: {{ authStore.user.telefon }}</p>
-    <p></p>
-
+    <p>Kategória: {{ authStore.user.kategoria }}</p>
+    <p>Telephely címe: {{ authStore.user.telephely_cim }}</p>
     <p>Cég neve: {{ authStore.ceg.nev }}</p>
     <p>Adószám: {{ authStore.ceg.adoszam }}</p>
     
@@ -188,26 +178,6 @@ const deactivateReka = async () => {
       <button type="button" class="btn-close" aria-label="Bezárás" @click="closeError"></button>
     </div>
     
-    <button v-if="authStore.ceg.elofiz == 0 && authStore.user.kategoria == 1"
-        class="btn btn-success btn-teal add-btn rounded-5 d-flex align-items-center"
-        @click="activateReka"
-        :disabled="isUpdating"
-      >
-        <span v-if="isUpdating" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-        <span class="d-none d-sm-none d-md-none d-lg-inline">
-          {{ isUpdating ? 'Frissítés...' : 'RÉKA-előfizetés bekapcsolása' }}
-        </span>
-    </button>
-    <button v-if="authStore.ceg.elofiz == 1 && authStore.user.kategoria == 1"
-        class="btn btn-danger add-btn rounded-5 d-flex align-items-center"
-        @click="deactivateReka"
-        :disabled="isUpdating"
-      >
-        <span v-if="isUpdating" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-        <span class="d-none d-sm-none d-md-none d-lg-inline">
-          {{ isUpdating ? 'Frissítés...' : 'RÉKA-előfizetés kikapcsolása' }}
-        </span>
-    </button>
 
     <transition name="modal-fade">
       <div
@@ -226,7 +196,7 @@ const deactivateReka = async () => {
             <div class="modal-body">
               <form @submit.prevent="saveCompanyData">
                 <div class="mb-3">
-                  <label class="form-label">Cég neve</label>
+                  <label class="form-label">Felhasználónév</label>
                   <input
                     v-model="editForm.nev"
                     type="text"

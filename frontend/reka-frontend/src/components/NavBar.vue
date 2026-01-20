@@ -170,6 +170,7 @@ onUnmounted(() => {
   background-color: #e9ecef;
 }
 
+
 /* ACTIVE (exact match) */
 .router-link-exact-active.sidebar-item {
   background-color: #048c85; /* your teal color */

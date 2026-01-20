@@ -7,6 +7,7 @@ import Partnersegek from './pages/Partnersegek.vue';
 import Bejelentkezes from './pages/Bejelentkezes.vue';
 import Regisztracio from './pages/Regisztracio.vue';
 import TermekOldal from './pages/TermekOldal.vue';
+import Aszf from './pages/Aszf.vue';
 import authStore from './stores/auth.js';
 
 const routes = [
@@ -58,6 +59,12 @@ const routes = [
     name: "Teszt termék oldal", 
     component: TermekOldal,
     meta: { requiresAuth: true }
+  },
+  {
+    path: "/aszf",
+    name: "Általános Szerződési Feltételek",
+    component: Aszf,
+    meta: { requiresAuth: false }
   },
   {
     path: "/:pathMatch(.*)*",
