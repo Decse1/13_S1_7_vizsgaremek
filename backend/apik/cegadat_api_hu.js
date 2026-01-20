@@ -1,6 +1,6 @@
+const { exec } = require('child_process');
 const CEG_API_KEY= "213.6ace6e05f1c1097d79e445d8dad7ba44";
 const API_BASE_URL = "https://api.cegadatapi.hu";
-
 
 /**
  * A fő funkció, ami elvégzi a CURL hívást.
