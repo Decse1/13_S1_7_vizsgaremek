@@ -82,7 +82,7 @@ onUnmounted(() => {
 
         <!-- Dropdown Menu -->
         <div class="profile-dropdown" :class="{ show: dropdownOpen }">
-          <a href="#" class="dropdown-item" @click.prevent="closeDropdown">Profiladatok</a>
+          <router-link to="/userinfo" class="dropdown-item" @click="closeDropdown">Profiladatok</router-link>
           <a href="#" class="dropdown-item logout" @click.prevent="handleLogout">Kijelentkezés</a>
         </div>
       </div>
@@ -124,7 +124,9 @@ onUnmounted(() => {
   top: 56px;
   left: 0;
   background-color: #f8f9fa;
-  padding-top: 0.6rem;
+  padding-top: 0.9rem;
+  padding-left: 0.3rem;
+  padding-right: 0.3rem;
   transition: transform 0.3s ease-in-out;
 }
 
@@ -166,7 +168,6 @@ onUnmounted(() => {
 
 .sidebar-item:hover {
   background-color: #e9ecef;
-  border-radius: 30px;
 }
 
 /* ACTIVE (exact match) */

@@ -2,9 +2,11 @@ import { createRouter, createWebHistory } from 'vue-router';
 import Kezdolap from "./pages/Kezdolap.vue";
 import Raktar from "./pages/Raktar.vue";
 import CegInfo from "./pages/CegInfo.vue";
+import UserInfo from './pages/UserInfo.vue';
 import Partnersegek from './pages/Partnersegek.vue';
 import Bejelentkezes from './pages/Bejelentkezes.vue';
 import Regisztracio from './pages/Regisztracio.vue';
+import TermekOldal from './pages/TermekOldal.vue';
 import authStore from './stores/auth.js';
 
 const routes = [
@@ -27,6 +29,12 @@ const routes = [
     component: CegInfo,
     meta: { requiresAuth: true }
   },
+  { 
+    path: "/userinfo", 
+    name: "Felhasználói adatok", 
+    component: UserInfo,
+    meta: { requiresAuth: true }
+  },
   {
     path: "/partnersegek",
     name: "Partnerségek",
@@ -44,6 +52,12 @@ const routes = [
     name: "Regisztráció", 
     component: Regisztracio,
     meta: { requiresGuest: true }
+  },
+  { 
+    path: "/termek/test", 
+    name: "Teszt termék oldal", 
+    component: TermekOldal,
+    meta: { requiresAuth: true }
   },
   {
     path: "/:pathMatch(.*)*",
