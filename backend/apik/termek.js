@@ -60,115 +60,85 @@ module.exports = (app) => {
     app.post('/api/Termek_ad', async (req, res) => {
         try {
             const termek = req.body;
-            if(Object.keys(termek).length == 10){
-                if(termek.mennyiseg != ""){
-                    if(termek.kiszereles != ""){
-                        if(termek.min_vas_menny != ""){
-                            if(termek.ar != ""){
-                                if(termek.kategoria != ""){
-                                    if(termek.afa_kulcs != ""){
-                                        if(termek.tulajdonos != ""){
-                                            if(termek.nev != ""){
-                                                termek_ad(termek)
-                                                res.status(200).json({ok:true, uzenet:"Sikeres termék hozzáadás"})
-                                            }
-                                            else{
-                                                res.status(200).json({ok:false, uzenet:"Nincs megadva a termék neve"})
-                                            }
-                                        }
-                                        else{
-                                            res.status(200).json({ok:false, uzenet:"Nincs megadva a tulajdonos"})
-                                        }
-                                    }
-                                    else{
-                                        res.status(200).json({ok:false, uzenet:"Nincs megadva az ÁFA kulcs"})
-                                    }
-                                }
-                                else{
-                                    res.status(200).json({ok:false, uzenet:"Nincs megadva a termék kategoriája"})
-                                }
-                            }
-                            else{
-                                res.status(200).json({ok:false, uzenet:"Nincs megadva a termék ára!"})
-                            }
-                        }
-                        else{
-                            res.status(200).json({ok:false, uzenet:"Nincs megadva minimum vásárlási mennyiség!"})
-                        }
-                    }
-                    else{
-                        res.status(200).json({ok:false, uzenet:"Nincs megadva kiszerelés!"})
-                    }
-                }
-                else{
-                    res.status(200).json({ok:false, uzenet:"Nincs megadva mennyiség!"})
-                }
+
+            // Kötelező mezők listája
+            const requiredFields = [
+            'mennyiseg',
+            'kiszereles',
+            'min_vas_menny',
+            'ar',
+            'kategoria',
+            'afa_kulcs',
+            'tulajdonos',
+            'nev'
+            ];
+
+            // Ellenőrizzük a hiányzó vagy üres mezőket
+            for (const field of requiredFields) {
+            if (!termek[field] || termek[field].toString().trim() === '') {
+                return res.status(422).json({
+                ok: false,
+                uzenet: `Hiányzó mező: ${field}`
+                });
             }
-            else{
-                res.status(200).json({ok:false, uzenet:"Hiányzó adat"})
             }
 
-        }
-        catch (err) {
-            res.status(500).json({ error: "Adatbázis hiba!" });
-            console.log(err);
+            // Ha minden rendben van, hozzáadjuk a terméket
+            await termek_ad(termek);
+
+            return res.status(200).json({
+            ok: true,
+            uzenet: "Sikeres termék hozzáadás"
+            });
+
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({
+            ok: false,
+            uzenet: "Szerverhiba! Adatbázis hiba."
+            });
         }
     });
     app.post('/api/Termek_update', async (req, res) => {
         try {
             const termek = req.body;
-            if(Object.keys(termek).length == 11){
-                if(termek.mennyiseg != ""){
-                    if(termek.kiszereles != ""){
-                        if(termek.min_vas_menny != ""){
-                            if(termek.ar != ""){
-                                if(termek.kategoria != ""){
-                                    if(termek.afa_kulcs != ""){
-                                        if(termek.tulajdonos != ""){
-                                            if(termek.nev != ""){
-                                                termek_update(termek)
-                                                res.status(200).json({ok:true, uzenet:"Sikeres termék hozzáadás"})
-                                            }
-                                            else{
-                                                res.status(200).json({ok:false, uzenet:"Nincs megadva a termék neve"})
-                                            }
-                                        }
-                                        else{
-                                            res.status(200).json({ok:false, uzenet:"Nincs megadva a tulajdonos"})
-                                        }
-                                    }
-                                    else{
-                                        res.status(200).json({ok:false, uzenet:"Nincs megadva az ÁFA kulcs"})
-                                    }
-                                }
-                                else{
-                                    res.status(200).json({ok:false, uzenet:"Nincs megadva a termék kategoriája"})
-                                }
-                            }
-                            else{
-                                res.status(200).json({ok:false, uzenet:"Nincs megadva a termék ára!"})
-                            }
-                        }
-                        else{
-                            res.status(200).json({ok:false, uzenet:"Nincs megadva minimum vásárlási mennyiség!"})
-                        }
-                    }
-                    else{
-                        res.status(200).json({ok:false, uzenet:"Nincs megadva kiszerelés!"})
-                    }
-                }
-                else{
-                    res.status(200).json({ok:false, uzenet:"Nincs megadva mennyiség!"})
-                }
+
+            // Kötelező mezők listája
+            const requiredFields = [
+            'mennyiseg',
+            'kiszereles',
+            'min_vas_menny',
+            'ar',
+            'kategoria',
+            'afa_kulcs',
+            'tulajdonos',
+            'nev'
+            ];
+
+            // Ellenőrizzük a hiányzó vagy üres mezőket
+            for (const field of requiredFields) {
+            if (!termek[field] || termek[field].toString().trim() === '') {
+                return res.status(422).json({
+                ok: false,
+                uzenet: `Hiányzó mező: ${field}`
+                });
             }
-            else{
-                res.status(200).json({ok:false, uzenet:"Hiányzó adat"})
             }
 
-        }
-        catch (err) {
-            res.status(500).json({ error: "Adatbázis hiba!" });
-            console.log(err);
+            // Ha minden rendben van, frissítjük a terméket
+            await termek_update(termek);
+
+            return res.status(200).json({
+            ok: true,
+            uzenet: "Sikeres termék frissítés"
+            });
+
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({
+            ok: false,
+            uzenet: "Szerverhiba! Adatbázis hiba."
+            });
         }
     });
 }

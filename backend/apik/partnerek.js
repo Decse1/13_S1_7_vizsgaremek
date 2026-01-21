@@ -17,44 +17,72 @@ module.exports = (app) => {
         try {
             const ceg_id = req.body.id;
 
-            const partnerek = await Partner_en_vevo(ceg_id);
-
-            if (partnerek.length === 0) {
-                return res.status(200).json({ ok: false, uzenet: "Nincsenek eladó partnerek!" });
-            }
-            else{
-                return res.json({
-                ok: true,
-                uzenet: "",
-                partnerek
+            // Ellenőrizzük a hiányzó id-t
+            if (!ceg_id) {
+            return res.status(422).json({
+                ok: false,
+                uzenet: "Hiányzó cég azonosító"
             });
             }
 
+            const partnerek = await Partner_en_vevo(ceg_id);
+
+            if (!partnerek || partnerek.length === 0) {
+            return res.status(404).json({
+                ok: false,
+                uzenet: "Nincsenek eladó partnerek"
+            });
+            }
+
+            return res.status(200).json({
+            ok: true,
+            uzenet: "",
+            partnerek
+            });
+
         } catch (err) {
-            res.status(500).json({ error: "Adatbázis hiba!" });
-            console.log(err);
+            console.error(err);
+            return res.status(500).json({
+            ok: false,
+            uzenet: "Szerverhiba! Adatbázis hiba."
+            });
         }
-    });
+        });
+
+
     app.post('/api/Partnerek_en_elado', async (req, res) => {
         try {
             const ceg_id = req.body.id;
 
-            const partnerek = await Partner_en_elado(ceg_id);
-
-            if (partnerek.length === 0) {
-                return res.status(200).json({ ok: false, uzenet: "Nincsenek vevő partnerek!" });
-            }
-            else{
-                return res.json({
-                ok: true,
-                uzenet: "",
-                partnerek
+            // Ellenőrizzük a hiányzó id-t
+            if (!ceg_id) {
+            return res.status(422).json({
+                ok: false,
+                uzenet: "Hiányzó cég azonosító"
             });
             }
 
+            const partnerek = await Partner_en_elado(ceg_id);
+
+            if (!partnerek || partnerek.length === 0) {
+            return res.status(404).json({
+                ok: false,
+                uzenet: "Nincsenek vevő partnerek"
+            });
+            }
+
+            return res.status(200).json({
+            ok: true,
+            uzenet: "",
+            partnerek
+            });
+
         } catch (err) {
-            res.status(500).json({ error: "Adatbázis hiba!" });
-            console.log(err);
+            console.error(err);
+            return res.status(500).json({
+            ok: false,
+            uzenet: "Szerverhiba! Adatbázis hiba."
+            });
         }
     });
 }

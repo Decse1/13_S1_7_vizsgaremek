@@ -20,38 +20,55 @@ module.exports = (app) => {
         try {
             const { username, password } = req.body;
 
+            // Ellenőrizzük, hogy a mezők megvannak-e
+            if (!username || !password) {
+            return res.status(422).json({
+                ok: false,
+                uzenet: "Hiányzó felhasználónév vagy jelszó"
+            });
+            }
+
             const felhasznalok = await Felhasznalo(username);
 
-            if (felhasznalok.length === 0) {
-                return res.status(200).json({ ok: false, uzenet: "Hibás felhasználónév vagy jelszó!" });
+            if (!felhasznalok || felhasznalok.length === 0) {
+            return res.status(401).json({
+                ok: false,
+                uzenet: "Hibás felhasználónév vagy jelszó"
+            });
             }
 
             const felhasznalo = felhasznalok[0];
 
-            if (!await bcrypt.compare(password, felhasznalo.jelszo)) {
-                return res.status(200).json({ ok: false, uzenet: "Hibás felhasználónév vagy jelszó!" });
+            const jelszo_egyezik = await bcrypt.compare(password, felhasznalo.jelszo);
+            if (!jelszo_egyezik) {
+            return res.status(401).json({
+                ok: false,
+                uzenet: "Hibás felhasználónév vagy jelszó"
+            });
             }
 
             const cegek = await Ceg_adat(felhasznalo.id);
             const ceg = cegek[0];
 
-            return res.json({
-                ok: true,
-                uzenet: "Sikeres bejelentkezés!",
-                felhasznalo: 
-                { 
-                    id: felhasznalo.id,
-                    nev: felhasznalo.nev,
-                    kategoria: felhasznalo.kategoria,
-                    telephely_cim: felhasznalo.telephely_cim,
-                    telefon: felhasznalo.telefon
-                },
-                ceg
+            return res.status(200).json({
+            ok: true,
+            uzenet: "Sikeres bejelentkezés!",
+            felhasznalo: {
+                id: felhasznalo.id,
+                nev: felhasznalo.nev,
+                kategoria: felhasznalo.kategoria,
+                telephely_cim: felhasznalo.telephely_cim,
+                telefon: felhasznalo.telefon
+            },
+            ceg
             });
 
         } catch (err) {
             console.error(err);
-            res.status(500).json({ error: "Szerver hiba!" });
+            return res.status(500).json({
+            ok: false,
+            uzenet: "Szerverhiba!"
+            });
         }
     });
 };

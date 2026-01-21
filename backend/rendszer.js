@@ -31,6 +31,7 @@ async function startServer() {
                 \t${url}/api/Felhasznalo_ad
                 \t${url}/api/Felhasznalo_update
                 \t${url}/api/Felhasznalo_delete
+                \t${url}/api/Alkalmazottak
                 \t${url}/api/Ceg_ad
                 \t${url}/api/Ceg_update
                 \t${url}/api/Ceg_delete
