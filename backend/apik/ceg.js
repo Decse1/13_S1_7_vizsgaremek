@@ -18,7 +18,7 @@ async function ceg_update(ceg) {
 }
 
 async function ceg_all(){
-  const [rows] = await db.query(`SELECT id, nev FROM Ceg`);
+  const [rows] = await db.query(`SELECT * FROM Ceg`);
   return rows;
 }
 
