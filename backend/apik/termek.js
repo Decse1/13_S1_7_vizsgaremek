@@ -19,7 +19,15 @@ async function termek_update(termek) {
 }
 
 module.exports = (app) => {
-    app.post('/api/Kategoriak', async (req, res) => {
+    app.post('/api/Kategoriak_all', async (req, res) => {
+        try {
+            const [rows] = await db.query('SELECT * FROM termek_kategoria')
+            return res.status(200).json({ ok: true, kategoriak: rows});
+        } catch (err) {
+            
+        }
+    });
+    app.post('/api/Kategoriak_szurt', async (req, res) => {
         try {
             const pCeg = req.body.id;
             const szurok = await szuro_pCeg(pCeg);

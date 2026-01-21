@@ -2,17 +2,49 @@ const db = require('../connect');
 
 
 async function Partner_en_vevo(ceg_id) {
-  const [rows] = await db.query(`SELECT Partnerseg.id AS id, Ceg.nev AS nev, Ceg.adoszam AS adoszamm, Ceg.cim AS cim, Ceg.telefon AS telefon, Partnerseg.fizetesi_ido AS fizetesi_ido, Partnerseg.fizetesi_forma AS fizetesi_forma FROM Ceg  INNER JOIN Partnerseg ON Ceg.id = Partnerseg.elado WHERE Partnerseg.vevo = "${ceg_id}"`);
+  const [rows] = await db.query(`SELECT Partnerseg.id AS id, Ceg.id AS cId, Ceg.nev AS nev, Ceg.adoszam AS adoszamm, Ceg.cim AS cim, Ceg.telefon AS telefon, Partnerseg.fizetesi_ido AS fizetesi_ido, Partnerseg.fizetesi_forma AS fizetesi_forma FROM Ceg  INNER JOIN Partnerseg ON Ceg.id = Partnerseg.elado WHERE Partnerseg.vevo = "${ceg_id}"`);
   //console.log(rows);
   return rows;
 }
 async function Partner_en_elado(ceg_id) {
-  const [rows] = await db.query(`SELECT Partnerseg.id AS id, Ceg.nev AS nev, Ceg.adoszam AS adoszamm, Ceg.cim AS cim, Ceg.telefon AS telefon, Partnerseg.fizetesi_ido AS fizetesi_ido, Partnerseg.fizetesi_forma AS fizetesi_forma FROM Ceg INNER JOIN Partnerseg ON Ceg.id = Partnerseg.vevo WHERE Partnerseg.elado = "${ceg_id}"`);
+  const [rows] = await db.query(`SELECT Partnerseg.id AS id, Ceg.id AS cId, Ceg.nev AS nev, Ceg.adoszam AS adoszamm, Ceg.cim AS cim, Ceg.telefon AS telefon, Partnerseg.fizetesi_ido AS fizetesi_ido, Partnerseg.fizetesi_forma AS fizetesi_forma FROM Ceg INNER JOIN Partnerseg ON Ceg.id = Partnerseg.vevo WHERE Partnerseg.elado = "${ceg_id}"`);
   //console.log(rows);
   return rows;
 }
 
 module.exports = (app) => {
+    app.post('/api/Partnerek_ad', async (req, res) => {
+        try {
+            const { eladoId, vevoId, fiz_ido, fiz_forma } = req.body;
+
+            // Validáció: kötelező mezők
+            if (!eladoId || !vevoId || !fiz_ido || !fiz_forma || fiz_forma.toString().trim() === '') {
+            return res.status(422).json({
+                ok: false,
+                uzenet: "Hiányzó mező(k): eladó, vevő, fizetési idő vagy forma"
+            });
+            }
+            
+            // SQL lekérdezés prepared statement-tel
+            const [rows] = await db.query(
+            `INSERT INTO Partnerseg (elado, vevo, fizetesi_ido, fizetesi_forma) VALUES (?, ?, ?, ?)`,
+            [eladoId, vevoId, fiz_ido, forma]
+            );
+
+            return res.status(200).json({
+            ok: true,
+            uzenet: "A partnerség sikeresen hozzá lett adva"
+            });
+
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({
+            ok: false,
+            uzenet: "Szerverhiba! Adatbázis hiba."
+            });
+        }
+    });
+
     app.post('/api/Partnerek_en_vevo', async (req, res) => {
         try {
             const ceg_id = req.body.id;
