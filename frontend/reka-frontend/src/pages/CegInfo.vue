@@ -234,7 +234,7 @@ const deactivateReka = async () => {
               <button type="button" class="btn-close" @click="closeAddModal"></button>
             </div> 
             <div class="modal-body">
-              <form @submit.prevent="saveCompanyData">
+              <form @submit.prevent="saveCompanyData" id="companyEditForm">
                 <div class="mb-3">
                   <label class="form-label">Cég neve</label>
                   <input
@@ -295,17 +295,17 @@ const deactivateReka = async () => {
                     maxlength="15"
                   />
                 </div>
+                <!-- Error message display -->
+                <div v-if="formError" class="alert alert-danger mt-3 mb-0" role="alert">
+                  <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ formError }}
+                </div>
               </form>
-              <!-- Error message display -->
-              <div v-if="formError" class="alert alert-danger mt-3 mb-0" role="alert">
-                <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ formError }}
-              </div>
             </div>            
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary rounded-pill" @click="closeAddModal">
                 Mégse
               </button>
-              <button type="button" class="btn btn-primary btn-teal rounded-pill" @click="saveCompanyData">
+              <button type="submit" form="companyEditForm" class="btn btn-primary btn-teal rounded-pill">
                 Mentés
               </button>
             </div>

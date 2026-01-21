@@ -9,8 +9,10 @@
   // Vevői partnerségek (buyer partnerships) list
   const buyerItems = ref([])
 
-  const loading = ref(false)
-  const error = ref('')
+  const sellerLoading = ref(false)
+  const buyerLoading = ref(false)
+  const sellerError = ref('')
+  const buyerError = ref('')
 
   const sellerSearch = ref('')
   const buyerSearch = ref('')
@@ -29,20 +31,24 @@
 
   // Fetch partnerships from backend
   const fetchPartnerships = async () => {
-    loading.value = true
-    error.value = ''
+    sellerLoading.value = true
+    buyerLoading.value = true
+    sellerError.value = ''
+    buyerError.value = ''
 
+    // Get ceg_id from authStore
+    const cegId = authStore.ceg?.id
+
+    if (!cegId) {
+      sellerError.value = 'Nincs bejelentkezve vagy hiányzik a cég azonosító'
+      buyerError.value = 'Nincs bejelentkezve vagy hiányzik a cég azonosító'
+      sellerLoading.value = false
+      buyerLoading.value = false
+      return
+    }
+
+    // Fetch seller partnerships (where we are the buyer)
     try {
-      // Get ceg_id from authStore
-      const cegId = authStore.ceg.id
-
-      if (!cegId) {
-        error.value = 'Nincs bejelentkezve vagy hiányzik a cég azonosító'
-        loading.value = false
-        return
-      }
-
-      // Fetch seller partnerships (where we are the buyer)
       const sellerResponse = await axios.post('http://localhost:3000/api/Partnerek_en_elado', {
         id: cegId
       })
@@ -59,8 +65,16 @@
         // If no seller partnerships found, set empty array
         sellerItems.value = []
       }
+    } catch (err) {
+      console.error('Hiba az eladói partnerségek lekérdezése során:', err)
+      sellerError.value = 'Hiba történt az eladói partnerségek betöltése során'
+      sellerItems.value = []
+    } finally {
+      sellerLoading.value = false
+    }
 
-      // Fetch buyer partnerships (where we are the seller)
+    // Fetch buyer partnerships (where we are the seller)
+    try {
       const buyerResponse = await axios.post('http://localhost:3000/api/Partnerek_en_vevo', {
         id: cegId
       })
@@ -77,12 +91,12 @@
         // If no buyer partnerships found, set empty array
         buyerItems.value = []
       }
-
     } catch (err) {
-      console.error('Hiba a partnerségek lekérdezése során:', err)
-      error.value = 'Hiba történt az adatok betöltése során'
+      console.error('Hiba a vevői partnerségek lekérdezése során:', err)
+      buyerError.value = 'Hiba történt a vevői partnerségek betöltése során'
+      buyerItems.value = []
     } finally {
-      loading.value = false
+      buyerLoading.value = false
     }
   }
 
@@ -162,14 +176,14 @@
     </div>
 
     <!-- Eladói partnerségek table -->
-    <div v-if="loading" class="text-center my-4">
+    <div v-if="sellerLoading" class="text-center my-4">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Betöltés...</span>
       </div>
     </div>
 
-    <div v-else-if="error" class="alert alert-warning" role="alert">
-      {{ error }}
+    <div v-else-if="sellerError" class="alert alert-warning" role="alert">
+      {{ sellerError }}
     </div>
 
     <table v-else class="table custom-table" style="border-bottom: 1px solid black;">
@@ -336,14 +350,14 @@
     </div>
 
     <!-- Vevői partnerségek table -->
-    <div v-if="loading" class="text-center my-4">
+    <div v-if="buyerLoading" class="text-center my-4">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Betöltés...</span>
       </div>
     </div>
 
-    <div v-else-if="error" class="alert alert-warning" role="alert">
-      {{ error }}
+    <div v-else-if="buyerError" class="alert alert-warning" role="alert">
+      {{ buyerError }}
     </div>
 
     <table v-else class="table custom-table" style="border-bottom: 1px solid black;">

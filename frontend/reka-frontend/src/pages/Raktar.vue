@@ -120,7 +120,7 @@
     formError.value = ''
   }
 
-  const saveNewProduct = () => {
+  const saveNewProduct = async () => {
     // Validate form fields
     formError.value = ''
 
@@ -169,13 +169,37 @@
       return
     }
 
-    // If all validations pass, save the product
-    items.value.push({
-      name: newProduct.value.name,
-      stock: Number(newProduct.value.stock) || 0,
-      kiszereles: newProduct.value.kiszereles,
-    })
-    closeAddModal()
+    // Check if user is logged in
+    if (!authStore.ceg || !authStore.ceg.id) {
+      formError.value = 'Nincs bejelentkezve cég!'
+      return
+    }
+
+    // If all validations pass, send to backend
+    try {
+      const response = await axios.post('http://localhost:3000/api/Termek_ad', {
+        tulajdonos: authStore.ceg.id,
+        nev: newProduct.value.name,
+        cikkszam: newProduct.value.cikkszam,
+        mennyiseg: newProduct.value.stock,
+        kiszereles: newProduct.value.kiszereles,
+        min_vas_menny: newProduct.value.min_vas_menny,
+        leiras: newProduct.value.leiras,
+        ar: newProduct.value.ar,
+        kategoria: newProduct.value.category,
+        afa_kulcs: newProduct.value.afa_kulcs
+      })
+
+      if (response.data.ok) {
+        // Success - refresh the page
+        window.location.reload()
+      } else {
+        formError.value = response.data.uzenet || 'Hiba történt a termék mentése során'
+      }
+    } catch (err) {
+      console.error('Error saving product:', err)
+      formError.value = 'Hiba történt a szerver kapcsolat során!'
+    }
   }
 </script>
 
@@ -258,13 +282,14 @@
               <button type="button" class="btn-close" @click="closeAddModal"></button>
             </div> 
             <div class="modal-body">
-              <form @submit.prevent="saveNewProduct">
+              <form id="product-form" @submit.prevent="saveNewProduct">
                 <div class="mb-3">
                   <label class="form-label">Terméknév</label>
                   <input
                     v-model="newProduct.name"
                     type="text"
                     class="form-control custom-input"
+                    maxlength="100"
                     required
                   />
                 </div>
@@ -284,6 +309,7 @@
                     v-model="newProduct.cikkszam"
                     type="text"
                     class="form-control custom-input"
+                    maxlength="100"
                     required
                   />
                 </div>
@@ -293,6 +319,7 @@
                     v-model="newProduct.kiszereles"
                     type="text"
                     class="form-control custom-input"
+                    maxlength="10"
                     required
                   />
                 </div>
@@ -362,7 +389,7 @@
               <button type="button" class="btn btn-secondary rounded-pill" @click="closeAddModal">
                 Mégse
               </button>
-              <button type="button" class="btn btn-primary btn-teal rounded-pill" @click="saveNewProduct">
+              <button type="submit" class="btn btn-primary btn-teal rounded-pill" form="product-form">
                 Mentés
               </button>
             </div>

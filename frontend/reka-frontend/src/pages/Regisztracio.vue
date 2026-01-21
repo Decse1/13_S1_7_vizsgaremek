@@ -167,7 +167,7 @@ const handleSubmit = async () => {
         nev: formData.value.felhasznalonev,
         jelszo: formData.value.jelszo,
         kategoria: 1, // System manager category
-        telephely_cim: formData.value.telephelyCime,
+        telephely_cim: formData.value.telephelyCime || formData.value.cegCime, // Use cegCime if telephelyCime is empty
         telefon: formData.value.felhszTel,
         cegId: registeredCegId.value
       };
@@ -247,7 +247,7 @@ const handleSubmit = async () => {
         <h5 class="mb-3">I. Cég adatai</h5>
         
         <div class="mb-3">
-          <label for="cegNeve" class="form-label">Cég neve</label>
+          <label for="cegNeve" class="form-label">Cég neve<sup class="red">*</sup></label>
           <div class="autocomplete-wrapper">
             <input 
               type="text" 
@@ -279,7 +279,7 @@ const handleSubmit = async () => {
         </div>
 
         <div class="mb-3">
-          <label for="cegCime" class="form-label">Vállalkozás címe</label>
+          <label for="cegCime" class="form-label">Vállalkozás címe<sup class="red">*</sup></label>
           <input 
             type="text" 
             class="form-control custom-input" 
@@ -291,7 +291,7 @@ const handleSubmit = async () => {
         </div>
 
         <div class="mb-3">
-          <label for="adoszamMagyar" class="form-label">Adószám (magyar)</label>
+          <label for="adoszamMagyar" class="form-label">Adószám (magyar)<sup class="red">*</sup></label>
           <input 
             type="text" 
             class="form-control custom-input" 
@@ -314,7 +314,7 @@ const handleSubmit = async () => {
         </div>
 
         <div class="mb-3">
-          <label for="cegTelszam" class="form-label">Vállalkozás telefonszáma</label>
+          <label for="cegTelszam" class="form-label">Vállalkozás telefonszáma<sup class="red">*</sup></label>
           <input 
             type="tel" 
             class="form-control custom-input" 
@@ -326,7 +326,7 @@ const handleSubmit = async () => {
         </div>
 
         <div class="mb-3">
-          <label for="cegEmail" class="form-label">Cég email címe</label>
+          <label for="cegEmail" class="form-label">Cég email címe<sup class="red">*</sup></label>
           <input 
             type="email" 
             class="form-control custom-input" 
@@ -342,7 +342,7 @@ const handleSubmit = async () => {
         <h5 class="mb-3">II. Rendszerkezelő felhasználó adatai</h5>
         
         <div class="mb-3">
-          <label for="felhasznalonev" class="form-label">Felhasználónév</label>
+          <label for="felhasznalonev" class="form-label">Felhasználónév<sup class="red">*</sup></label>
           <input 
             type="text" 
             class="form-control custom-input" 
@@ -354,7 +354,7 @@ const handleSubmit = async () => {
         </div>
 
         <div class="mb-3">
-          <label for="jelszo" class="form-label">Jelszó</label>
+          <label for="jelszo" class="form-label">Jelszó<sup class="red">*</sup></label>
           <input 
             type="password" 
             class="form-control custom-input" 
@@ -365,19 +365,19 @@ const handleSubmit = async () => {
         </div>
 
         <div class="mb-3">
-          <label for="telephelyCime" class="form-label">Telephely címe</label>
+          <label for="telephelyCime" class="form-label">Telephely címe<br>
+          <small>Hagyja üresen, ha cég és a telephely címe megegyezik</small></label>
           <input 
             type="text" 
             class="form-control custom-input" 
             id="telephelyCime" 
             v-model="formData.telephelyCime"
-            required
             maxlength="255"
           />
         </div>
 
         <div class="mb-3">
-          <label for="" class="form-label">Telefonszám</label>
+          <label for="" class="form-label">Telefonszám<sup class="red">*</sup></label>
           <input 
             type="felhszTel" 
             class="form-control custom-input" 
@@ -443,6 +443,10 @@ const handleSubmit = async () => {
   </div>
 </template>
 <style scoped>
+.red {
+  color: red;
+}
+
 .logo-img {
   height: 40px;
   object-fit: cover;
