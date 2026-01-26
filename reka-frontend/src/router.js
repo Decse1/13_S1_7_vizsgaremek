@@ -7,6 +7,8 @@ import Partnersegek from './pages/Partnersegek.vue';
 import Bejelentkezes from './pages/Bejelentkezes.vue';
 import Regisztracio from './pages/Regisztracio.vue';
 import TermekOldal from './pages/TermekOldal.vue';
+import StoreMain from './pages/StoreMain.vue';
+import StorePartner from './pages/StorePartner.vue';
 import Aszf from './pages/Aszf.vue';
 import authStore from './stores/auth.js';
 
@@ -40,6 +42,18 @@ const routes = [
     path: "/partnersegek",
     name: "Partnerségek",
     component: Partnersegek,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: "/store",
+    name: "Áruház",
+    component: StoreMain,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: "/store/:id",
+    name: "Partner készlete",
+    component: StorePartner,
     meta: { requiresAuth: true }
   },
   { 

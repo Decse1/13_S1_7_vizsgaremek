@@ -93,7 +93,7 @@ onUnmounted(() => {
   <!-- Sidebar -->
   <div class="sidebar bg-light" :class="{ show: sidebarOpen }">
     <router-link to="/kezdolap" @click="closeSidebar" class="sidebar-item">Kezdőlap</router-link>
-    <router-link to="/" @click="closeSidebar" class="sidebar-item">Áruház</router-link>
+    <router-link to="/store" @click="closeSidebar" class="sidebar-item">Áruház</router-link>
     <router-link to="/raktar" @click="closeSidebar" class="sidebar-item">Raktárkezelés</router-link>
     <router-link to="/partnersegek" @click="closeSidebar" class="sidebar-item">Partnerségek</router-link>
     <router-link to="/ceginfo" @click="closeSidebar" class="sidebar-item">Cégem</router-link>

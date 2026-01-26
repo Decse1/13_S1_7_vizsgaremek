@@ -62,7 +62,7 @@ module.exports = (app) => {
             if (!partnerek || partnerek.length === 0) {
             return res.status(404).json({
                 ok: false,
-                uzenet: "Nincsenek eladó partnerek"
+                uzenet: "Nincsenek vevő partnerek"
             });
             }
 
@@ -99,7 +99,7 @@ module.exports = (app) => {
             if (!partnerek || partnerek.length === 0) {
             return res.status(404).json({
                 ok: false,
-                uzenet: "Nincsenek vevő partnerek"
+                uzenet: "Nincsenek eladó partnerek"
             });
             }
 

@@ -67,7 +67,7 @@
       }
     } catch (err) {
       console.error('Hiba az eladói partnerségek lekérdezése során:', err)
-      sellerError.value = 'Hiba történt az eladói partnerségek betöltése során'
+      sellerError.value = err.response?.data?.uzenet || 'Hiba történt az eladói partnerségek betöltése során'
       sellerItems.value = []
     } finally {
       sellerLoading.value = false
@@ -93,7 +93,7 @@
       }
     } catch (err) {
       console.error('Hiba a vevői partnerségek lekérdezése során:', err)
-      buyerError.value = 'Hiba történt a vevői partnerségek betöltése során'
+      buyerError.value = err.response?.data?.uzenet || 'Hiba történt a vevői partnerségek betöltése során'
       buyerItems.value = []
     } finally {
       buyerLoading.value = false
