@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getToken, updateToken, clearAuthState } from './stores/auth.js';
+import { getToken, updateToken, clearAuthState, resetActivityTimer } from './stores/auth.js';
 import router from './router.js';
 
 // Create axios instance with base configuration
@@ -27,6 +27,9 @@ axiosInstance.interceptors.request.use(
 // Response interceptor - Handle token refresh and errors
 axiosInstance.interceptors.response.use(
   (response) => {
+    // Reset activity timer on successful API call
+    resetActivityTimer();
+    
     // Check if backend sent a new token in the response header
     const newToken = response.headers['x-new-token'];
     if (newToken) {
