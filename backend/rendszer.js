@@ -33,6 +33,7 @@ async function startServer() {
         require("./apik/termek.js")(app, authenticateToken);
         require("./apik/cegadat_api_hu.js")(app); // Ez valószínűleg publikus marad
         require("./apik/rendeles.js")(app, authenticateToken);
+        require("./apik/regisztral.js")(app);
 
         // Szerver indítása
         app.listen(3000, () => {
@@ -58,6 +59,8 @@ async function startServer() {
                 +`\n\t${url}/api/Beerkezett_rendeles`
                 +`\n\t${url}/api/Termek_ad`
                 +`\n\t${url}/api/Termek_update`
+                +`\n\t${url}/api/Regisz/Ceg_ad`
+                +`\n\t${url}/api/Regisz/Felhasznalo_ad`
                 +`\n\t${url}/api/detail`
                 +`\n\t${url}/api/search/name`
                 +`\n\t${url}/api/search/vat`);
