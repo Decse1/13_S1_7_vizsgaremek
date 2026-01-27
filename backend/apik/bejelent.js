@@ -1,58 +1,91 @@
+const express = require('express');
+const router = express.Router();
 const db = require('../connect');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
-// Segédfüggvények
-async function Felhasznalo(username) {
-    const [rows] = await db.query(`SELECT * FROM Felhasznalo WHERE nev = ?`, [username]); // Használjunk lekérdezési paramétereket SQL injection ellen!
-    return rows;
-}
+// Titkos kulcs a token aláírásához (ezt élesben .env fájlból olvasd be!)
+const SECRET_KEY = process.env.JWT_SECRET || 'titkos_kulcs_fejleszteshez_123';
 
-async function Ceg_adat(f_id) {
+// --- ADATBÁZIS SEGÉDFÜGGVÉNYEK ---
+
+// Felhasználó keresése név alapján
+async function getFelhasznaloByNev(username) {
     const [rows] = await db.query(
-        `SELECT * FROM Ceg WHERE Ceg.id = (SELECT cegId FROM Ceg_alkalmazott WHERE felhasznaloId = ?)`, 
-        [f_id]
+        `SELECT * FROM Felhasznalo WHERE nev = ?`, 
+        [username]
     );
-    return rows;
+    return rows[0]; // Visszaadja a user objektumot vagy undefined-ot
 }
 
-module.exports = (app) => {
-    app.post('/api/Bejelent', async (req, res) => {
-        try {
-            const { username, password } = req.body;
+// Cég adat keresése user ID alapján (biztonságos JOIN-nal)
+async function getCegAdatByUserId(userId) {
+    const [rows] = await db.query(
+        `SELECT Ceg.* FROM Ceg 
+         INNER JOIN Ceg_alkalmazott ON Ceg.id = Ceg_alkalmazott.cegId 
+         WHERE Ceg_alkalmazott.felhasznaloId = ?`, 
+        [userId]
+    );
+    return rows[0]; // Ha nincs cége, undefined lesz
+}
 
-            // Ellenőrizzük, hogy a mezők megvannak-e
-            if (!username || !password) {
-            return res.status(422).json({
+// --- ROUTE (VÉGPONT) ---
+
+// Fontos: Mivel a server.js-ben úgy töltöttük be, hogy app.use('/api', ...),
+// ezért itt a '/Bejelent' a teljes '/api/Bejelent' útvonalat jelenti.
+router.post('/Bejelent', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+
+        // 1. Validáció: Megadtak-e mindent?
+        if (!username || !password) {
+            return res.status(400).json({
                 ok: false,
-                uzenet: "Hiányzó felhasználónév vagy jelszó"
+                uzenet: "Hiányzó felhasználónév vagy jelszó!"
             });
-            }
+        }
 
-            const felhasznalok = await Felhasznalo(username);
+        // 2. Felhasználó keresése
+        const felhasznalo = await getFelhasznaloByNev(username);
 
-            if (!felhasznalok || felhasznalok.length === 0) {
+        // Ha nincs ilyen felhasználó
+        if (!felhasznalo) {
             return res.status(401).json({
                 ok: false,
-                uzenet: "Hibás felhasználónév vagy jelszó"
+                uzenet: "Hibás felhasználónév vagy jelszó!"
             });
-            }
+        }
 
-            const felhasznalo = felhasznalok[0];
+        // 3. Jelszó ellenőrzés (Bcrypt compare)
+        const jelszo_egyezik = await bcrypt.compare(password, felhasznalo.jelszo);
 
-            const jelszo_egyezik = await bcrypt.compare(password, felhasznalo.jelszo);
-            if (!jelszo_egyezik) {
+        if (!jelszo_egyezik) {
             return res.status(401).json({
                 ok: false,
-                uzenet: "Hibás felhasználónév vagy jelszó"
+                uzenet: "Hibás felhasználónév vagy jelszó!"
             });
-            }
+        }
 
-            const cegek = await Ceg_adat(felhasznalo.id);
-            const ceg = cegek[0];
+        // 4. Cég adatok lekérése
+        const ceg = await getCegAdatByUserId(felhasznalo.id);
 
-            return res.status(200).json({
+        // 5. JWT Token generálása (EZ A KULCSLÉPÉS)
+        // A tokenbe belecsomagoljuk a user ID-t és a nevét
+        const token = jwt.sign(
+            { 
+                id: felhasznalo.id, 
+                nev: felhasznalo.nev,
+                role: felhasznalo.kategoria 
+            },
+            SECRET_KEY,
+            { expiresIn: '10m' } // A belépés 8 óráig érvényes
+        );
+
+        // 6. Sikeres válasz küldése a Tokennel
+        return res.status(200).json({
             ok: true,
             uzenet: "Sikeres bejelentkezés!",
+            token: token, // <--- Ezt kell elmentenie a Frontendnek!
             felhasznalo: {
                 id: felhasznalo.id,
                 nev: felhasznalo.nev,
@@ -60,18 +93,19 @@ module.exports = (app) => {
                 telephely_cim: felhasznalo.telephely_cim,
                 telefon: felhasznalo.telefon
             },
-            ceg
-            });
+            ceg: ceg || null // Ha nincs cég, null-t küldünk
+        });
 
-        } catch (err) {
-            console.error(err);
-            return res.status(500).json({
+    } catch (err) {
+        console.error("Login hiba:", err);
+        return res.status(500).json({
             ok: false,
-            uzenet: "Szerverhiba!"
-            });
-        }
-    });
-};
+            uzenet: "Szerverhiba történt a bejelentkezés során."
+        });
+    }
+});
+
+module.exports = router;
 /*app.listen(3000, () =>
   console.log("Szerver fut: http://localhost:3000")
 );*/

@@ -1,47 +1,56 @@
 const db = require('../connect');
 
-let own = 1
+// --- ADATBÁZIS SEGÉDFÜGGVÉNYEK ---
 
 async function rak_kesz(own) {
-  const [rows] = await db.query(`SELECT * FROM Termek WHERE Termek.tulajdonos = ${own}`);
-  //console.log(rows);
-  return rows;
+    // JAVÍTÁS: ? paraméter használata SQL injection ellen
+    const [rows] = await db.query(
+        `SELECT * FROM Termek WHERE Termek.tulajdonos = ?`, 
+        [own]
+    );
+    return rows;
 }
-module.exports = (app) => {
-  app.post('/api/Raktar', async (req, res) => {
-    try {
-      const p_ceg = req.body.id;
 
-      // Ellenőrzés: id megadva?
-      if (!p_ceg) {
-        return res.status(422).json({
-          ok: false,
-          uzenet: "Hiányzó cég azonosító"
-        });
-      }
+// --- ROUTER ---
 
-      const termekek = await rak_kesz(p_ceg);
+module.exports = (app, authenticateToken) => {
 
-      if (!termekek || termekek.length === 0) {
-        return res.status(404).json({
-          ok: false,
-          uzenet: "Nincsenek termékek a raktárban"
-        });
-      }
+    // Raktárkészlet lekérdezése (Védett)
+    app.post('/api/Raktar', authenticateToken, async (req, res) => {
+        try {
+            const p_ceg = req.body.id;
 
-      // Sikeres lekérés
-      return res.status(200).json({
-        ok: true,
-        uzenet: "",
-        termekek
-      });
+            // Ellenőrzés: id megadva?
+            if (!p_ceg) {
+                return res.status(422).json({
+                    ok: false,
+                    uzenet: "Hiányzó cég azonosító"
+                });
+            }
 
-    } catch (err) {
-      console.error(err);
-      return res.status(500).json({
-        ok: false,
-        uzenet: "Szerverhiba! Adatbázis hiba."
-      });
-    }
-  });
+            const termekek = await rak_kesz(p_ceg);
+
+            // Ha üres a raktár
+            if (!termekek || termekek.length === 0) {
+                return res.status(404).json({
+                    ok: false,
+                    uzenet: "Nincsenek termékek a raktárban"
+                });
+            }
+
+            // Sikeres lekérés
+            return res.status(200).json({
+                ok: true,
+                uzenet: "",
+                termekek
+            });
+
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({
+                ok: false,
+                uzenet: "Szerverhiba! Adatbázis hiba."
+            });
+        }
+    });
 };

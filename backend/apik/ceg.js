@@ -1,133 +1,143 @@
 const db = require('../connect');
 
+// --- ADATBÁZIS MŰVELETEK ---
+
 async function ceg_ad(ceg) {
-  let fizet = 0; 
-  if(ceg.elofiz){
-    fizet = 1;
-  }
-  const [rows] = await db.query(`INSERT INTO Ceg (nev, adoszam, euAdoszam, cim, email, telefon, elofiz) VALUES ('${ceg.nev}', '${ceg.adoszam}', '${ceg.euAdoszam}', '${ceg.cim}', '${ceg.email}', '${ceg.telefon}', '${fizet}');`);
-  return rows;
+    let fizet = ceg.elofiz ? 1 : 0; // Rövidített if-else
+    
+    // FONTOS JAVÍTÁS: SQL Injection ellen "?" jeleket használunk!
+    // A régi megoldás ('${ceg.nev}') biztonsági rés volt.
+    const [rows] = await db.query(
+        `INSERT INTO Ceg (nev, adoszam, euAdoszam, cim, email, telefon, elofiz) 
+         VALUES (?, ?, ?, ?, ?, ?, ?)`, 
+        [ceg.nev, ceg.adoszam, ceg.euAdoszam, ceg.cim, ceg.email, ceg.telefon, fizet]
+    );
+    return rows;
 }
 
 async function ceg_update(ceg) {
-  const [rows] = await db.query(
-    `UPDATE Ceg SET nev = ?, adoszam = ?, euAdoszam = ?, cim = ?, email = ?, telefon = ?, elofiz = ? WHERE id = ?`,
-    [ceg.nev, ceg.adoszam, ceg.euAdoszam, ceg.cim, ceg.email, ceg.telefon, ceg.elofiz, ceg.id]
-  );
-  return rows;
+    const [rows] = await db.query(
+        `UPDATE Ceg SET nev = ?, adoszam = ?, euAdoszam = ?, cim = ?, email = ?, telefon = ?, elofiz = ? WHERE id = ?`,
+        [ceg.nev, ceg.adoszam, ceg.euAdoszam, ceg.cim, ceg.email, ceg.telefon, ceg.elofiz, ceg.id]
+    );
+    return rows;
 }
 
 async function ceg_all(){
-  const [rows] = await db.query(`SELECT * FROM Ceg`);
-  return rows;
+    const [rows] = await db.query(`SELECT * FROM Ceg`);
+    return rows;
 }
 
+// Új segédfüggvény: Csak egy céget kérdez le adószám alapján (gyorsabb)
+async function ceg_by_adoszam(adoszam) {
+    const [rows] = await db.query(`SELECT id FROM Ceg WHERE adoszam = ?`, [adoszam]);
+    return rows[0]; // Visszaadja a céget vagy undefined-ot
+}
 
-module.exports = (app) => {
-  app.get('/api/Ceg_osszes', async (req, res) => {
-    try {
-        const cegek = await ceg_all();
-        return res.status(200).json({ ok: true, cegek});
-    } catch (err) {
-        res.status(500).json({ error: "Adatbázis hiba!" });
-        console.log(err);
-    }
-  });
+// --- ROUTER RÉSZ ---
 
-  app.post('/api/Ceg_ad', async (req, res) => {
-    try {
-      const ceg = req.body;
+// Itt adjuk át a második paramétert: authenticateToken
+module.exports = (app, authenticateToken) => {
 
-      // Kötelező mezők listája
-      const requiredFields = ['adoszam', 'nev', 'cim'];
-
-      // Ellenőrizzük a hiányzó mezőket
-      for (const field of requiredFields) {
-        if (!ceg[field] || ceg[field].toString().trim() === '') {
-          return res.status(422).json({
-            ok: false,
-            uzenet: `Hiányzó mező: ${field}`
-          });
+    // 1. Cégek listázása (Védett)
+    app.get('/api/Ceg_osszes', authenticateToken, async (req, res) => {
+        try {
+            // Opcionális: Ha tudni akarod ki kérte le:
+            // console.log("Lekérdező:", req.user.nev); 
+            
+            const cegek = await ceg_all();
+            return res.status(200).json({ ok: true, cegek });
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: "Adatbázis hiba!" });
         }
-      }
+    });
 
-      // Legalább egy elérhetőség ellenőrzése
-      if (!ceg.email && !ceg.telefon) {
-        return res.status(422).json({
-          ok: false,
-          uzenet: "Kérem adjon meg legalább egy elérhetőséget (email vagy telefon)!"
-        });
-      }
+    // 2. Új cég felvétele (Védett)
+    app.post('/api/Ceg_ad', authenticateToken, async (req, res) => {
+        try {
+            const ceg = req.body;
+            const requiredFields = ['adoszam', 'nev', 'cim'];
 
-      // Ellenőrizzük, hogy az adószám már létezik-e
-      const cegek = await ceg_all();
-      const existing = cegek.find(c => c.adoszam === ceg.adoszam);
+            for (const field of requiredFields) {
+                if (!ceg[field] || ceg[field].toString().trim() === '') {
+                    return res.status(422).json({
+                        ok: false,
+                        uzenet: `Hiányzó mező: ${field}`
+                    });
+                }
+            }
 
-      if (existing) {
-        return res.status(409).json({
-          ok: false,
-          uzenet: "Már létező adószám!",
-          cegId: existing.id
-        });
-      }
+            if (!ceg.email && !ceg.telefon) {
+                return res.status(422).json({
+                    ok: false,
+                    uzenet: "Kérem adjon meg legalább egy elérhetőséget (email vagy telefon)!"
+                });
+            }
 
-      // Ha minden rendben van, hozzáadjuk a céget
-      const tmp = await ceg_ad(ceg);
+            // OPTIMALIZÁLÁS: Nem kérjük le az összes céget, csak azt az egyet keressük
+            const existing = await ceg_by_adoszam(ceg.adoszam);
 
-      return res.status(200).json({
-        ok: true,
-        uzenet: "Sikeres adatfelvétel!",
-        cegId: `${tmp.insertId}`
-      });
+            if (existing) {
+                return res.status(409).json({
+                    ok: false,
+                    uzenet: "Már létező adószám!",
+                    cegId: existing.id
+                });
+            }
 
-    } catch (err) {
-      console.error(err);
-      return res.status(500).json({
-        ok: false,
-        uzenet: "Szerverhiba! Adatbázis hiba."
-      });
-    }
-  });
+            const tmp = await ceg_ad(ceg);
 
-  app.post('/api/Ceg_update', async (req, res) => {
-    try {
-      const ceg = req.body;
+            return res.status(200).json({
+                ok: true,
+                uzenet: "Sikeres adatfelvétel!",
+                cegId: `${tmp.insertId}`
+            });
 
-      // Kötelező mezők listája
-      const requiredFields = ['nev', 'adoszam', 'cim', 'id'];
-
-      // Ellenőrizzük a hiányzó mezőket
-      for (const field of requiredFields) {
-        if (!ceg[field] || ceg[field].toString().trim() === '') {
-          return res.status(422).json({
-            ok: false,
-            uzenet: `Hiányzó mező: ${field}`
-          });
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({
+                ok: false,
+                uzenet: "Szerverhiba! Adatbázis hiba."
+            });
         }
-      }
+    });
 
-      // Legalább egy elérhetőség ellenőrzése (email vagy telefon)
-      if (!ceg.email && !ceg.telefon) {
-        return res.status(422).json({
-          ok: false,
-          uzenet: "Kérem adjon meg legalább egy elérhetőséget (email vagy telefon)!"
-        });
-      }
+    // 3. Cég módosítása (Védett)
+    app.post('/api/Ceg_update', authenticateToken, async (req, res) => {
+        try {
+            const ceg = req.body;
+            const requiredFields = ['nev', 'adoszam', 'cim', 'id'];
 
-      // Ha minden rendben van, frissítjük a céget
-      await ceg_update(ceg);
+            for (const field of requiredFields) {
+                if (!ceg[field] || ceg[field].toString().trim() === '') {
+                    return res.status(422).json({
+                        ok: false,
+                        uzenet: `Hiányzó mező: ${field}`
+                    });
+                }
+            }
 
-      return res.status(200).json({
-        ok: true,
-        uzenet: "Sikeres módosítás!"
-      });
+            if (!ceg.email && !ceg.telefon) {
+                return res.status(422).json({
+                    ok: false,
+                    uzenet: "Kérem adjon meg legalább egy elérhetőséget (email vagy telefon)!"
+                });
+            }
 
-    } catch (err) {
-      console.error(err);
-      return res.status(500).json({
-        ok: false,
-        uzenet: "Szerverhiba! Adatbázis hiba."
-      });
-    }
-  });
+            await ceg_update(ceg);
+
+            return res.status(200).json({
+                ok: true,
+                uzenet: "Sikeres módosítás!"
+            });
+
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({
+                ok: false,
+                uzenet: "Szerverhiba! Adatbázis hiba."
+            });
+        }
+    });
 };

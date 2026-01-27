@@ -1,146 +1,181 @@
 const db = require('../connect');
 const bcrypt = require("bcrypt");
 
-async function felhasznalo_all(){
-  const [rows] = await db.query(
-    `SELECT nev FROM felhasznalo`
-  );
-  return rows;
+// --- ADATBÁZIS SEGÉDFÜGGVÉNYEK ---
+
+// Optimalizálás: Csak azt nézzük meg, létezik-e a név, nem kérjük le az összeset
+async function getFelhasznaloIdByNev(nev) {
+    const [rows] = await db.query(`SELECT id FROM Felhasznalo WHERE nev = ?`, [nev]);
+    return rows[0]; // Visszaadja a sort vagy undefined-ot
 }
 
-async function felhasznalo_ad(profil) {
-  // Hash the password before storing
-  const hashedPassword = await bcrypt.hash(profil.jelszo, 10);
-  
-  const [rows] = await db.query(
-    `INSERT INTO Felhasznalo (nev, jelszo, kategoria, telephely_cim, telefon) VALUES (?, ?, ?, ?, ?)`,
-    [profil.nev, hashedPassword, profil.kategoria, profil.telephely_cim, profil.telefon]
-  );
-  //console.log(rows);
-  return rows;
+async function felhasznalo_ad(profil, hashedPassword) {
+    const [rows] = await db.query(
+        `INSERT INTO Felhasznalo (nev, jelszo, kategoria, telephely_cim, telefon) VALUES (?, ?, ?, ?, ?)`,
+        [profil.nev, hashedPassword, profil.kategoria, profil.telephely_cim, profil.telefon]
+    );
+    return rows;
 }
 
-async function alkalmazott_ad(profil, tmp){
-  await db.query(`INSERT INTO Ceg_alkalmazott (cegId, felhasznaloId) VALUES ("${profil.cegId}", "${tmp.insertId}")`)
+async function alkalmazott_ad(profil, tmp) {
+    // Itt is ? paramétereket használunk
+    await db.query(
+        `INSERT INTO Ceg_alkalmazott (cegId, felhasznaloId) VALUES (?, ?)`, 
+        [profil.cegId, tmp.insertId]
+    );
 }
 
-async function felhasznalo_update(profil) {
-  const [rows] = await db.query(`UPDATE Felhasznalo (nev = "${profil.nev}", jelszo = "${profil.jelszo}", kategoria = "${profil.kategoria}", telephely_cim = "${profil.telephely_cim}", telefon = "${profil.telefon}") WHERE id = "${profil.id}";`);
+async function felhasznalo_update(profil, hashedPassword) {
+    // JAVÍTÁS: Helyes SQL UPDATE szintaxis (SET használata és ? jelek)
+    const [rows] = await db.query(
+        `UPDATE Felhasznalo SET nev = ?, jelszo = ?, kategoria = ?, telephely_cim = ?, telefon = ? WHERE id = ?`,
+        [profil.nev, hashedPassword, profil.kategoria, profil.telephely_cim, profil.telefon, profil.id]
+    );
+    return rows;
 }
 
-module.exports = (app) => {
-  app.post('/api/Felhasznalo_ad', async (req, res) => {
-    try {
-      const profil = req.body;
+async function felhasznalo_delete(id) {
+    // JAVÍTÁS: DELETE FROM ...
+    const [rows] = await db.query(`DELETE FROM Felhasznalo WHERE id = ?`, [id]);
+    return rows;
+}
 
-      // Kötelező mezők listája
-      const requiredFields = [
-        'nev',
-        'jelszo',
-        'kategoria',
-        'telephely_cim',
-        'telefon',
-        'cegId'
-      ];
+async function alkalmazottak_list(cegId) {
+    // JAVÍTÁS: ? paraméter használata SQL injection ellen
+    const [rows] = await db.query(
+        `SELECT f.id, f.nev, f.kategoria, f.telephely_cim, f.telefon 
+         FROM Ceg_alkalmazott ca 
+         INNER JOIN Felhasznalo f ON f.id = ca.felhasznaloId 
+         INNER JOIN Ceg c ON c.id = ca.cegId 
+         WHERE c.id = ?`, 
+        [cegId]
+    );
+    return rows;
+}
 
-      // Ellenőrizzük a hiányzó vagy üres mezőket
-      for (const field of requiredFields) {
-        if (!profil[field] || profil[field].toString().trim() === '') {
-          return res.status(422).json({
-            ok: false,
-            uzenet: `Hiányzó mező: ${field}`
-          });
+
+// --- ROUTER ---
+
+module.exports = (app, authenticateToken) => {
+
+    // 1. Új felhasználó hozzáadása (Védett)
+    app.post('/api/Felhasznalo_ad', authenticateToken, async (req, res) => {
+        try {
+            const profil = req.body;
+            const requiredFields = ['nev', 'jelszo', 'kategoria', 'telephely_cim', 'telefon', 'cegId'];
+
+            for (const field of requiredFields) {
+                if (!profil[field] || profil[field].toString().trim() === '') {
+                    return res.status(422).json({
+                        ok: false,
+                        uzenet: `Hiányzó mező: ${field}`
+                    });
+                }
+            }
+
+            // Ellenőrizzük, hogy a felhasználónév létezik-e (Gyorsabb lekérdezés)
+            const existingUser = await getFelhasznaloIdByNev(profil.nev);
+
+            if (existingUser) {
+                return res.status(409).json({
+                    ok: false,
+                    uzenet: "A felhasználó név már létezik"
+                });
+            }
+
+            // Jelszó titkosítása
+            const hashedPassword = await bcrypt.hash(profil.jelszo, 10);
+
+            // Adatbázis műveletek
+            const tmp = await felhasznalo_ad(profil, hashedPassword);
+            await alkalmazott_ad(profil, tmp);
+
+            return res.status(200).json({
+                ok: true,
+                uzenet: "Sikeres adatfelvétel!"
+            });
+
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({
+                ok: false,
+                uzenet: "Szerverhiba! Adatbázis hiba."
+            });
         }
-      }
+    });
 
-      // Ellenőrizzük, hogy a felhasználónév már létezik-e
-      const felhasznaloAll = await felhasznalo_all(); // Feltételezve, hogy ez tömböt ad vissza
-      const exists = felhasznaloAll.some(f => f.nev === profil.nev);
+    // 2. Felhasználó módosítása (Védett)
+    app.post('/api/Felhasznalo_update', authenticateToken, async (req, res) => {
+        try {
+            const profil = req.body;
+            const requiredFields = ['nev', 'jelszo', 'kategoria', 'telephely_cim', 'telefon', 'cegId', 'id'];
 
-      if (exists) {
-        return res.status(409).json({
-          ok: false,
-          uzenet: "A felhasználó név már létezik"
-        });
-      }
+            for (const field of requiredFields) {
+                if (!profil[field] || profil[field].toString().trim() === '') {
+                    return res.status(422).json({
+                        ok: false,
+                        uzenet: `Hiányzó mező: ${field}`
+                    });
+                }
+            }
 
-      // Ha minden rendben van, hozzáadjuk a felhasználót
-      const tmp = await felhasznalo_ad(profil);
-      await alkalmazott_ad(profil, tmp);
+            // FONTOS: Módosításnál is hashelni kell a jelszót, 
+            // különben nem fog tudni belépni a user!
+            const hashedPassword = await bcrypt.hash(profil.jelszo, 10);
 
-      return res.status(200).json({
-        ok: true,
-        uzenet: "Sikeres adatfelvétel!"
-      });
+            await felhasznalo_update(profil, hashedPassword);
 
-    } catch (err) {
-      console.error(err);
-      return res.status(500).json({
-        ok: false,
-        uzenet: "Szerverhiba! Adatbázis hiba."
-      });
-    }
-  });
+            return res.status(200).json({
+                ok: true,
+                uzenet: "Sikeres módosítás!"
+            });
 
-
-  app.post('/api/Felhasznalo_update', async (req, res) => {
-    try {
-      const profil = req.body;
-
-      // Kötelező mezők listája
-      const requiredFields = [
-        'nev',
-        'jelszo',
-        'kategoria',
-        'telephely_cim',
-        'telefon',
-        'cegId',
-        'id'
-      ];
-
-      // Ellenőrizzük a hiányzó vagy üres mezőket
-      for (const field of requiredFields) {
-        if (!profil[field] || profil[field].toString().trim() === '') {
-          return res.status(422).json({
-            ok: false,
-            uzenet: `Hiányzó mező: ${field}`
-          });
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({
+                ok: false,
+                uzenet: "Szerverhiba! Adatbázis hiba."
+            });
         }
-      }
+    });
 
-      // Ha minden mező rendben van
-      await felhasznalo_update(profil);
+    // 3. Felhasználó törlése (Védett)
+    app.post('/api/Felhasznalo_delete', authenticateToken, async (req, res) => {
+        try {
+            if (!req.body.id) {
+                return res.status(400).json({ ok: false, uzenet: "Hiányzó ID!" });
+            }
 
-      return res.status(200).json({
-        ok: true,
-        uzenet: "Sikeres adatfelvétel!"
-      });
+            await felhasznalo_delete(req.body.id);
+            
+            return res.status(200).json({ 
+                ok: true, 
+                uzenet: "Sikeres törlés" 
+            });
 
-    } catch (err) {
-      console.error(err);
-      return res.status(500).json({
-        ok: false,
-        uzenet: "Szerverhiba! Adatbázis hiba."
-      });
-    }
-  });
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: "Adatbázis hiba!" });
+        }
+    });
 
-  app.post('/api/Felhasznalo_delete', async (req, res) => {
-    try{
-      const [row] = await db.query(`DELETE Felhasznalo WHERE id = "${req.body.id}"`)
-      return res.status(200).json({ok:true, uzenet: "Sikeres törlés"});
-    } catch (err) {
-      res.status(500).json({ error: "Adatbázis hiba!" });
-      console.log(err);
-    }
-  });
-  
-  app.post('/api/Alkalmazottak', async (req,res) => {
-    try{
-      const [row] = await db.query(`SELECT f.id, f.nev, f.kategoria, f.telephely_cim, f.telefon FROM Ceg_alkalmazott ca INNER JOIN Felhasznalo f ON f.id = ca.felhasznaloId INNER JOIN Ceg c ON c.id = ca.cegId WHERE c.id = "${req.body.id}";`)
-      return res.status(200).json({ok:true, alkalmazottak:row})
-    } catch (err){
-      res.status(500).json({ error: "Adatbázis hiba!"})
-    }
-  });
+    // 4. Alkalmazottak listázása (Védett)
+    app.post('/api/Alkalmazottak', authenticateToken, async (req, res) => {
+        try {
+            if (!req.body.id) { // Ez a cég ID-ja
+                return res.status(400).json({ ok: false, uzenet: "Hiányzó Cég ID!" });
+            }
+
+            const rows = await alkalmazottak_list(req.body.id);
+            
+            return res.status(200).json({ 
+                ok: true, 
+                alkalmazottak: rows 
+            });
+
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: "Adatbázis hiba!" });
+        }
+    });
 };

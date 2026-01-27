@@ -2,6 +2,8 @@ let url = "http://localhost:3000";
 const express = require('express');
 const cors = require('cors');
 const { initDatabase } = require('./connect');
+// 1. Beimportáljuk a biztonsági őrt (Middleware)
+const authenticateToken = require('./middleware/auth'); 
 
 const app = express();
 app.use(cors());
@@ -13,15 +15,24 @@ async function startServer() {
         // Adatbázis inicializálása
         await initDatabase();
 
-        // API-k betöltése
-        require("./apik/raktar.js")(app);
-        require("./apik/bejelent.js")(app);
-        require("./apik/felhasznalo.js")(app);
-        require("./apik/ceg.js")(app);
-        require("./apik/partnerek.js")(app);
-        require("./apik/termek.js")(app);
-        require("./apik/cegadat_api_hu.js")(app);
-        require("./apik/rendeles.js")(app);
+        // --- API-k betöltése ---
+
+        // A. BEJELENTKEZÉS (Publikus, nem kell token)
+        // Mivel a bejelent.js-t átírtuk 'router'-re az előző lépésben, 
+        // így kell betölteni (app.use):
+        app.use('/api', require("./apik/bejelent.js")); 
+
+        // B. VÉDETT API-k (Ahol szükség lehet a tokenre)
+        // Átadjuk az 'app'-ot ÉS az 'authenticateToken'-t paraméterként,
+        // így ezekben a fájlokban használhatod a védelmet.
+        
+        require("./apik/raktar.js")(app, authenticateToken);
+        require("./apik/felhasznalo.js")(app, authenticateToken);
+        require("./apik/ceg.js")(app, authenticateToken);
+        require("./apik/partnerek.js")(app, authenticateToken);
+        require("./apik/termek.js")(app, authenticateToken);
+        require("./apik/cegadat_api_hu.js")(app); // Ez valószínűleg publikus marad
+        require("./apik/rendeles.js")(app, authenticateToken);
 
         // Szerver indítása
         app.listen(3000, () => {
@@ -50,12 +61,12 @@ async function startServer() {
                 +`\n\t${url}/api/detail`
                 +`\n\t${url}/api/search/name`
                 +`\n\t${url}/api/search/vat`);
+            console.log(`🔐 Biztonsági modul (JWT) aktív.`);
         });
 
     } catch (err) {
-        // Hiba kiírása részletesen
         console.error("❌ Szerver nem indul! Hiba oka:");
-        console.error(err); // <-- itt látható a teljes hiba objektum
+        console.error(err); 
         process.exit(1);
     }
 }
