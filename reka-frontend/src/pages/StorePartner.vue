@@ -3,6 +3,7 @@
   import { useRoute, useRouter } from 'vue-router'
   import axios from '../axios.js'
   import authStore from '../stores/auth'
+  import cartStore, { addToCart as addItemToCart, addToCartWithClear } from '../stores/cart'
 
   const route = useRoute()
   const router = useRouter()
@@ -25,6 +26,12 @@
   // Modal state
   const showProductModal = ref(false)
   const selectedProduct = ref(null)
+  
+  // Confirmation modal state
+  const showConfirmModal = ref(false)
+  const pendingCartItem = ref(null)
+  const pendingQuantity = ref(0)
+  const confirmMessage = ref('')
 
   const filteredItems = computed(() =>
     items.value.filter((item) =>
@@ -165,7 +172,47 @@
   }
 
   const addToCart = (item) => {
-    console.log('Add to cart:', item, 'Quantity:', quantities.value[item.id])
+    const quantity = quantities.value[item.id]
+    const partnerId = parseInt(route.params.id)
+    const companyName = partnerCompany.value ? partnerCompany.value.nev : 'Partner'
+    
+    const result = addItemToCart(item, quantity, partnerId, companyName)
+    
+    if (result.requiresConfirmation) {
+      // Show confirmation modal
+      pendingCartItem.value = item
+      pendingQuantity.value = quantity
+      confirmMessage.value = result.message
+      showConfirmModal.value = true
+    } else if (result.success) {
+      alert(result.message)
+    } else {
+      alert(result.message || 'Hiba történt!')
+    }
+  }
+
+  const confirmAddToCart = () => {
+    if (pendingCartItem.value) {
+      const partnerId = parseInt(route.params.id)
+      const companyName = partnerCompany.value ? partnerCompany.value.nev : 'Partner'
+      
+      const result = addToCartWithClear(pendingCartItem.value, pendingQuantity.value, partnerId, companyName)
+      
+      if (result.success) {
+        alert(result.message)
+      } else {
+        alert(result.message || 'Hiba történt!')
+      }
+    }
+    
+    closeConfirmModal()
+  }
+
+  const closeConfirmModal = () => {
+    showConfirmModal.value = false
+    pendingCartItem.value = null
+    pendingQuantity.value = 0
+    confirmMessage.value = ''
   }
 
   const openProductModal = (item) => {
@@ -325,6 +372,38 @@
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" @click="closeProductModal">
                 Bezárás
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <!-- Confirmation Modal -->
+    <transition name="modal-fade">
+      <div
+        v-if="showConfirmModal"
+        class="modal-backdrop-custom"
+        tabindex="-1"
+        role="dialog"
+        @click="closeConfirmModal"
+      >
+        <div class="modal-dialog modal-dialog-centered modal-dialog-custom" role="document" @click.stop>
+          <div class="modal-content custom-modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Figyelmeztetés</h5>
+              <button type="button" class="btn-close" @click="closeConfirmModal"></button>
+            </div>
+            <div class="modal-body">
+              <p>{{ confirmMessage }}</p>
+              <p class="mb-0"><strong>Folytatod?</strong></p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" @click="closeConfirmModal">
+                Mégse
+              </button>
+              <button type="button" class="btn btn-teal text-white" @click="confirmAddToCart">
+                Igen, törlöm a kosarat
               </button>
             </div>
           </div>
