@@ -27,7 +27,7 @@ function authenticateToken(req, res, next) {
         };
 
         // 2. Generálunk egy ÚJ tokent (megint 8 órára, vagy amennyire szeretnéd)
-        const newToken = jwt.sign(newPayload, SECRET_KEY, { expiresIn: '8h' });
+        const newToken = jwt.sign(newPayload, SECRET_KEY, { expiresIn: '10m' });
 
         // 3. Betesszük a válasz fejlécébe, hogy a frontend megtalálja
         // 'x-new-token' néven fogjuk küldeni
