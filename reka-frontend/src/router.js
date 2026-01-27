@@ -10,6 +10,7 @@ import TermekOldal from './pages/TermekOldal.vue';
 import StoreMain from './pages/StoreMain.vue';
 import StorePartner from './pages/StorePartner.vue';
 import Aszf from './pages/Aszf.vue';
+import Kosar from './pages/Kosar.vue';
 import authStore from './stores/auth.js';
 
 const routes = [
@@ -56,6 +57,12 @@ const routes = [
     component: StorePartner,
     meta: { requiresAuth: true }
   },
+  {
+    path: "/kosar",
+    name: "Kosár",
+    component: Kosar,
+    meta: { requiresAuth: true }
+  },  
   { 
     path: "/bejelentkezes", 
     name: "Bejelentkezés", 

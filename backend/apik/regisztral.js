@@ -9,6 +9,12 @@ async function getFelhasznaloIdByNev(nev) {
     return rows[0]; // Visszaadja a sort vagy undefined-ot
 }
 
+// Add this function near the top with the other helper functions (after getFelhasznaloIdByNev)
+async function ceg_by_adoszam(adoszam) {
+    const [rows] = await db.query(`SELECT id FROM Ceg WHERE adoszam = ?`, [adoszam]);
+    return rows[0]; // Returns the row or undefined
+}
+
 async function ceg_ad(ceg) {
     let fizet = ceg.elofiz ? 1 : 0; // Rövidített if-else
     

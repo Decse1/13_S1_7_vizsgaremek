@@ -1,6 +1,6 @@
 <script setup>
   import { ref, computed, onMounted } from 'vue'
-  import axios from 'axios'
+  import axios from '../axios.js'
   import authStore from '../stores/auth'
 
   // product list from database
@@ -30,19 +30,19 @@
     error.value = ''
 
     try {
-      const response = await axios.post('http://localhost:3000/api/Raktar', {
+      const response = await axios.post('/Raktar', {
         id: authStore.ceg.id
       })
 
       if (response.data.ok) {
         items.value = response.data.termekek
       } else {
-        error.value = response.data.uzenet || 'Hiba történt a termékek betöltése közben'
+        error.value = response?.data?.uzenet || 'Hiba történt a termékek betöltése közben'
         items.value = []
       }
     } catch (err) {
       console.error('Axios error:', err)
-      error.value = 'Hiba történt a szerver kapcsolat során!'
+      error.value = response?.data?.uzenet || 'Hiba történt a szerver kapcsolat során!'
     } finally {
       loading.value = false
     }
@@ -55,7 +55,7 @@
     }
 
     try {
-      const response = await axios.post('http://localhost:3000/api/Kategoriak_all', {
+      const response = await axios.post('/Kategoriak_all', {
         id: authStore.ceg.id
       })
       
@@ -177,7 +177,7 @@
 
     // If all validations pass, send to backend
     try {
-      const response = await axios.post('http://localhost:3000/api/Termek_ad', {
+      const response = await axios.post('/Termek_ad', {
         tulajdonos: authStore.ceg.id,
         nev: newProduct.value.name,
         cikkszam: newProduct.value.cikkszam,
@@ -194,11 +194,11 @@
         // Success - refresh the page
         window.location.reload()
       } else {
-        formError.value = response.data.uzenet || 'Hiba történt a termék mentése során'
+        formError.value = response?.data?.uzenet || 'Hiba történt a termék mentése során'
       }
     } catch (err) {
       console.error('Error saving product:', err)
-      formError.value = 'Hiba történt a szerver kapcsolat során!'
+      formError.value = response?.data?.uzenet || 'Hiba történt a szerver kapcsolat során!'
     }
   }
 </script>

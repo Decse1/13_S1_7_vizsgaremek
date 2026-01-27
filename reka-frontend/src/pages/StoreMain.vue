@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import axios from '../axios.js';
 import authStore from '../stores/auth.js';
 
 const router = useRouter();
@@ -22,7 +22,7 @@ const fetchBuyerPartnerships = async () => {
   }
 
   try {
-    const response = await axios.post('http://localhost:3000/api/Partnerek_en_vevo', {
+    const response = await axios.post('/Partnerek_en_vevo', {
       id: cegId
     });
 

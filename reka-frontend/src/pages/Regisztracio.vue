@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import axios from '../axios.js';
 
 const router = useRouter();
 
@@ -39,7 +39,7 @@ const handleCegNeveInput = async () => {
     isLoadingCompanies.value = true;
     try {
       // Search companies by name using /v1/search endpoint
-      const response = await axios.post('http://localhost:3000/api/search/name', {
+      const response = await axios.post('/search/name', {
         name: searchTerm
       });
       
@@ -89,7 +89,7 @@ const selectCompany = async (company) => {
     const identifier = company.companyId || company.taxNumber || company.id;
     console.log('Fetching details for identifier:', identifier);
     
-    const detailResponse = await axios.post('http://localhost:3000/api/detail', {
+    const detailResponse = await axios.post('/detail', {
       adoszam: identifier
     });
     
@@ -154,12 +154,13 @@ const handleSubmit = async () => {
     };
 
     // Make API call to backend using axios
-    const response = await axios.post('http://localhost:3000/api/Ceg_ad', cegData);
+    const response = await axios.post('/Regisz/Ceg_ad', cegData);
 
     if (response.data.ok) {
       // Store the company ID for later use
       console.log('Full backend response:', response.data);
-      registeredCegId.value = response.data.cegId;
+      // Convert cegId to number since backend returns it as string
+      registeredCegId.value = parseInt(response.data.cegId, 10);
       console.log('Stored company ID:', registeredCegId.value);
       
       // Now create the system manager user
@@ -173,7 +174,7 @@ const handleSubmit = async () => {
       };
 
       console.log('Creating user with data:', felhasznaloData);
-      const userResponse = await axios.post('http://localhost:3000/api/Felhasznalo_ad', felhasznaloData);
+      const userResponse = await axios.post('/Regisz/Felhasznalo_ad', felhasznaloData);
 
       if (userResponse.data.ok) {
         // Both company and user created successfully

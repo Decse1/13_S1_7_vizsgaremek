@@ -1,16 +1,77 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
-import authStore, { clearAuthState } from '../stores/auth.js';
+import authStore, { clearAuthState, getToken, onTokenUpdate } from '../stores/auth.js';
 
 const router = useRouter();
 const sidebarOpen = ref(false);
 const dropdownOpen = ref(false);
 const dropdownRef = ref(null);
+const tokenExpiry = ref(null);
+const countdown = ref('');
+let countdownInterval = null;
+let unsubscribeTokenUpdate = null;
 
 const userName = computed(() => {
   return authStore.user?.nev || 'Felhasználó';
 });
+
+// Decode JWT token to get expiration time
+const decodeToken = (token) => {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(jsonPayload);
+  } catch (error) {
+    console.error('Error decoding token:', error);
+    return null;
+  }
+};
+
+// Update countdown timer
+const updateCountdown = () => {
+  if (!tokenExpiry.value) {
+    countdown.value = '';
+    return;
+  }
+
+  const now = Math.floor(Date.now() / 1000);
+  const timeLeft = tokenExpiry.value - now;
+
+  if (timeLeft <= 0) {
+    countdown.value = '(0:00)';
+    if (countdownInterval) {
+      clearInterval(countdownInterval);
+      countdownInterval = null;
+    }
+    return;
+  }
+
+  const minutes = Math.floor(timeLeft / 60);
+  const seconds = timeLeft % 60;
+  countdown.value = `(${minutes}:${seconds.toString().padStart(2, '0')})`;
+};
+
+// Initialize token expiry
+const initTokenExpiry = () => {
+  const token = getToken();
+  if (token) {
+    const decoded = decodeToken(token);
+    if (decoded && decoded.exp) {
+      tokenExpiry.value = decoded.exp;
+      updateCountdown();
+      
+      // Update countdown every second
+      if (countdownInterval) {
+        clearInterval(countdownInterval);
+      }
+      countdownInterval = setInterval(updateCountdown, 1000);
+    }
+  }
+};
 
 const toggleSidebar = () => {
   sidebarOpen.value = !sidebarOpen.value;
@@ -42,10 +103,24 @@ const handleClickOutside = (event) => {
 
 onMounted(() => {
   document.addEventListener('click', handleClickOutside);
+  initTokenExpiry();
+  
+  // Subscribe to token updates
+  unsubscribeTokenUpdate = onTokenUpdate(() => {
+    console.log('Token updated - refreshing countdown');
+    initTokenExpiry();
+  });
 });
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside);
+  if (countdownInterval) {
+    clearInterval(countdownInterval);
+  }
+  // Unsubscribe from token updates
+  if (unsubscribeTokenUpdate) {
+    unsubscribeTokenUpdate();
+  }
 });
 </script>
 
@@ -77,7 +152,7 @@ onUnmounted(() => {
 
         <div class="d-none d-lg-flex align-items-center" @click="toggleDropdown" style="cursor: pointer;">
           <img src="/src/pfp.png" alt="Profile" class="profile-img rounded-circle me-2" />
-          <span>{{ userName }}</span>
+          <span>{{ userName }} <span class="token-countdown">{{ countdown }}</span></span>
         </div>
 
         <!-- Dropdown Menu -->
@@ -97,6 +172,7 @@ onUnmounted(() => {
     <router-link to="/raktar" @click="closeSidebar" class="sidebar-item">Raktárkezelés</router-link>
     <router-link to="/partnersegek" @click="closeSidebar" class="sidebar-item">Partnerségek</router-link>
     <router-link to="/ceginfo" @click="closeSidebar" class="sidebar-item">Cégem</router-link>
+    <router-link to="/kosar" @click="closeSidebar" class="sidebar-item">Kosár</router-link>
     <router-link to="/" @click="closeSidebar" class="sidebar-item">Beállítások</router-link>
   </div>
 
@@ -245,5 +321,12 @@ onUnmounted(() => {
 
 .profile-dropdown .dropdown-item.logout:hover {
   background-color: #fff5f5;
+}
+
+/* Token countdown styling */
+.token-countdown {
+  font-size: 0.85em;
+  color: #6c757d;
+  font-weight: normal;
 }
 </style>

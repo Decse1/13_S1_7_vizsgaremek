@@ -1,7 +1,7 @@
 <script setup>
   import { ref, computed, onMounted } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
-  import axios from 'axios'
+  import axios from '../axios.js'
   import authStore from '../stores/auth'
 
   const route = useRoute()
@@ -21,6 +21,10 @@
 
   // Track quantities for each product
   const quantities = ref({})
+
+  // Modal state
+  const showProductModal = ref(false)
+  const selectedProduct = ref(null)
 
   const filteredItems = computed(() =>
     items.value.filter((item) =>
@@ -46,7 +50,7 @@
 
     try {
       // Check buyer partnerships (where logged in company is the buyer)
-      const response = await axios.post('http://localhost:3000/api/Partnerek_en_vevo', {
+      const response = await axios.post('/Partnerek_en_vevo', {
         id: authStore.ceg.id
       })
 
@@ -90,7 +94,7 @@
     error.value = ''
 
     try {
-      const response = await axios.post('http://localhost:3000/api/Raktar', {
+      const response = await axios.post('/Raktar', {
         id: partnerId
       })
 
@@ -119,7 +123,7 @@
     }
 
     try {
-      const response = await axios.post('http://localhost:3000/api/Kategoriak_all', {
+      const response = await axios.post('/Kategoriak_all', {
         id: authStore.ceg.id
       })
       
@@ -162,6 +166,22 @@
 
   const addToCart = (item) => {
     console.log('Add to cart:', item, 'Quantity:', quantities.value[item.id])
+  }
+
+  const openProductModal = (item) => {
+    selectedProduct.value = item
+    showProductModal.value = true
+  }
+
+  const closeProductModal = () => {
+    showProductModal.value = false
+    selectedProduct.value = null
+  }
+
+  // Get category name by ID
+  const getCategoryName = (categoryId) => {
+    const category = categories.value.find(cat => cat.id === categoryId)
+    return category ? category.nev : 'N/A'
   }
 </script>
 
@@ -216,7 +236,11 @@
           <td colspan="4" class="text-center">Nincs megjeleníthető termék</td>
         </tr>
         <tr v-for="(item, index) in filteredItems" :key="item.id || index">
-          <td>{{ item.nev }}</td>
+          <td>
+            <span class="product-name-link" @click="openProductModal(item)">
+              {{ item.nev }}
+            </span>
+          </td>
           <!-- td>asd</td -->
           <td>{{ item.ar }} Ft</td>
           <td>
@@ -252,6 +276,61 @@
         </tr>
       </tbody>
     </table>
+
+    <!-- Product Details Modal -->
+    <transition name="modal-fade">
+      <div
+        v-if="showProductModal"
+        class="modal-backdrop-custom"
+        tabindex="-1"
+        role="dialog"
+        @click="closeProductModal"
+      >
+        <div class="modal-dialog modal-dialog-centered modal-dialog-custom" role="document" @click.stop>
+          <div class="modal-content custom-modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">{{ selectedProduct.nev }}</h5>
+              <button type="button" class="btn-close" @click="closeProductModal"></button>
+            </div>
+            <div class="modal-body" v-if="selectedProduct">
+              <div class="mb-3">
+                <label class="form-label fw-bold">Leírás</label>
+                <p class="mb-0">{{ selectedProduct.leiras || 'Nincs leírás megadva' }}</p>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-bold">Ár (nettó)</label>
+                <p class="mb-0">{{ selectedProduct.ar }} Ft</p>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-bold">ÁFA kulcs</label>
+                <p class="mb-0">{{ selectedProduct.afa_kulcs }}%</p>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-bold">Termékkategória</label>
+                <p class="mb-0">{{ getCategoryName(selectedProduct.kategoria) }}</p>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-bold">Cikkszám</label>
+                <p class="mb-0">{{ selectedProduct.cikkszam }}</p>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-bold">Minimum vásárlási mennyiség</label>
+                <p class="mb-0">{{ selectedProduct.min_vas_menny || 1 }} {{ selectedProduct.kiszereles }}</p>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-bold">Jelenleg készleten</label>
+                <p class="mb-0">{{ selectedProduct.mennyiseg }} {{ selectedProduct.kiszereles }}</p>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" @click="closeProductModal">
+                Bezárás
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -301,12 +380,24 @@
 
   .quantity-input {
     -moz-appearance: textfield;
+    appearance: textfield;
   }
 
   .quantity-input::-webkit-outer-spin-button,
   .quantity-input::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
+  }
+
+  .product-name-link {
+    color: #0066cc;
+    cursor: pointer;
+    text-decoration: underline;
+    transition: color 0.2s ease;
+  }
+
+  .product-name-link:hover {
+    color: #004499;
   }
 
   .table-container {

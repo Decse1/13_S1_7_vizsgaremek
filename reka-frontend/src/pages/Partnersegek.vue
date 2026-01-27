@@ -1,6 +1,6 @@
 <script setup>
   import { ref, computed, onMounted } from 'vue'
-  import axios from 'axios'
+  import axios from '../axios.js'
   import authStore from '../stores/auth'
 
   // Eladói partnerségek (seller partnerships) list
@@ -49,7 +49,7 @@
 
     // Fetch seller partnerships (where we are the buyer)
     try {
-      const sellerResponse = await axios.post('http://localhost:3000/api/Partnerek_en_elado', {
+      const sellerResponse = await axios.post('/Partnerek_en_elado', {
         id: cegId
       })
 
@@ -75,7 +75,7 @@
 
     // Fetch buyer partnerships (where we are the seller)
     try {
-      const buyerResponse = await axios.post('http://localhost:3000/api/Partnerek_en_vevo', {
+      const buyerResponse = await axios.post('/Partnerek_en_vevo', {
         id: cegId
       })
 

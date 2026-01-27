@@ -1,5 +1,5 @@
 <script>
-import axios from "axios";
+import axios from "../axios.js";
 import authStore, { setAuthState } from "../stores/auth.js";
 
 export default {
@@ -25,7 +25,7 @@ export default {
       this.eredmeny = "";
 
       try {
-      const response = await axios.post("http://localhost:3000/api/Bejelent", {
+      const response = await axios.post("/Bejelent", {
         username: this.username,
         password: this.password,
       });
@@ -38,9 +38,10 @@ export default {
       else if (response.data.ok) {
         console.log("Felhasználó:", response.data.felhasznalo);
         console.log("Cég:", response.data.ceg);
+        console.log("Token:", response.data.token);
         
-        // Store authentication data
-        setAuthState(response.data.felhasznalo, response.data.ceg);
+        // Store authentication data with JWT token
+        setAuthState(response.data.felhasznalo, response.data.ceg, response.data.token);
         
         this.$router.push("/kezdolap");
       }

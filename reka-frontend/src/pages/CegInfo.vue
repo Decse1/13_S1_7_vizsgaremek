@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import axios from 'axios';
+import axios from '../axios.js';
 import authStore, { setAuthState } from '../stores/auth.js';
 
 const route = useRoute();
@@ -67,7 +67,7 @@ const saveCompanyData = async () => {
       elofiz: authStore.ceg.elofiz
     }
 
-    const response = await axios.post('http://localhost:3000/api/Ceg_update', updatedCegData)
+    const response = await axios.post('/Ceg_update', updatedCegData)
 
     if (response.data.ok) {
       // Update the local auth store
@@ -101,7 +101,7 @@ const activateReka = async () => {
       elofiz: 1 // Send boolean true instead of 1
     };
 
-    const response = await axios.post('http://localhost:3000/api/Ceg_update', updatedCegData);
+    const response = await axios.post('/Ceg_update', updatedCegData);
 
     if (response.data.ok) {
       // Update the local auth store
@@ -139,7 +139,7 @@ const deactivateReka = async () => {
       elofiz: 0 // Send boolean false instead of 0
     };
 
-    const response = await axios.post('http://localhost:3000/api/Ceg_update', updatedCegData);
+    const response = await axios.post('/Ceg_update', updatedCegData);
 
     if (response.data.ok) {
       // Update the local auth store
