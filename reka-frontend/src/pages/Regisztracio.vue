@@ -150,7 +150,8 @@ const handleSubmit = async () => {
       cim: formData.value.cegCime,
       email: formData.value.cegEmail,
       telefon: formData.value.cegTelszam,
-      elofiz: false // Default to false for new registrations
+      elofiz: false, // Default to false for new registrations
+      szamlaszam: "-" // Default to new registrations
     };
 
     // Make API call to backend using axios
@@ -212,9 +213,12 @@ const handleSubmit = async () => {
     }
   } catch (error) {
     console.error('Registration error:', error);
+    console.error('Error response data:', error.response?.data);
     if (error.response) {
       // Server responded with error
       errorMessage.value = error.response.data.uzenet || error.response.data.error || 'Hiba történt a regisztráció során!';
+      // Log the full error for debugging
+      console.error('Backend error details:', error.response.data);
     } else if (error.request) {
       // Request made but no response
       errorMessage.value = 'Nem sikerült kapcsolódni a szerverhez. Kérjük, próbálja újra később!';

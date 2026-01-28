@@ -24,6 +24,8 @@ const closeError = () => {
 
 const showAddModal = ref(false)
 const formError = ref('')
+const szamlaszam = ref('')
+const isLoadingCegadat = ref(false)
 
 // Form data for editing company info
 const editForm = ref({
@@ -52,6 +54,66 @@ const openAddModal = () => {
 const closeAddModal = () => {
   showAddModal.value = false
   formError.value = ''
+}
+
+const fetchCegadatAPI = async () => {
+  // Validate VAT number length
+  if (!editForm.value.adoszam || editForm.value.adoszam.length !== 11) {
+    formError.value = 'Az adószámnak pontosan 11 karakter hosszúnak kell lennie!'
+    return
+  }
+
+  isLoadingCegadat.value = true
+  formError.value = ''
+
+  try {
+    // Step 1: Search for VAT number in CégadatAPI
+    const searchResponse = await axios.post('/search/vat', {
+      vatNumber: editForm.value.adoszam
+    })
+
+    if (!searchResponse.data || searchResponse.data.length === 0) {
+      formError.value = 'Az adószám nem található a CégadatAPI adatbázisában!'
+      isLoadingCegadat.value = false
+      return
+    }
+
+    // Get the company VAT number from search results (using it as ID)
+    const vatNumber = searchResponse.data[0].vatNumber
+
+    // Step 2: Get detailed company information
+    const detailResponse = await axios.post('/detail', {
+      adoszam: vatNumber
+    })
+
+    if (detailResponse.data) {
+      const company = detailResponse.data
+
+      // Fill the form with the received data based on actual API response structure
+      editForm.value.nev = company.shortName || company.fullName || editForm.value.nev
+      editForm.value.cim = company.fullAddress || editForm.value.cim
+      
+      // Fill email and phone if they exist in the API response
+      if (company.emailAddress && company.emailAddress.trim() !== '') {
+        editForm.value.email = company.emailAddress
+      }
+      
+      if (company.phoneNumber && company.phoneNumber.trim() !== '') {
+        editForm.value.telefon = company.phoneNumber
+      }
+      
+      // Note: CégadatAPI doesn't provide EU VAT number in the standard response
+      
+      formError.value = ''
+    } else {
+      formError.value = 'Nem sikerült lekérni a cég részletes adatait!'
+    }
+  } catch (error) {
+    console.error('CégadatAPI error:', error)
+    formError.value = error.response?.data?.error || 'Hiba történt a CégadatAPI lekérdezése során!'
+  } finally {
+    isLoadingCegadat.value = false
+  }
 }
 
 const saveCompanyData = async () => {
@@ -86,6 +148,13 @@ const saveCompanyData = async () => {
 }
 
 const activateReka = async () => {
+  // Validate szamlaszam before proceeding
+  if (!szamlaszam.value || szamlaszam.value.trim() === '') {
+    errorMessage.value = 'A számlaszám megadása kötelező az előfizetés aktiválásához!';
+    showError.value = true;
+    return;
+  }
+
   isUpdating.value = true;
   showError.value = false;
 
@@ -98,15 +167,19 @@ const activateReka = async () => {
       cim: authStore.ceg.cim,
       email: authStore.ceg.email,
       telefon: authStore.ceg.telefon,
-      elofiz: 1 // Send boolean true instead of 1
+      elofiz: 1, // Send boolean true instead of 1
+      szamlaszam: szamlaszam.value
     };
 
     const response = await axios.post('/Ceg_update', updatedCegData);
 
     if (response.data.ok) {
       // Update the local auth store
-      const updatedCeg = { ...authStore.ceg, elofiz: 1 };
+      const updatedCeg = { ...authStore.ceg, elofiz: 1, szamlaszam: szamlaszam.value };
       setAuthState(authStore.user, updatedCeg);
+      
+      // Clear the input field
+      szamlaszam.value = '';
       
       // Refresh the page to show updated data
       router.go(0);
@@ -136,14 +209,15 @@ const deactivateReka = async () => {
       cim: authStore.ceg.cim,
       email: authStore.ceg.email,
       telefon: authStore.ceg.telefon,
-      elofiz: 0 // Send boolean false instead of 0
+      elofiz: 0, // Send boolean false instead of 0
+      szamlaszam: "-"
     };
 
     const response = await axios.post('/Ceg_update', updatedCegData);
 
     if (response.data.ok) {
       // Update the local auth store
-      const updatedCeg = { ...authStore.ceg, elofiz: 0 };
+      const updatedCeg = { ...authStore.ceg, elofiz: 0, szamlaszam: "-" };
       setAuthState(authStore.user, updatedCeg);
       
       // Refresh the page to show updated data
@@ -198,6 +272,19 @@ const deactivateReka = async () => {
       <button type="button" class="btn-close" aria-label="Bezárás" @click="closeError"></button>
     </div>
     
+    <!-- Számlaszám input for subscription activation -->
+    <div v-if="authStore.ceg.elofiz == 0 && authStore.user.kategoria == 1" class="mb-3">
+      <label class="form-label fw-bold">Számlaszám (előfizetés aktiválásához szükséges)</label>
+      <input
+        v-model="szamlaszam"
+        type="text"
+        class="form-control custom-input"
+        placeholder="Adja meg a számlaszámot"
+        required
+        maxlength="15"
+      />
+    </div>
+
     <button v-if="authStore.ceg.elofiz == 0 && authStore.user.kategoria == 1"
         class="btn btn-success btn-teal add-btn rounded-5 d-flex align-items-center"
         @click="activateReka"
@@ -218,6 +305,8 @@ const deactivateReka = async () => {
           {{ isUpdating ? 'Frissítés...' : 'RÉKA-előfizetés kikapcsolása' }}
         </span>
     </button>
+    <br v-if="authStore.ceg.elofiz == 1 && authStore.user.kategoria == 1">
+    <p v-if="authStore.ceg.elofiz == 1 && authStore.user.kategoria == 1">Számlaszám: {{ authStore.ceg.szamlaszam }}</p>
 
     <transition name="modal-fade">
       <div
@@ -302,6 +391,15 @@ const deactivateReka = async () => {
               </form>
             </div>            
             <div class="modal-footer">
+              <button 
+                type="button" 
+                class="btn btn-secondary rounded-pill" 
+                @click="fetchCegadatAPI"
+                :disabled="isLoadingCegadat"
+              >
+                <span v-if="isLoadingCegadat" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                {{ isLoadingCegadat ? 'Keresés...' : 'Adatok ellenőrzése (CégadatAPI)' }}
+              </button>
               <button type="button" class="btn btn-secondary rounded-pill" @click="closeAddModal">
                 Mégse
               </button>

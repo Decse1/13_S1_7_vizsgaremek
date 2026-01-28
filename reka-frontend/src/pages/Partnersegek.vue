@@ -3,6 +3,9 @@
   import axios from '../axios.js'
   import authStore from '../stores/auth'
 
+  //Teljesen megadott adószám esetén megjeleníteni a cég nevét a mező alatt
+  //Partnerség felvételéhez majd integrálni a CégadatAPI-t
+  
   // Eladói partnerségek (seller partnerships) list
   const sellerItems = ref([])
 
@@ -113,39 +116,179 @@
     console.log('Delete:', item)
   }
 
-  // Modal state and form model for new product
+  // Modal state and form model for new seller partnership
   const showAddModal = ref(false)
-  const newProduct = ref({
-    name: '',
-    stock: 0,
-    kiszereles: '',
-    category: '',
+  const newPartnership = ref({
+    vatNumber: '',
+    paymentTime: 30,
+    paymentMethod: 'Átutalás',
   })
 
-  // Category options
-  const categories = ref([
-    'Üdítők',
-    'Ásványvizek',
-    'Élelmiszerek'
+  const addModalError = ref('')
+  const addModalLoading = ref(false)
+  const foundCompanyName = ref('')
+  const searchingCompany = ref(false)
+
+  // Payment method options
+  const paymentMethods = ref([
+    'Átutalás',
+    'Készpénz',
+    'Bankkártya'
   ])
 
   const openAddModal = () => {
-    newProduct.value = { name: '', stock: 0, kiszereles: '', category: '' }
+    newPartnership.value = { vatNumber: '', paymentTime: 30, paymentMethod: 'Átutalás' }
+    addModalError.value = ''
+    addModalLoading.value = false
+    foundCompanyName.value = ''
+    searchingCompany.value = false
     showAddModal.value = true
   }
 
   const closeAddModal = () => {
     showAddModal.value = false
+    addModalError.value = ''
+    foundCompanyName.value = ''
   }
 
-  const saveNewProduct = () => {
-    if (!newProduct.value.name) return
-    items.value.push({
-      name: newProduct.value.name,
-      stock: Number(newProduct.value.stock) || 0,
-      kiszereles: newProduct.value.kiszereles,
-    })
-    closeAddModal()
+  // Search for company by VAT number when 11 characters are entered
+  const handleVatNumberInput = async () => {
+    foundCompanyName.value = ''
+    
+    // Only search if exactly 11 characters
+    if (newPartnership.value.vatNumber.length !== 11) {
+      return
+    }
+
+    searchingCompany.value = true
+
+    try {
+      const companiesResponse = await axios.get('/Ceg_osszes')
+      
+      if (companiesResponse.data.ok) {
+        const company = companiesResponse.data.cegek.find(
+          ceg => ceg.adoszam === newPartnership.value.vatNumber
+        )
+
+        if (company) {
+          foundCompanyName.value = company.nev
+        }
+      }
+    } catch (err) {
+      console.error('Hiba a cég keresése során:', err)
+    } finally {
+      searchingCompany.value = false
+    }
+  }
+
+  // Watch for payment method changes to set payment time to 0 for cash
+  const handlePaymentMethodChange = () => {
+    if (newPartnership.value.paymentMethod === 'Készpénz') {
+      newPartnership.value.paymentTime = 0
+    }
+  }
+
+  const saveNewPartnership = async () => {
+    addModalError.value = ''
+    addModalLoading.value = true
+
+    // Get current company info
+    const currentCompany = authStore.ceg
+    if (!currentCompany || !currentCompany.id || !currentCompany.adoszam) {
+      addModalError.value = 'Hiányzó bejelentkezési adatok'
+      addModalLoading.value = false
+      return
+    }
+
+    // Validate form fields
+    if (!newPartnership.value.vatNumber || 
+        newPartnership.value.paymentTime === null || 
+        newPartnership.value.paymentTime === undefined || 
+        newPartnership.value.paymentTime === '' ||
+        !newPartnership.value.paymentMethod) {
+      addModalError.value = 'Minden mező kitöltése kötelező'
+      addModalLoading.value = false
+      return
+    }
+
+    // Step 1: Check if vat number is the same as logged in user's company
+    if (newPartnership.value.vatNumber === currentCompany.adoszam) {
+      addModalError.value = 'Nem lehet saját magával partnerséget létrehozni'
+      addModalLoading.value = false
+      return
+    }
+
+    try {
+      // Step 2: Check if the vat number exists in the database
+      const companiesResponse = await axios.get('/Ceg_osszes')
+      if (!companiesResponse.data.ok) {
+        addModalError.value = 'Hiba a cégek lekérdezése során'
+        addModalLoading.value = false
+        return
+      }
+
+      const otherCompany = companiesResponse.data.cegek.find(
+        ceg => ceg.adoszam === newPartnership.value.vatNumber
+      )
+
+      if (!otherCompany) {
+        addModalError.value = 'A megadott adószámú cég nem található az adatbázisban'
+        addModalLoading.value = false
+        return
+      }
+
+      // Step 3: Check if the seller partnership already exists
+      let partnershipExists = false
+      try {
+        const existingPartnershipsResponse = await axios.post('/Partnerek_en_elado', {
+          id: currentCompany.id
+        })
+
+        if (existingPartnershipsResponse.data.ok) {
+          const existingPartnership = existingPartnershipsResponse.data.partnerek.find(
+            partner => partner.cId === otherCompany.id
+          )
+
+          if (existingPartnership) {
+            partnershipExists = true
+          }
+        }
+      } catch (err) {
+        // If 404, it means no partnerships exist yet - this is OK, continue
+        if (err.response?.status !== 404) {
+          // For other errors, throw to outer catch
+          throw err
+        }
+        // If 404, partnershipExists remains false, continue to step 4
+      }
+
+      if (partnershipExists) {
+        addModalError.value = 'Ezzel a céggel már létezik eladói partnerség'
+        addModalLoading.value = false
+        return
+      }
+
+      // Step 4: Add the new seller partnership
+      const addResponse = await axios.post('/Partnerek_ad', {
+        eladoId: currentCompany.id,
+        vevoId: otherCompany.id,
+        fiz_ido: newPartnership.value.paymentTime,
+        fiz_forma: newPartnership.value.paymentMethod
+      })
+
+      if (addResponse.data.ok) {
+        // Success - refresh the partnerships list
+        await fetchPartnerships()
+        closeAddModal()
+      } else {
+        addModalError.value = addResponse.data.uzenet || 'Hiba történt a partnerség hozzáadása során'
+      }
+    } catch (err) {
+      console.error('Hiba a partnerség hozzáadása során:', err)
+      addModalError.value = err.response?.data?.uzenet || 'Hiba történt a partnerség hozzáadása során'
+    } finally {
+      addModalLoading.value = false
+    }
   }
 </script>
 
@@ -203,7 +346,7 @@
         <tr v-for="(item, index) in filteredSellerItems" :key="item.id || index">
           <td>{{ item.nev }}</td>
           <td>{{ item.kiszereles }}</td>
-          <td class="text-end">{{ item.mennyiseg }} nap</td>
+          <td class="text-end">{{ item.mennyiseg === 0 ? 'Azonnali' : `${item.mennyiseg} nap` }}</td>
           <td><i class="bi bi-pencil" @click="edit(item)"/></td>
           <td><i class="bi bi-trash" @click="remove(item)"/></td>
         </tr>
@@ -226,105 +369,90 @@
               <button type="button" class="btn-close" @click="closeAddModal"></button>
             </div>
             <div class="modal-body">
-              <h4>A funkció fejlesztés alatt áll...</h4>
-            </div>
-            <!-- 
-            <div class="modal-body">
-              <form @submit.prevent="saveNewProduct">
+              <div v-if="addModalError" class="alert alert-danger" role="alert">
+                {{ addModalError }}
+              </div>
+              
+              <form @submit.prevent="saveNewPartnership">
                 <div class="mb-3">
-                  <label class="form-label">Terméknév</label>
+                  <label class="form-label">Partner adószáma *</label>
                   <input
-                    v-model="newProduct.name"
+                    v-model="newPartnership.vatNumber"
                     type="text"
                     class="form-control"
+                    placeholder="Pl.: 12345678-1-23"
                     required
+                    maxlength="11"
+                    :disabled="addModalLoading"
+                    @input="handleVatNumberInput"
                   />
+                  <small v-if="searchingCompany" class="form-text text-muted">
+                    <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                    Cég keresése...
+                  </small>
+                  <small v-else-if="foundCompanyName" class="form-text text-success">
+                    <i class="bi bi-check-circle-fill me-1"></i>
+                    {{ foundCompanyName }}
+                  </small>
+                  <small v-else-if="newPartnership.vatNumber.length === 11 && !foundCompanyName" class="form-text text-danger">
+                    <i class="bi bi-x-circle-fill me-1"></i>
+                    A megadott adószámú cég nem található
+                  </small>
+                  <small v-else class="form-text text-muted">
+                    Adja meg a partner cég adószámát
+                  </small>
                 </div>
                 <div class="mb-3">
-                  <label class="form-label">Készlet (db)</label>
-                  <input
-                    v-model.number="newProduct.stock"
-                    type="number"
-                    min="0"
-                    class="form-control"
-                    required
-                  />
-                </div>
-                <div class="mb-3">
-                  <label class="form-label">Cikkszám</label>
-                  <input
-                    type="text"
-                    class="form-control"
-                    required
-                  />
-                </div>
-                <div class="mb-3">
-                  <label class="form-label">Termék kiszerelése</label>
-                  <input
-                    v-model="newProduct.kiszereles"
-                    type="text"
-                    class="form-control"
-                    required
-                  />
-                </div>
-                <div class="mb-3">
-                  <label class="form-label">Minimum vásárlási mennyiség</label>
-                  <input
-                    type="number"
-                    min="1"
-                    class="form-control"
-                    required
-                  />
-                </div>
-                <div class="mb-3">
-                  <label class="form-label">Termék leírása</label>
-                  <input
-                    type="text"
-                    class="form-control"
-                    required
-                  />
-                </div>
-                <div class="mb-3">
-                  <label class="form-label">Ár (magyar forint, nettó)</label>
-                  <input
-                    type="number"
-                    min="1"
-                    class="form-control"
-                    required
-                  />
-                </div>
-                <div class="mb-3">
-                  <label class="form-label">Termék kategóriája</label>
+                  <label class="form-label">Fizetési mód *</label>
                   <select
-                    v-model="newProduct.category"
+                    v-model="newPartnership.paymentMethod"
                     class="form-select"
                     required
+                    :disabled="addModalLoading"
+                    @change="handlePaymentMethodChange"
                   >
-                    <option value="" disabled>Válasszon kategóriát...</option>
-                    <option v-for="category in categories" :key="category" :value="category">
-                      {{ category }}
+                    <option v-for="method in paymentMethods" :key="method" :value="method">
+                      {{ method }}
                     </option>
                   </select>
                 </div>
                 <div class="mb-3">
-                  <label class="form-label">Áfakulcs</label>
+                  <label class="form-label">Fizetési idő (napokban) *</label>
                   <input
+                    v-model.number="newPartnership.paymentTime"
                     type="number"
                     min="0"
                     class="form-control"
                     required
+                    :disabled="addModalLoading || newPartnership.paymentMethod === 'Készpénz'"
+                    :readonly="newPartnership.paymentMethod === 'Készpénz'"
                   />
+                  <small class="form-text text-muted">
+                    {{ newPartnership.paymentMethod === 'Készpénz' 
+                      ? 'Készpénzes fizetés esetén azonnali (0 nap)' 
+                      : 'Hány nap áll rendelkezésre a fizetésre' }}
+                  </small>
                 </div>
               </form>
             </div>
-            -->
             
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary rounded-pill" @click="closeAddModal">
+              <button 
+                type="button" 
+                class="btn btn-secondary rounded-pill" 
+                @click="closeAddModal"
+                :disabled="addModalLoading"
+              >
                 Mégse
               </button>
-              <button type="button" class="btn btn-primary btn-teal rounded-pill" @click="closeAddModal">
-                Mentés
+              <button 
+                type="button" 
+                class="btn btn-primary btn-teal rounded-pill" 
+                @click="saveNewPartnership"
+                :disabled="addModalLoading"
+              >
+                <span v-if="addModalLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                {{ addModalLoading ? 'Mentés...' : 'Mentés' }}
               </button>
             </div>
           </div>
@@ -377,7 +505,7 @@
         <tr v-for="(item, index) in filteredBuyerItems" :key="item.id || index">
           <td>{{ item.nev }}</td>
           <td>{{ item.kiszereles }}</td>
-          <td class="text-end">{{ item.mennyiseg }} nap</td>
+          <td class="text-end">{{ item.mennyiseg === 0 ? 'Azonnali' : `${item.mennyiseg} nap` }}</td>
           <td><i class="bi bi-pencil" @click="edit(item)"/></td>
           <td><i class="bi bi-trash" @click="remove(item)"/></td>
         </tr>
