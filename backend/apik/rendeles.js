@@ -1,5 +1,6 @@
 const db = require('../connect');
 
+
 module.exports = (app, authenticateToken) => {
 
     // 1. Új rendelés leadása (Védett)
@@ -133,4 +134,29 @@ module.exports = (app, authenticateToken) => {
             res.status(500).json({ error: "Adatbázis hiba!" });
         }
     });
+
+    app.post('/api/Rendeles_statusz_frissit', authenticateToken, async (req, res) => {
+        try {
+            const rendeles = req.body;
+            await db.query(
+                `UPDATE Rendeles SET statusz = "Teljesítve" WHERE id = ?`,
+                [rendeles.id]
+            );
+            for (const t of rendeles.termekek) {
+                await db.query(
+                    `UPDATE Rendelestetel SET mennyiseg = ? WHERE id = ?`,
+                    [t.mennyiseg, t.id]
+                );
+                await db.query(
+                    `UPDATE Termek SET mennyiseg = mennyiseg - ? WHERE id = ?`,
+                    [t.mennyiseg, t.id]
+                );
+            }
+            return res.status(200).json({ ok: true, uzenet: "Rendelés státusza frissítve!" });
+        } catch (error) {
+            console.error(err);
+            res.status(500).json({ error: "Adatbázis hiba!" });
+        }
+    });
+        
 };

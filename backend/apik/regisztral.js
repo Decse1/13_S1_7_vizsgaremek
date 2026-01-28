@@ -19,8 +19,8 @@ async function ceg_ad(ceg) {
     // FONTOS JAVÍTÁS: SQL Injection ellen "?" jeleket használunk!
     // A régi megoldás ('${ceg.nev}') biztonsági rés volt.
     const [rows] = await db.query(
-        `INSERT INTO Ceg (nev, adoszam, euAdoszam, cim, email, telefon, elofiz, szamlaszam) 
-         VALUES (?, ?, ?, ?, ?, ?, ?)`, 
+        `INSERT INTO Ceg (nev, adoszam, euAdoszam, cim, email, telefon, elofiz, szamla_minta, szamlaszam) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, 
         [ceg.nev, ceg.adoszam, ceg.euAdoszam, ceg.cim, ceg.email, ceg.telefon, fizet, ceg.szamlaszam]
     );
     return rows;
@@ -94,11 +94,11 @@ module.exports = (app) => {
         try {
             const ceg = req.body;
             let fizet = ceg.elofiz ? 1 : 0; // Rövidített if-else
-            if(fizet = 1){
-                const requiredFields = ['adoszam', 'nev', 'cim', 'szamlaszam'];
+            if(fizet == 1){
+                const requiredFields = ['adoszam', 'nev', 'cim', 'szamla_minta', 'szamlaszam'];
             }
             else{
-                const requiredFields = ['adoszam', 'nev', 'cim'];
+                const requiredFields = ['adoszam', 'nev', 'cim', 'szamlaszam'];
             }
             
 

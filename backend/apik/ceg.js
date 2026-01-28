@@ -8,9 +8,9 @@ async function ceg_ad(ceg) {
     // FONTOS JAVÍTÁS: SQL Injection ellen "?" jeleket használunk!
     // A régi megoldás ('${ceg.nev}') biztonsági rés volt.
     const [rows] = await db.query(
-        `INSERT INTO Ceg (nev, adoszam, euAdoszam, cim, email, telefon, elofiz) 
-         VALUES (?, ?, ?, ?, ?, ?, ?)`, 
-        [ceg.nev, ceg.adoszam, ceg.euAdoszam, ceg.cim, ceg.email, ceg.telefon, fizet]
+        `INSERT INTO Ceg (nev, adoszam, euAdoszam, cim, email, telefon, elofiz, szamla_minta, szamlaszam) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, 
+        [ceg.nev, ceg.adoszam, ceg.euAdoszam, ceg.cim, ceg.email, ceg.telefon, fizet, ceg.szamla_minta, ceg.szamlaszam]
     );
     return rows;
 }
@@ -57,7 +57,7 @@ module.exports = (app, authenticateToken) => {
     app.post('/api/Ceg_ad', authenticateToken, async (req, res) => {
         try {
             const ceg = req.body;
-            const requiredFields = ['adoszam', 'nev', 'cim'];
+            const requiredFields = ['adoszam', 'nev', 'cim', 'szamlaszam'];
 
             for (const field of requiredFields) {
                 if (!ceg[field] || ceg[field].toString().trim() === '') {
@@ -107,7 +107,7 @@ module.exports = (app, authenticateToken) => {
     app.post('/api/Ceg_update', authenticateToken, async (req, res) => {
         try {
             const ceg = req.body;
-            const requiredFields = ['nev', 'adoszam', 'cim', 'id'];
+            const requiredFields = ['nev', 'adoszam', 'cim', 'id', 'szamlaszam'];
 
             for (const field of requiredFields) {
                 if (!ceg[field] || ceg[field].toString().trim() === '') {
