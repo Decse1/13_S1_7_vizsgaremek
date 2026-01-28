@@ -4,6 +4,8 @@ import Raktar from "./pages/Raktar.vue";
 import CegInfo from "./pages/CegInfo.vue";
 import UserInfo from './pages/UserInfo.vue';
 import Partnersegek from './pages/Partnersegek.vue';
+import RendelesBeerk from './pages/RendelesBeerk.vue';
+import RendelesKuld from './pages/RendelesKuld.vue';
 import Bejelentkezes from './pages/Bejelentkezes.vue';
 import Regisztracio from './pages/Regisztracio.vue';
 import TermekOldal from './pages/TermekOldal.vue';
@@ -43,6 +45,18 @@ const routes = [
     path: "/partnersegek",
     name: "Partnerségek",
     component: Partnersegek,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: "/rendelesek/beerkezett",
+    name: "Beérkezett rendelések",
+    component: RendelesBeerk,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: "/rendelesek/elkuldott",
+    name: "Elküldött rendelések",
+    component: RendelesKuld,
     meta: { requiresAuth: true }
   },
   {
