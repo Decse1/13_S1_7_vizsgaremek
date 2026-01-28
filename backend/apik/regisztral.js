@@ -16,14 +16,12 @@ async function ceg_by_adoszam(adoszam) {
 }
 
 async function ceg_ad(ceg) {
-    let fizet = ceg.elofiz ? 1 : 0; // Rövidített if-else
-    
     // FONTOS JAVÍTÁS: SQL Injection ellen "?" jeleket használunk!
     // A régi megoldás ('${ceg.nev}') biztonsági rés volt.
     const [rows] = await db.query(
-        `INSERT INTO Ceg (nev, adoszam, euAdoszam, cim, email, telefon, elofiz) 
+        `INSERT INTO Ceg (nev, adoszam, euAdoszam, cim, email, telefon, elofiz, szamlaszam) 
          VALUES (?, ?, ?, ?, ?, ?, ?)`, 
-        [ceg.nev, ceg.adoszam, ceg.euAdoszam, ceg.cim, ceg.email, ceg.telefon, fizet]
+        [ceg.nev, ceg.adoszam, ceg.euAdoszam, ceg.cim, ceg.email, ceg.telefon, fizet, ceg.szamlaszam]
     );
     return rows;
 }
@@ -95,7 +93,14 @@ module.exports = (app) => {
     app.post('/api/Regisz/Ceg_ad', async (req, res) => {
         try {
             const ceg = req.body;
-            const requiredFields = ['adoszam', 'nev', 'cim'];
+            let fizet = ceg.elofiz ? 1 : 0; // Rövidített if-else
+            if(fizet = 1){
+                const requiredFields = ['adoszam', 'nev', 'cim', 'szamlaszam'];
+            }
+            else{
+                const requiredFields = ['adoszam', 'nev', 'cim'];
+            }
+            
 
             for (const field of requiredFields) {
                 if (!ceg[field] || ceg[field].toString().trim() === '') {
@@ -124,7 +129,7 @@ module.exports = (app) => {
                 });
             }
 
-            const tmp = await ceg_ad(ceg);
+            const tmp = await ceg_ad(ceg, fizet);
 
             return res.status(200).json({
                 ok: true,

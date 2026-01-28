@@ -17,8 +17,8 @@ async function ceg_ad(ceg) {
 
 async function ceg_update(ceg) {
     const [rows] = await db.query(
-        `UPDATE Ceg SET nev = ?, adoszam = ?, euAdoszam = ?, cim = ?, email = ?, telefon = ?, elofiz = ? WHERE id = ?`,
-        [ceg.nev, ceg.adoszam, ceg.euAdoszam, ceg.cim, ceg.email, ceg.telefon, ceg.elofiz, ceg.id]
+        `UPDATE Ceg SET nev = ?, adoszam = ?, euAdoszam = ?, cim = ?, email = ?, telefon = ?, elofiz = ?, szamlaszam = ? WHERE id = ?`,
+        [ceg.nev, ceg.adoszam, ceg.euAdoszam, ceg.cim, ceg.email, ceg.telefon, ceg.elofiz, ceg.szamlaszam, ceg.id]
     );
     return rows;
 }
