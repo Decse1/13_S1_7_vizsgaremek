@@ -103,27 +103,27 @@ CREATE TABLE Ceg_alkalmazott (
 -- ----------------------------
 -- INSERT DATA: Cégek (20)
 -- ----------------------------
-INSERT INTO Ceg (id, nev, adoszam, euAdoszam, cim, email, telefon, elofiz) VALUES
-(1,'Alfa Kft.','11111111-1','HU11111111','1111 Budapest, Fő u. 1','info@alfa.hu','+3611111111',true),
-(2,'Beta Kft.','22222222-2','HU22222222','2222 Budapest, Közép u. 2','info@beta.hu','+3622222222',false),
-(3,'Gamma Kft.','33333333-3','HU33333333','3333 Budapest, Tölgy u. 3','info@gamma.hu','+3633333333',true),
-(4,'Delta Kft.','44444444-4','HU44444444','4444 Budapest, Hárs u. 4','info@delta.hu','+3644444444',false),
-(5,'Epsilon Kft.','55555555-5','HU55555555','5555 Budapest, Alma u. 5','info@epsilon.hu','+3655555555',true),
-(6,'Zeta Kft.','66666666-6','HU66666666','6666 Budapest, Körte u. 6','info@zeta.hu','+3666666666',true),
-(7,'Eta Kft.','77777777-7','HU77777777','7777 Budapest, Szilva u. 7','info@eta.hu','+3677777777',false),
-(8,'Theta Kft.','88888888-8','HU88888888','8888 Budapest, Meggy u. 8','info@theta.hu','+3688888888',false),
-(9,'Iota Kft.','99999999-9','HU99999999','9999 Budapest, Barack u. 9','info@iota.hu','+3699999999',true),
-(10,'Kappa Kft.','10101010-0','HU10101010','1010 Budapest, Cseresznye u. 10','info@kappa.hu','+3610101010',true),
-(11,'Lambda Kft.','11111111-11','HU11111111-11','1111 Budapest, Szeder u. 11','info@lambda.hu','+3611111111',false),
-(12,'Mu Kft.','12121212-12','HU12121212-12','1212 Budapest, Eper u. 12','info@mu.hu','+3612121212',true),
-(13,'Nu Kft.','13131313-13','HU13131313-13','1313 Budapest, Körte u. 13','info@nu.hu','+3613131313',false),
-(14,'Xi Kft.','14141414-14','HU14141414-14','1414 Budapest, Alma u. 14','info@xi.hu','+3614141414',true),
-(15,'Omicron Kft.','15151515-15','HU15151515-15','1515 Budapest, Szilva u. 15','info@omicron.hu','+3615151515',false),
-(16,'Pi Kft.','16161616-16','HU16161616-16','1616 Budapest, Meggy u. 16','info@pi.hu','+3616161616',true),
-(17,'Rho Kft.','17171717-17','HU17171717-17','1717 Budapest, Barack u. 17','info@rho.hu','+3617171717',false),
-(18,'Sigma Kft.','18181818-18','HU18181818-18','1818 Budapest, Cseresznye u. 18','info@sigma.hu','+3618181818',true),
-(19,'Tau Kft.','19191919-19','HU19191919-19','1919 Budapest, Szeder u. 19','info@tau.hu','+3619191919',false),
-(20,'Upsilon Kft.','20202020-20','HU20202020-20','2020 Budapest, Eper u. 20','info@upsilon.hu','+3620202020',true);
+INSERT INTO Ceg (id, nev, adoszam, euAdoszam, cim, email, telefon, elofiz, szamlaszam) VALUES
+(1,'Alfa Kft.','11111111-1','HU11111111','1111 Budapest, Fő u. 1','info@alfa.hu','+3611111111',true, 'AB0000000'),
+(2,'Beta Kft.','22222222-2','HU22222222','2222 Budapest, Közép u. 2','info@beta.hu','+3622222222',true, 'LKK000000'),
+(3,'Gamma Kft.','33333333-3','HU33333333','3333 Budapest, Tölgy u. 3','info@gamma.hu','+3633333333',true, 'CD000000'),
+(4,'Delta Kft.','44444444-4','HU44444444','4444 Budapest, Hárs u. 4','info@delta.hu','+3644444444',false, '-'),
+(5,'Epsilon Kft.','55555555-5','HU55555555','5555 Budapest, Alma u. 5','info@epsilon.hu','+3655555555',true, 'EF000000'),
+(6,'Zeta Kft.','66666666-6','HU66666666','6666 Budapest, Körte u. 6','info@zeta.hu','+3666666666',true, 'GH0000000'),
+(7,'Eta Kft.','77777777-7','HU77777777','7777 Budapest, Szilva u. 7','info@eta.hu','+3677777777',true, 'KO00000'),
+(8,'Theta Kft.','88888888-8','HU88888888','8888 Budapest, Meggy u. 8','info@theta.hu','+3688888888',true, 'LLWQ00000'),
+(9,'Iota Kft.','99999999-9','HU99999999','9999 Budapest, Barack u. 9','info@iota.hu','+3699999999',true, 'IJ0000000'),
+(10,'Kappa Kft.','10101010-0','HU10101010','1010 Budapest, Cseresznye u. 10','info@kappa.hu','+3610101010',true, 'KL000000'),
+(11,'Lambda Kft.','11111111-11','HU11111111-11','1111 Budapest, Szeder u. 11','info@lambda.hu','+3611111111',false, '-'),
+(12,'Mu Kft.','12121212-12','HU12121212-12','1212 Budapest, Eper u. 12','info@mu.hu','+3612121212',true, 'MN00000'),
+(13,'Nu Kft.','13131313-13','HU13131313-13','1313 Budapest, Körte u. 13','info@nu.hu','+3613131313',false, '-'),
+(14,'Xi Kft.','14141414-14','HU14141414-14','1414 Budapest, Alma u. 14','info@xi.hu','+3614141414',true, 'OP00000'),
+(15,'Omicron Kft.','15151515-15','HU15151515-15','1515 Budapest, Szilva u. 15','info@omicron.hu','+3615151515',false, '-'),
+(16,'Pi Kft.','16161616-16','HU16161616-16','1616 Budapest, Meggy u. 16','info@pi.hu','+3616161616',true, 'RS0000'),
+(17,'Rho Kft.','17171717-17','HU17171717-17','1717 Budapest, Barack u. 17','info@rho.hu','+3617171717',false, '-'),
+(18,'Sigma Kft.','18181818-18','HU18181818-18','1818 Budapest, Cseresznye u. 18','info@sigma.hu','+3618181818',true, 'TU0000'),
+(19,'Tau Kft.','19191919-19','HU19191919-19','1919 Budapest, Szeder u. 19','info@tau.hu','+3619191919',false, '-'),
+(20,'Upsilon Kft.','20202020-20','HU20202020-20','2020 Budapest, Eper u. 20','info@upsilon.hu','+3620202020',true, 'VW00000');
 
 -- ----------------------------
 -- INSERT DATA: Felhasználók (40)
@@ -253,17 +253,17 @@ INSERT INTO Partnerseg (id, elado, vevo, fizetesi_ido, fizetesi_forma) VALUES
 -- ----------------------------
 -- INSERT DATA: Rendeles
 -- ----------------------------
-INSERT INTO Rendeles (id, partnerseg, datum, status, sz_cim) VALUES
-(1,1,'2025-11-01','Új',1),
-(2,1,'2025-11-05','Teljesítve',2),
-(3,2,'2025-11-03','Új',3),
-(4,3,'2025-11-04','Teljesítve',4),
-(5,5,'2025-11-06','Új',9),
-(6,6,'2025-11-07','Teljesítve',12),
-(7,7,'2025-11-08','Új',13),
-(8,8,'2025-11-09','Teljesítve',16),
-(9,11,'2025-11-10','Új',20),
-(10,12,'2025-11-11','Teljesítve',25);
+INSERT INTO Rendeles (id, partnerseg, datum, status, sz_cim, rendeles_szam) VALUES
+(1,1,'2025-11-01','Új',1,AB0000001),
+(2,1,'2025-11-05','Teljesítve',2,,AB0000002),
+(3,2,'2025-11-03','Új',3,,AB0000003),
+(4,3,'2025-11-04','Teljesítve',4,LKK000001),
+(5,5,'2025-11-06','Új',9,EF000001),
+(6,6,'2025-11-07','Teljesítve',12,GH0000001),
+(7,7,'2025-11-08','Új',13,KO00001),
+(8,8,'2025-11-09','Teljesítve',16,LLWQ00001),
+(9,11,'2025-11-10','Új',20,AB0000004),
+(10,12,'2025-11-11','Teljesítve',25,CD000001);
 
 -- ----------------------------
 -- INSERT DATA: RendelesTetel
