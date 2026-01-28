@@ -21,7 +21,8 @@ CREATE TABLE Ceg (
     cim VARCHAR(255) NOT NULL,
     email VARCHAR(100),
     telefon VARCHAR(15),
-    elofiz BOOLEAN
+    elofiz BOOLEAN,
+    szamlaszam VARCHAR(15)
 );
 
 CREATE TABLE Felhasznalo (
@@ -77,7 +78,8 @@ CREATE TABLE Rendeles (
     INDEX (partnerseg),
     INDEX (sz_cim),
     FOREIGN KEY (partnerseg) REFERENCES Partnerseg(id),
-    FOREIGN KEY (sz_cim) REFERENCES Felhasznalo(id)
+    FOREIGN KEY (sz_cim) REFERENCES Felhasznalo(id),
+    rendeles_szam VARCHAR(15)
 );
 
 CREATE TABLE RendelesTetel (
@@ -254,16 +256,16 @@ INSERT INTO Partnerseg (id, elado, vevo, fizetesi_ido, fizetesi_forma) VALUES
 -- INSERT DATA: Rendeles
 -- ----------------------------
 INSERT INTO Rendeles (id, partnerseg, datum, status, sz_cim, rendeles_szam) VALUES
-(1,1,'2025-11-01','Új',1,AB0000001),
-(2,1,'2025-11-05','Teljesítve',2,,AB0000002),
-(3,2,'2025-11-03','Új',3,,AB0000003),
-(4,3,'2025-11-04','Teljesítve',4,LKK000001),
-(5,5,'2025-11-06','Új',9,EF000001),
-(6,6,'2025-11-07','Teljesítve',12,GH0000001),
-(7,7,'2025-11-08','Új',13,KO00001),
-(8,8,'2025-11-09','Teljesítve',16,LLWQ00001),
-(9,11,'2025-11-10','Új',20,AB0000004),
-(10,12,'2025-11-11','Teljesítve',25,CD000001);
+(1,1,'2025-11-01','Új',1,'AB0000001'),
+(2,1,'2025-11-05','Teljesítve',2,'AB0000002'),
+(3,2,'2025-11-03','Új',3,'AB0000003'),
+(4,3,'2025-11-04','Teljesítve',4,'LKK000001'),
+(5,5,'2025-11-06','Új',9,'EF000001'),
+(6,6,'2025-11-07','Teljesítve',12,'GH0000001'),
+(7,7,'2025-11-08','Új',13,'KO00001'),
+(8,8,'2025-11-09','Teljesítve',16,'LLWQ00001'),
+(9,11,'2025-11-10','Új',20,'AB0000004'),
+(10,12,'2025-11-11','Teljesítve',25,'CD000001');
 
 -- ----------------------------
 -- INSERT DATA: RendelesTetel
