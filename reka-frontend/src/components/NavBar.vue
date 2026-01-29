@@ -172,7 +172,7 @@ onUnmounted(() => {
     <router-link to="/raktar" @click="closeSidebar" class="sidebar-item">Raktárkezelés</router-link>
     <router-link to="/partnersegek" @click="closeSidebar" class="sidebar-item">Partnerségek</router-link>
     <router-link to="/rendelesek/beerkezett" @click="closeSidebar" class="sidebar-item">Beérkezett rendelések</router-link>
-    <router-link to="/rendelesek/elkuldott" @click="closeSidebar" class="sidebar-item">Elküldött rendelések</router-link>
+    <router-link to="/rendelesek/leadott" @click="closeSidebar" class="sidebar-item">Leadott rendelések</router-link>
     <router-link to="/ceginfo" @click="closeSidebar" class="sidebar-item">Cégem</router-link>
     <router-link to="/kosar" @click="closeSidebar" class="sidebar-item">Kosár</router-link>
     <router-link to="/" @click="closeSidebar" class="sidebar-item">Beállítások</router-link>

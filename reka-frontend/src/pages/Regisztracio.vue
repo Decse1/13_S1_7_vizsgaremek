@@ -12,6 +12,7 @@ const formData = ref({
   adoszamEuropai: '',
   cegTelszam: '',
   cegEmail: '',
+  szamlaszam: '',
   felhasznalonev: '',
   jelszo: '',
   telephelyCime: '',
@@ -151,7 +152,8 @@ const handleSubmit = async () => {
       email: formData.value.cegEmail,
       telefon: formData.value.cegTelszam,
       elofiz: false, // Default to false for new registrations
-      szamlaszam: "-" // Default to new registrations
+      szamla_minta: "-", // Default value for new registrations
+      szamlaszam: formData.value.szamlaszam
     };
 
     // Make API call to backend using axios
@@ -190,6 +192,7 @@ const handleSubmit = async () => {
           adoszamEuropai: '',
           cegTelszam: '',
           cegEmail: '',
+          szamlaszam: '',
           felhasznalonev: '',
           jelszo: '',
           telephelyCime: '',
@@ -339,6 +342,19 @@ const handleSubmit = async () => {
             v-model="formData.cegEmail"
             required
             maxlength="100"
+          />
+        </div>
+
+        <div class="mb-3">
+          <label for="szamlaszam" class="form-label">Számlaszám<sup class="red">*</sup></label>
+          <input 
+            type="text" 
+            class="form-control custom-input" 
+            id="szamlaszam" 
+            v-model="formData.szamlaszam"
+            required
+            maxlength="26"
+            placeholder="pl. 11700002-20000001-00000001"
           />
         </div>
       </section>

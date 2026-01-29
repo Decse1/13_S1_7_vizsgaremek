@@ -33,6 +33,20 @@ const formatDate = (dateString) => {
   return date.toLocaleDateString('hu-HU');
 };
 
+// Get status badge class
+const getStatusClass = (status) => {
+  switch (status) {
+    case 'Új':
+      return 'badge bg-primary';
+    case 'Teljesítve':
+      return 'badge bg-success';
+    case 'Törölt':
+      return 'badge bg-danger';
+    default:
+      return 'badge bg-secondary';
+  }
+};
+
 // Fetch orders
 const fetchOrders = async () => {
   if (!companyId.value) {
@@ -44,7 +58,7 @@ const fetchOrders = async () => {
   error.value = null;
 
   try {
-    const response = await axios.post('/Beerkezett_rendeles', {
+    const response = await axios.post('/Leadott_rendeles', {
       cegId: companyId.value
     });
 
@@ -72,6 +86,13 @@ const closeDetailsModal = () => {
   selectedOrder.value = null;
 };
 
+// Calculate total for an order
+const calculateOrderTotal = (termekek) => {
+  // Note: The API doesn't return prices in this endpoint
+  // This is a placeholder - you may need to modify the backend to include prices
+  return 'N/A';
+};
+
 // On mounted
 onMounted(() => {
   fetchOrders();
@@ -81,7 +102,7 @@ onMounted(() => {
 <template>
   <div class="content">
     <div class="d-flex align-items-center justify-content-between flex-wrap mb-3">
-      <h2 class="mb-0">Beérkezett rendelések</h2>
+      <h2 class="mb-0">Leadott rendelések</h2>
       <button class="btn btn-teal text-white" @click="fetchOrders" :disabled="loading">
         <i class="bi bi-arrow-clockwise me-1"></i>
         Frissítés
@@ -99,7 +120,7 @@ onMounted(() => {
     </div>
 
     <div v-else-if="rendelesek.length === 0" class="alert alert-info">
-      Még nem érkezett be rendelés.
+      Még nem adtál le rendelést.
     </div>
 
     <div v-else>
@@ -107,16 +128,17 @@ onMounted(() => {
         <div class="card">
           <div class="card-header bg-light">
             <h5 class="mb-0">
-              <strong>Vevő:</strong> {{ rendeles.vevo.vevo_neve }}
+              <strong>Eladó:</strong> {{ rendeles.elado.elado_neve }}
             </h5>
           </div>
           <div class="card-body p-0">
             <table class="table custom-table mb-0">
               <thead>
                 <tr>
-                  <th style="width: 50%;">Termék neve</th>
-                  <th style="width: 20%;">Mennyiség</th>
-                  <th style="width: 20%;">Dátum</th>
+                  <th style="width: 40%;">Termék neve</th>
+                  <th style="width: 15%;">Mennyiség</th>
+                  <th style="width: 15%;">Dátum</th>
+                  <th style="width: 20%;">Státusz</th>
                   <th style="width: 10%;"></th>
                 </tr>
               </thead>
@@ -126,9 +148,14 @@ onMounted(() => {
                   <td>{{ termek.rendelt_mennyiseg }}</td>
                   <td>{{ formatDate(termek.datum) }}</td>
                   <td>
+                    <span :class="getStatusClass(termek.status)">
+                      {{ termek.status }}
+                    </span>
+                  </td>
+                  <td>
                     <button 
                       class="btn btn-sm btn-outline-primary"
-                      @click="openDetailsModal({ vevo: rendeles.vevo, termek })"
+                      @click="openDetailsModal({ elado: rendeles.elado, termek })"
                       title="Részletek"
                     >
                       <i class="bi bi-eye"></i>
@@ -159,8 +186,8 @@ onMounted(() => {
             </div>
             <div class="modal-body" v-if="selectedOrder">
               <div class="mb-3">
-                <label class="form-label fw-bold">Vevő</label>
-                <p class="mb-0">{{ selectedOrder.vevo.vevo_neve }}</p>
+                <label class="form-label fw-bold">Eladó</label>
+                <p class="mb-0">{{ selectedOrder.elado.elado_neve }}</p>
               </div>
               <div class="mb-3">
                 <label class="form-label fw-bold">Termék</label>
@@ -173,6 +200,14 @@ onMounted(() => {
               <div class="mb-3">
                 <label class="form-label fw-bold">Rendelés dátuma</label>
                 <p class="mb-0">{{ formatDate(selectedOrder.termek.datum) }}</p>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-bold">Státusz</label>
+                <p class="mb-0">
+                  <span :class="getStatusClass(selectedOrder.termek.status)">
+                    {{ selectedOrder.termek.status }}
+                  </span>
+                </p>
               </div>
             </div>
             <div class="modal-footer">
@@ -265,6 +300,11 @@ onMounted(() => {
   .btn-teal:disabled {
     background-color: #6c757d !important;
     border-color: #6c757d !important;
+  }
+
+  .badge {
+    padding: 0.35em 0.65em;
+    font-size: 0.875rem;
   }
 
   .modal-backdrop-custom {

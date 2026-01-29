@@ -5,7 +5,7 @@ import CegInfo from "./pages/CegInfo.vue";
 import UserInfo from './pages/UserInfo.vue';
 import Partnersegek from './pages/Partnersegek.vue';
 import RendelesBeerk from './pages/RendelesBeerk.vue';
-import RendelesKuld from './pages/RendelesKuld.vue';
+import RendelesLead from './pages/RendelesLead.vue';
 import Bejelentkezes from './pages/Bejelentkezes.vue';
 import Regisztracio from './pages/Regisztracio.vue';
 import TermekOldal from './pages/TermekOldal.vue';
@@ -54,9 +54,9 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
-    path: "/rendelesek/elkuldott",
-    name: "Elküldött rendelések",
-    component: RendelesKuld,
+    path: "/rendelesek/leadott",
+    name: "Leadott rendelések",
+    component: RendelesLead,
     meta: { requiresAuth: true }
   },
   {

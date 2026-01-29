@@ -78,15 +78,55 @@ const handleClearCart = () => {
   }
 };
 
-// Place order (placeholder)
-const placeOrder = () => {
+// Place order
+const placeOrder = async () => {
   if (cartItems.value.length === 0) {
     alert('A kosár üres!');
     return;
   }
-  
-  // TODO: Implement order placement logic
-  alert('Rendelés leadása még nem implementált!');
+
+  if (!cartStore.companyId) {
+    alert('Hiba: Hiányzó cég információ!');
+    return;
+  }
+
+  if (!authStore.user || !authStore.user.id) {
+    alert('Hiba: Hiányzó felhasználó információ!');
+    return;
+  }
+
+  try {
+    // Transform cart items to the expected format
+    const termekek = cartItems.value.map(item => ({
+      termekId: item.id,
+      mennyiseg: item.quantity
+    }));
+
+    // Prepare order data
+    const orderData = {
+      partnerseg: cartStore.companyId, // Partnership/Company ID
+      sz_cim: authStore.user.id, // Billing address (User ID)
+      termekek: termekek
+    };
+
+    // Send order to backend
+    const response = await axios.post('/Rendeles_ad', orderData);
+
+    if (response.data.ok) {
+      alert(`Rendelés sikeresen leadva! Rendelés azonosító: ${response.data.rendelesId}`);
+      clearCart();
+      router.push('/rendeles-leadott'); // Redirect to orders page
+    } else {
+      alert(`Hiba a rendelés leadásakor: ${response.data.uzenet || 'Ismeretlen hiba'}`);
+    }
+  } catch (error) {
+    console.error('Error placing order:', error);
+    if (error.response && error.response.data && error.response.data.uzenet) {
+      alert(`Hiba: ${error.response.data.uzenet}`);
+    } else {
+      alert('Hiba történt a rendelés leadása során. Kérjük, próbálja újra!');
+    }
+  }
 };
 
 // Fetch categories from backend

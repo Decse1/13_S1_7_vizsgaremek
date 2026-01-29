@@ -24,7 +24,7 @@ const closeError = () => {
 
 const showAddModal = ref(false)
 const formError = ref('')
-const szamlaszam = ref('')
+const szamla_minta = ref('')
 const isLoadingCegadat = ref(false)
 
 // Form data for editing company info
@@ -34,7 +34,8 @@ const editForm = ref({
   euAdoszam: '',
   cim: '',
   email: '',
-  telefon: ''
+  telefon: '',
+  szamlaszam: ''
 })
 
 const openAddModal = () => {
@@ -45,7 +46,8 @@ const openAddModal = () => {
     euAdoszam: authStore.ceg.euAdoszam || '',
     cim: authStore.ceg.cim,
     email: authStore.ceg.email,
-    telefon: authStore.ceg.telefon
+    telefon: authStore.ceg.telefon,
+    szamlaszam: authStore.ceg.szamlaszam
   }
   formError.value = ''
   showAddModal.value = true
@@ -126,7 +128,8 @@ const saveCompanyData = async () => {
       cim: editForm.value.cim,
       email: editForm.value.email,
       telefon: editForm.value.telefon,
-      elofiz: authStore.ceg.elofiz
+      elofiz: authStore.ceg.elofiz,
+      szamlaszam: editForm.value.szamlaszam
     }
 
     const response = await axios.post('/Ceg_update', updatedCegData)
@@ -148,9 +151,9 @@ const saveCompanyData = async () => {
 }
 
 const activateReka = async () => {
-  // Validate szamlaszam before proceeding
-  if (!szamlaszam.value || szamlaszam.value.trim() === '') {
-    errorMessage.value = 'A számlaszám megadása kötelező az előfizetés aktiválásához!';
+  // Validate szamla_minta before proceeding
+  if (!szamla_minta.value || szamla_minta.value.trim() === '') {
+    errorMessage.value = 'A számla minta megadása kötelező az előfizetés aktiválásához!';
     showError.value = true;
     return;
   }
@@ -168,18 +171,19 @@ const activateReka = async () => {
       email: authStore.ceg.email,
       telefon: authStore.ceg.telefon,
       elofiz: 1, // Send boolean true instead of 1
-      szamlaszam: szamlaszam.value
+      szamla_minta: szamla_minta.value,
+      szamlaszam: authStore.ceg.szamlaszam
     };
 
     const response = await axios.post('/Ceg_update', updatedCegData);
 
     if (response.data.ok) {
       // Update the local auth store
-      const updatedCeg = { ...authStore.ceg, elofiz: 1, szamlaszam: szamlaszam.value };
+      const updatedCeg = { ...authStore.ceg, elofiz: 1, szamla_minta: szamla_minta.value };
       setAuthState(authStore.user, updatedCeg);
       
       // Clear the input field
-      szamlaszam.value = '';
+      szamla_minta.value = '';
       
       // Refresh the page to show updated data
       router.go(0);
@@ -210,14 +214,15 @@ const deactivateReka = async () => {
       email: authStore.ceg.email,
       telefon: authStore.ceg.telefon,
       elofiz: 0, // Send boolean false instead of 0
-      szamlaszam: "-"
+      szamla_minta: "-",
+      szamlaszam: authStore.ceg.szamlaszam
     };
 
     const response = await axios.post('/Ceg_update', updatedCegData);
 
     if (response.data.ok) {
       // Update the local auth store
-      const updatedCeg = { ...authStore.ceg, elofiz: 0, szamlaszam: "-" };
+      const updatedCeg = { ...authStore.ceg, elofiz: 0, szamla_minta: "-" };
       setAuthState(authStore.user, updatedCeg);
       
       // Refresh the page to show updated data
@@ -259,6 +264,7 @@ const deactivateReka = async () => {
     <p>Székhely: {{ authStore.ceg.cim }}</p>
     <p>Email: {{ authStore.ceg.email }}</p>
     <p>Telefonszám: {{ authStore.ceg.telefon }}</p>
+    <p>Számlaszám: {{ authStore.ceg.szamlaszam }}</p>
     <h2>Előfizetés állapota</h2>
     <p>Előfizet-e a RÉKA vállalatirányítási rendszerére: {{ elofizText }}</p>
     
@@ -272,14 +278,14 @@ const deactivateReka = async () => {
       <button type="button" class="btn-close" aria-label="Bezárás" @click="closeError"></button>
     </div>
     
-    <!-- Számlaszám input for subscription activation -->
+    <!-- Számla minta input for subscription activation -->
     <div v-if="authStore.ceg.elofiz == 0 && authStore.user.kategoria == 1" class="mb-3">
-      <label class="form-label fw-bold">Számlaszám (előfizetés aktiválásához szükséges)</label>
+      <label class="form-label fw-bold">Számla minta (előfizetés aktiválásához szükséges)</label>
       <input
-        v-model="szamlaszam"
+        v-model="szamla_minta"
         type="text"
         class="form-control custom-input"
-        placeholder="Adja meg a számlaszámot"
+        placeholder="Adja meg a számla mintát"
         required
         maxlength="15"
       />
@@ -306,7 +312,7 @@ const deactivateReka = async () => {
         </span>
     </button>
     <br v-if="authStore.ceg.elofiz == 1 && authStore.user.kategoria == 1">
-    <p v-if="authStore.ceg.elofiz == 1 && authStore.user.kategoria == 1">Számlaszám: {{ authStore.ceg.szamlaszam }}</p>
+    <p v-if="authStore.ceg.elofiz == 1 && authStore.user.kategoria == 1">Számla minta: {{ authStore.ceg.szamla_minta }}</p>
 
     <transition name="modal-fade">
       <div
@@ -382,6 +388,17 @@ const deactivateReka = async () => {
                     class="form-control custom-input"
                     required
                     maxlength="15"
+                  />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Számlaszám</label>
+                  <input
+                    v-model="editForm.szamlaszam"
+                    type="text"
+                    class="form-control custom-input"
+                    required
+                    maxlength="26"
+                    placeholder="pl. 11700002-20000001-00000001"
                   />
                 </div>
                 <!-- Error message display -->
