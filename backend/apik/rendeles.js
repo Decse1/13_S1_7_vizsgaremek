@@ -14,13 +14,13 @@ module.exports = (app, authenticateToken) => {
             }
 
             const datum = new Date().toISOString().split('T')[0];
-            const statusz = "Új";
+            const status = "Új";
 
             // Rendelés fejléc beszúrása
             // JAVÍTÁS: insertId kinyerése
             const [result] = await db.query(
-                `INSERT INTO Rendeles (partnerseg, datum, statusz, szamlazasi_cim) VALUES (?, ?, ?, ?)`,
-                [partnerseg, datum, statusz, sz_cim]
+                `INSERT INTO Rendeles (partnerseg, datum, status, sza_cim) VALUES (?, ?, ?, ?)`,
+                [partnerseg, datum, status, sz_cim]
             );
             
             const ujRendelesId = result.insertId;
@@ -58,7 +58,7 @@ module.exports = (app, authenticateToken) => {
                  FROM Rendeles R 
                  JOIN Partnerseg P ON R.partnerseg = P.id 
                  JOIN Ceg C ON P.vevo = C.id 
-                 WHERE P.elado = ? AND R.statusz = 'Új'`, // Csak az új rendelések érdekelnek?
+                 WHERE P.elado = ? AND R.status = 'Új'`, // Csak az új rendelések érdekelnek?
                 [cegId]
             );
 
@@ -72,7 +72,7 @@ module.exports = (app, authenticateToken) => {
                      JOIN Partnerseg P ON R.partnerseg = P.id 
                      JOIN Rendeles_termek RT ON R.id = RT.rendeles_id 
                      JOIN Termek T ON RT.termek_id = T.id 
-                     WHERE R.statusz = 'Új' AND P.elado = ? AND P.vevo = ?`,
+                     WHERE R.status = 'Új' AND P.elado = ? AND P.vevo = ?`,
                     [cegId, vevo.vevo_id]
                 );
 
@@ -112,7 +112,7 @@ module.exports = (app, authenticateToken) => {
             // 2. lépés: Tételek lekérése
             for (const elado of eladok) {
                 const [rendeletTermek] = await db.query(
-                    `SELECT T.nev AS termek_neve, RT.mennyiseg AS rendelt_mennyiseg, R.statusz, R.datum
+                    `SELECT T.nev AS termek_neve, RT.mennyiseg AS rendelt_mennyiseg, R.status, R.datum
                      FROM Rendeles R 
                      JOIN Partnerseg P ON R.partnerseg = P.id 
                      JOIN Rendeles_termek RT ON R.id = RT.rendeles_id 
@@ -139,7 +139,7 @@ module.exports = (app, authenticateToken) => {
         try {
             const rendeles = req.body;
             await db.query(
-                `UPDATE Rendeles SET statusz = "Teljesítve" WHERE id = ?`,
+                `UPDATE Rendeles SET status = "Teljesítve" WHERE id = ?`,
                 [rendeles.id]
             );
             for (const t of rendeles.termekek) {

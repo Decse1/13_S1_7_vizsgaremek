@@ -1,5 +1,6 @@
 const db = require('../connect');
 const bcrypt = require("bcrypt");
+const szamla = require('./szamla');
 
 // --- ADATBÁZIS SEGÉDFÜGGVÉNYEK ---
 
@@ -15,13 +16,13 @@ async function ceg_by_adoszam(adoszam) {
     return rows[0]; // Returns the row or undefined
 }
 
-async function ceg_ad(ceg) {
+async function ceg_ad(ceg, fizet) {
     // FONTOS JAVÍTÁS: SQL Injection ellen "?" jeleket használunk!
     // A régi megoldás ('${ceg.nev}') biztonsági rés volt.
     const [rows] = await db.query(
         `INSERT INTO Ceg (nev, adoszam, euAdoszam, cim, email, telefon, elofiz, szamla_minta, szamlaszam) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, 
-        [ceg.nev, ceg.adoszam, ceg.euAdoszam, ceg.cim, ceg.email, ceg.telefon, fizet, ceg.szamlaszam]
+        [ceg.nev, ceg.adoszam, ceg.euAdoszam, ceg.cim, ceg.email, ceg.telefon, fizet, ceg.szamla_minta ,ceg.szamlaszam]
     );
     return rows;
 }
