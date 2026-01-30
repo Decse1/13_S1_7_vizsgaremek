@@ -34,13 +34,13 @@ async function startServer() {
         require("./apik/cegadat_api_hu.js")(app); // Ez valószínűleg publikus marad
         require("./apik/rendeles.js")(app, authenticateToken);
         require("./apik/regisztral.js")(app);
-        require("./apik/szamla.js")(app);
+        require("./apik/szamla.js")(app, authenticateToken);
 
         // Szerver indítása
         app.listen(3000, () => {
             console.log(`Szerver fut: ${url}\nAPI-k:`
                 +`\n\t${url}/api/Raktar`
-                +`\n\t${url}/api/Bejelent`
+                +`-\n\t${url}/api/Bejelent`
                 +`\n\t${url}/api/Felhasznalo_ad`
                 +`\n\t${url}/api/Felhasznalo_update`
                 +`\n\t${url}/api/Felhasznalo_delete`
@@ -55,7 +55,7 @@ async function startServer() {
                 +`\n\t${url}/api/Kategoriak_szurt`
                 +`\n\t${url}/api/Szurt_termek`
                 +`\n\t${url}/api/Osszes_termek`
-                +`\n\t${url}/api/Ceg_osszes`
+                +`-\n\t${url}/api/Ceg_osszes`
                 +`\n\t${url}/api/Rendeles_ad`
                 +`\n\t${url}/api/Beerkezett_rendeles`
                 +`\n\t${url}/api/Leadott_rendeles`
