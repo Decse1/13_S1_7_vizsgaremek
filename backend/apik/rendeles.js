@@ -7,28 +7,70 @@ module.exports = (app, authenticateToken) => {
     app.post('/api/Rendeles_ad', authenticateToken, async (req, res) => {
         try {
             const { partnerseg, sz_cim, termekek } = req.body;
-            
-            // Validáció
+
+            // 1. Validáció
             if (!partnerseg || !sz_cim || !termekek || !Array.isArray(termekek) || termekek.length === 0) {
                 return res.status(422).json({ ok: false, uzenet: "Hiányzó adatok vagy üres kosár!" });
             }
 
+            // --- RENDELÉSSZÁM GENERÁLÁS START ---
+            
+            // 2. Lekérjük az eladóhoz tartozó számla mintát és az utolsó kiadott rendelésszámot
+            // A Partnerseg táblán keresztül eljutunk az Eladóig (Ceg), onnan a mintáig.
+            const [eladoAdatok] = await db.query(`
+                SELECT c.szamla_minta, 
+                    (SELECT r.rendeles_szam 
+                        FROM Rendeles r 
+                        WHERE r.partnerseg IN (SELECT id FROM Partnerseg WHERE elado = c.id)
+                        ORDER BY r.id DESC LIMIT 1) as utolso_rendszam
+                FROM Partnerseg p
+                JOIN Ceg c ON p.elado = c.id
+                WHERE p.id = ?`, 
+                [partnerseg]
+            );
+
+            if (!eladoAdatok || eladoAdatok.length === 0) {
+                return res.status(404).json({ ok: false, uzenet: "A megadott partnerség nem létezik!" });
+            }
+
+            const { szamla_minta, utolso_rendszam } = eladoAdatok[0];
+            let kovetkezoRendszam;
+
+            // Meghatározzuk az alapot: ha volt már rendelés, azt növeljük, ha nem, a mintát vesszük alapul
+            const alapSzoveg = utolso_rendszam || szamla_minta;
+
+            if (!alapSzoveg || alapSzoveg === '-') {
+                kovetkezoRendszam = "ORD-" + Date.now(); // Fallback, ha nincs minta megadva
+            } else {
+                // Dinamikus szétválasztás az első számjegynél (ahogy korábban megbeszéltük)
+                const elsoSzamIndex = alapSzoveg.search(/\d/);
+                
+                if (elsoSzamIndex === -1) {
+                    kovetkezoRendszam = alapSzoveg + "1";
+                } else {
+                    const prefix = alapSzoveg.slice(0, elsoSzamIndex);
+                    const szamResz = alapSzoveg.slice(elsoSzamIndex);
+                    const ujSzam = parseInt(szamResz, 10) + 1;
+                    kovetkezoRendszam = prefix + ujSzam.toString().padStart(szamResz.length, '0');
+                }
+            }
+            // --- RENDELÉSSZÁM GENERÁLÁS END ---
+
             const datum = new Date().toISOString().split('T')[0];
             const status = "Új";
 
-            // Rendelés fejléc beszúrása
-            // JAVÍTÁS: insertId kinyerése
+            // 3. Rendelés fejléc beszúrása az új rendelésszámmal
             const [result] = await db.query(
-                `INSERT INTO Rendeles (partnerseg, datum, status, sza_cim) VALUES (?, ?, ?, ?)`,
-                [partnerseg, datum, status, sz_cim]
+                `INSERT INTO Rendeles (partnerseg, datum, status, sz_cim, rendeles_szam) VALUES (?, ?, ?, ?, ?)`,
+                [partnerseg, datum, status, sz_cim, kovetkezoRendszam]
             );
             
             const ujRendelesId = result.insertId;
 
-            // Tételek beszúrása ciklusban
+            // 4. Tételek beszúrása ciklusban
             for (const t of termekek) {
                 await db.query(
-                    `INSERT INTO Rendeles_termek (rendeles_id, termek_id, mennyiseg) VALUES (?, ?, ?)`,
+                    `INSERT INTO RendelesTetel (rendeles_id, termek_id, mennyiseg) VALUES (?, ?, ?)`,
                     [ujRendelesId, t.termekId, t.mennyiseg]
                 );
             }
@@ -36,12 +78,13 @@ module.exports = (app, authenticateToken) => {
             return res.status(200).json({ 
                 ok: true, 
                 uzenet: "Rendelés sikeresen feldolgozva!",
-                rendelesId: ujRendelesId
+                rendelesId: ujRendelesId,
+                rendelesSzam: kovetkezoRendszam
             });
 
         } catch (err) {
             console.error(err);
-            res.status(500).json({ error: "Adatbázis hiba!" });
+            res.status(500).json({ error: "Adatbázis hiba!", reszletek: err.message });
         }
     });
 
