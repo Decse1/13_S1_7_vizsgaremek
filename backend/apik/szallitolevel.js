@@ -1,28 +1,33 @@
 const PDFDocument = require('pdfkit');
+
 const db = require('../connect');
+
 const path = require('path');
+
 const fs = require('fs');
 
 const formatMoney = (num) => {
+
     return Number(num).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " Ft";
+
 };
 
-module.exports = (app, /*authenticateToken*/) => {
-    app.post('/api/Szamla_create', /*authenticateToken,*/ async (req, res) => {
+
+
+module.exports = (app/*, authenticateToken*/) => {
+    app.post('/api/Szallitolev_create',/* authenticateToken,*/ async (req, res) => {
         try {
             const rendelesId = req.body.id;
             if (!rendelesId) return res.status(400).send('Hiba: Hiányzó ID');
 
             // --- 1. ADATBÁZIS LEKÉRDEZÉS ---
-            // Kibővítve a szamla_kesz és szamla_kesz_datum mezőkkel
             const sql = `
-                SELECT 
-                    r.rendeles_szam, r.datum as rendeles_datum, 
-                    r.szamla_kesz, r.szamla_kesz_datum,
+                SELECT
+                    r.rendeles_szam, r.datum as kiallitas_datum,
                     p.fizetesi_forma, p.fizetesi_ido,
-                    elado.nev as elado_nev, elado.adoszam as elado_adoszam, 
+                    elado.nev as elado_nev, elado.adoszam as elado_adoszam,
                     elado.cim as elado_cim, elado.szamlaszam as elado_bankszamla,
-                    vevo.nev as vevo_nev, vevo.adoszam as vevo_adoszam, 
+                    vevo.nev as vevo_nev, vevo.adoszam as vevo_adoszam,
                     vevo.cim as vevo_cim, vevo.szamlaszam as vevo_bankszamla,
                     t.nev as termek_nev, t.kiszereles, t.afa_kulcs,
                     rt.mennyiseg, t.ar as egyseg_ar
@@ -37,30 +42,9 @@ module.exports = (app, /*authenticateToken*/) => {
 
             const [rows] = await db.query(sql, [rendelesId]);
             if (rows.length === 0) return res.status(404).send('Nincs ilyen rendelés.');
+            const headerData = rows[0];
+            const kiallitasDate = new Date(headerData.kiallitas_datum);
 
-            let headerData = rows[0];
-            let kiallitasDatum;
-
-            // --- SZÁMLA ÁLLAPOT ELLENŐRZÉSE ÉS FRISSÍTÉSE ---
-            if (!headerData.szamla_kesz) {
-                // Ha még nincs kész, a mai dátum lesz a kiállítás napja
-                kiallitasDatum = new Date();
-                const formattedDate = kiallitasDatum.toISOString().split('T')[0];
-
-                await db.query(
-                    'UPDATE Rendeles SET szamla_kesz = true, szamla_kesz_datum = ? WHERE id = ?',
-                    [formattedDate, rendelesId]
-                );
-                // Frissítjük a lokális headerData-t is a megjelenítéshez
-                headerData.szamla_kesz_datum = formattedDate;
-            } else {
-                // Ha már kész volt, az elmentett dátumot használjuk
-                kiallitasDatum = new Date(headerData.szamla_kesz_datum);
-            }
-
-            const kiallitasDateStr = kiallitasDatum.toISOString().split('T')[0];
-            const fizHatDate = new Date(kiallitasDatum);
-            fizHatDate.setDate(fizHatDate.getDate() + headerData.fizetesi_ido);
 
             // --- 2. ADAT ELŐKÉSZÍTÉS ---
             let vegosszegNetto = 0;
@@ -72,30 +56,28 @@ module.exports = (app, /*authenticateToken*/) => {
                 const nettoErtek = row.egyseg_ar * row.mennyiseg;
                 const afaErtek = Math.round(nettoErtek * (row.afa_kulcs / 100));
                 const bruttoErtek = nettoErtek + afaErtek;
-                
+            
                 vegosszegNetto += nettoErtek;
                 vegosszegAfa += afaErtek;
                 vegosszegBrutto += bruttoErtek;
 
                 if (!afaBontas[row.afa_kulcs]) afaBontas[row.afa_kulcs] = 0;
                 afaBontas[row.afa_kulcs] += afaErtek;
-
                 return { ...row, netto: nettoErtek, afa: afaErtek, brutto: bruttoErtek };
             });
 
             // --- 3. PDF CONFIG ---
-            const doc = new PDFDocument({ 
-                margin: { top: 280, bottom: 60, left: 40, right: 40 }, 
+            const doc = new PDFDocument({
+                margin: { top: 280, bottom: 60, left: 40, right: 40 },
                 size: 'A4',
-                bufferPages: true 
+                bufferPages: true // FONTOS: Ez kell a stabil működéshez
             });
-            
-            const filename = `Szamla_${headerData.rendeles_szam}.pdf`;
+        
+            const filename = `Szallitolevel_${headerData.rendeles_szam}.pdf`;
 
-            // Fontok betöltése (hibatűréssel)
+            // Fontok
             const fontPathNormal = path.join(__dirname, '../fonts/centurygothic.ttf');
             const fontPathBold = path.join(__dirname, '../fonts/centurygothic_bold.ttf');
-            
             try {
                 if (fs.existsSync(fontPathNormal) && fs.existsSync(fontPathBold)) {
                     doc.registerFont('CustomFont', fontPathNormal);
@@ -114,46 +96,40 @@ module.exports = (app, /*authenticateToken*/) => {
 
             // --- RAJZOLÓ FÜGGVÉNYEK ---
             const drawHeader = () => {
-                const startY = 30; 
-                doc.fontSize(24).font('CustomFontBold').text(`SZÁMLA`, 40, startY, { align: 'left' });
+                const startY = 30;
+                doc.fontSize(24).font('CustomFontBold').text(`SZÁLLÍTÓ LEVÉL`, 40, startY, { align: 'left' });
                 doc.fontSize(12).font('CustomFont').text(`Sorszám: ${headerData.rendeles_szam}`, { align: 'left' });
                 
                 let currentY = startY + 45;
                 doc.lineWidth(1).moveTo(40, currentY).lineTo(550, currentY).stroke();
+                
                 currentY += 10;
-
-                // Eladó
                 doc.fontSize(10).font('CustomFontBold').text('ELADÓ ADATAI:', 40, currentY);
                 doc.font('CustomFont').text(headerData.elado_nev);
                 doc.text(headerData.elado_cim);
                 doc.text(`Adószám: ${headerData.elado_adoszam}`);
                 doc.text(`Bank: ${headerData.elado_bankszamla}`);
-
-                // Vevő
                 doc.font('CustomFontBold').text('VEVŐ ADATAI:', 300, currentY);
                 doc.font('CustomFont').text(headerData.vevo_nev);
                 doc.text(headerData.vevo_cim);
                 doc.text(`Adószám: ${headerData.vevo_adoszam || '-'}`);
                 doc.text(`Bank: ${headerData.vevo_bankszamla || '-'}`);
-
                 currentY += 70;
                 doc.rect(40, currentY, 510, 35).stroke();
                 const lY = currentY + 5;
                 const vY = currentY + 20;
-
+                
                 doc.fontSize(9).font('CustomFontBold');
                 doc.text('Kiállítás', 50, lY);
                 doc.text('Teljesítés', 160, lY);
-                doc.text('Fiz. hat.', 270, lY);
-                doc.text('Fiz. mód', 400, lY);
-
+                doc.text('Fiz. mód', 270, lY);
                 doc.font('CustomFont');
-                doc.text(kiallitasDateStr, 50, vY);
-                doc.text(headerData.rendeles_datum.toISOString().split('T')[0], 160, vY); // Teljesítés = Kiállítás (üzleti logika szerint)
-                doc.text(fizHatDate.toISOString().split('T')[0], 270, vY);
-                doc.text(headerData.fizetesi_forma, 400, vY);
 
-                const tableHeadY = 260; 
+                doc.text(kiallitasDate.toISOString().split('T')[0], 50, vY);
+                doc.text(kiallitasDate.toISOString().split('T')[0], 160, vY);
+                doc.text(headerData.fizetesi_forma, 270, vY);
+
+                const tableHeadY = 260;
                 const xPoz = { nev: 40, kisz: 160, menny: 200, egyseg: 240, netto: 290, afak: 350, afae: 390, brutto: 480 };
 
                 doc.fontSize(8).font('CustomFontBold');
@@ -165,42 +141,56 @@ module.exports = (app, /*authenticateToken*/) => {
                 doc.text('Áfa%', xPoz.afak, tableHeadY, { width: 30, align: 'right' });
                 doc.text('Áfa', xPoz.afae, tableHeadY, { width: 50, align: 'right' });
                 doc.text('Bruttó', xPoz.brutto, tableHeadY, { width: 70, align: 'right' });
-
                 doc.moveTo(40, tableHeadY + 12).lineTo(550, tableHeadY + 12).stroke();
             };
 
+            // --- LÁBLÉC JAVÍTVA ---
             const drawFooter = () => {
+                // JAVÍTÁS 1: Elmentjük az eredeti margót, és lenullázzuk az alját
+                // Így engedi a rendszer, hogy a lap aljára írjunk anélkül, hogy új oldalt nyitna.
                 const oldBottomMargin = doc.page.margins.bottom;
                 doc.page.margins.bottom = 0;
-                const footerHeight = 40;
-                const footerY = doc.page.height - footerHeight; 
-                
+                const footerHeight = 40; // Mennyivel az aljától kezdődjön
+                const footerY = doc.page.height - footerHeight;
                 const textPart1 = "A számla a ";
                 const textPart2 = " rendszerrel lett kiállítva";
+        
                 doc.fontSize(10).font('CustomFont');
-                
+            
                 const w1 = doc.widthOfString(textPart1);
                 const w2 = doc.widthOfString(textPart2);
-                const imgW = 96; 
-                const imgH = 28; 
+                const imgW = 96; // ~3,4 cm
+                const imgH = 28; // ~1 cm
                 const totalW = w1 + imgW + w2;
-                const startX = doc.page.width - 40 - totalW; 
-                const textYOffset = (imgH - 10) / 2 + 2; 
+            
+                const startX = doc.page.width - 40 - totalW; // Jobbra igazítás (40 a jobb margó)
 
+                // JAVÍTÁS 2: Függőleges igazítás (Vertical Alignment)
+                // A szöveget kicsit lejjebb toljuk (imgH - fontSize)/2 + korrekció, hogy a kép közepénél legyen
+                const textYOffset = (imgH - 10) / 2 + 2;
+
+                // Kirajzolás
+                // lineBreak: false -> meggátolja a sortörést/széttöredezést
                 doc.text(textPart1, startX, footerY + textYOffset, { lineBreak: false });
+            
                 if (hasLogo) {
+                    // A képet a footerY-ra rajzoljuk (ez a legfelső pontja a sornak)
                     doc.image(logoPath, startX + w1, footerY, { width: imgW, height: imgH });
                 }
+            
                 doc.text(textPart2, startX + w1 + imgW, footerY + textYOffset, { lineBreak: false });
+
+                // Margó visszaállítása (biztonság kedvéért)
                 doc.page.margins.bottom = oldBottomMargin;
             };
 
-            // --- PDF GENERÁLÁS FOLYAMATA ---
+            // --- PDF GENERÁLÁS ---
+
             res.setHeader('Content-Type', 'application/pdf');
             res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
             doc.pipe(res);
 
-            // Tételek kirajzolása
+            // 1. TARTALOM (Tételek)
             doc.font('CustomFont').fontSize(8);
             const xPoz = { nev: 40, kisz: 160, menny: 200, egyseg: 240, netto: 290, afak: 350, afae: 390, brutto: 480 };
 
@@ -214,17 +204,23 @@ module.exports = (app, /*authenticateToken*/) => {
                 doc.text(item.afa_kulcs + '%', xPoz.afak, currentY, { width: 30, align: 'right' });
                 doc.text(formatMoney(item.afa), xPoz.afae, currentY, { width: 50, align: 'right' });
                 doc.text(formatMoney(item.brutto), xPoz.brutto, currentY, { width: 70, align: 'right' });
-                
+
                 doc.moveDown();
-                doc.save().strokeColor('#cccccc').lineWidth(0.5).moveTo(40, doc.y).lineTo(550, doc.y).stroke().restore();
+                doc.save().strokeColor('#cccccc').lineWidth(0.5)
+                .moveTo(40, doc.y).lineTo(550, doc.y).stroke().restore();
                 doc.moveDown(0.5);
             });
 
-            // Összesítő rész
-            if (doc.y > 650) doc.addPage(); else doc.moveDown(2);
+            // Összesítő
+            if (doc.y > 650) {
+                doc.addPage();
+            } else {
+                doc.moveDown(2);
+            }
 
             const summaryLabelX = 300;
             const summaryValueX = 450;
+
             doc.lineWidth(2).moveTo(summaryLabelX, doc.y).lineTo(550, doc.y).stroke();
             doc.moveDown(0.5);
 
@@ -240,15 +236,16 @@ module.exports = (app, /*authenticateToken*/) => {
 
             doc.lineWidth(2).moveTo(summaryLabelX, doc.y).lineTo(550, doc.y).stroke();
             doc.moveDown(0.5);
-            doc.fontSize(12).font('CustomFontBold').text('Fizetendő Bruttó:', summaryLabelX, doc.y, { align: 'right', width: 140 });
+            doc.fontSize(12).font('CustomFontBold');
+            doc.text('Fizetendő Bruttó:', summaryLabelX, doc.y, { align: 'right', width: 140 });
             doc.text(formatMoney(vegosszegBrutto), summaryValueX, doc.y - doc.currentLineHeight(), { align: 'right', width: 100 });
 
-            // Fejléc és lábléc ráhelyezése minden oldalra
+            // --- 2. FEJLÉC ÉS LÁBLÉC RÁHÚZÁS ---
             const range = doc.bufferedPageRange();
             for (let i = range.start; i < range.start + range.count; i++) {
                 doc.switchToPage(i);
                 drawHeader();
-                drawFooter();
+                drawFooter(); // Most már nem fog új oldalt nyitni
             }
 
             doc.end();

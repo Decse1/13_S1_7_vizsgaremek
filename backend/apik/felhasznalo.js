@@ -34,12 +34,6 @@ async function felhasznalo_update(profil, hashedPassword) {
     return rows;
 }
 
-async function felhasznalo_delete(id) {
-    // JAVÍTÁS: DELETE FROM ...
-    const [rows] = await db.query(`DELETE FROM Felhasznalo WHERE id = ?`, [id]);
-    return rows;
-}
-
 async function alkalmazottak_list(cegId) {
     // JAVÍTÁS: ? paraméter használata SQL injection ellen
     const [rows] = await db.query(
@@ -136,26 +130,6 @@ module.exports = (app, authenticateToken) => {
                 ok: false,
                 uzenet: "Szerverhiba! Adatbázis hiba."
             });
-        }
-    });
-
-    // 3. Felhasználó törlése (Védett)
-    app.post('/api/Felhasznalo_delete', authenticateToken, async (req, res) => {
-        try {
-            if (!req.body.id) {
-                return res.status(400).json({ ok: false, uzenet: "Hiányzó ID!" });
-            }
-
-            await felhasznalo_delete(req.body.id);
-            
-            return res.status(200).json({ 
-                ok: true, 
-                uzenet: "Sikeres törlés" 
-            });
-
-        } catch (err) {
-            console.error(err);
-            res.status(500).json({ error: "Adatbázis hiba!" });
         }
     });
 

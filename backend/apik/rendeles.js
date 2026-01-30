@@ -98,11 +98,11 @@ module.exports = (app, authenticateToken) => {
             // 1. lépés: Kik rendeltek tőlem? 
             // Itt is beemeljük a DISTINCT vevőket, akiknek van 'Új' rendelésük nálam.
             const [rendelok] = await db.query(
-                `SELECT DISTINCT C.id AS vevo_id, C.nev AS vevo_neve 
+                `SELECT DISTINCT C.id AS vevo_id, C.nev AS vevo_neve, R.szamla_kesz 
                 FROM Rendeles R 
                 JOIN Partnerseg P ON R.partnerseg = P.id 
                 JOIN Ceg C ON P.vevo = C.id 
-                WHERE P.elado = ? AND R.status = 'Új'`, 
+                WHERE P.elado = ?`, 
                 [cegId]
             );
 
@@ -123,7 +123,7 @@ module.exports = (app, authenticateToken) => {
                     JOIN RendelesTetel RT ON R.id = RT.rendeles_id 
                     JOIN Termek T ON RT.termek_id = T.id 
                     JOIN Felhasznalo F ON R.sz_cim = F.id
-                    WHERE R.status = 'Új' AND P.elado = ? AND P.vevo = ?
+                    WHERE P.elado = ? AND P.vevo = ?
                     ORDER BY R.datum DESC`,
                     [cegId, vevo.vevo_id]
                 );
@@ -151,7 +151,7 @@ module.exports = (app, authenticateToken) => {
 
             // 1. lépés: Kiktől rendeltem?
             const [eladok] = await db.query(
-                `SELECT DISTINCT C.id AS elado_id, C.nev AS elado_neve 
+                `SELECT DISTINCT C.id AS elado_id, C.nev AS elado_neve, R.rendeles_szam AS rendeles_szam 
                  FROM Rendeles R 
                  JOIN Partnerseg P ON R.partnerseg = P.id 
                  JOIN Ceg C ON P.elado = C.id 
@@ -164,7 +164,7 @@ module.exports = (app, authenticateToken) => {
             // 2. lépés: Tételek lekérése
             for (const elado of eladok) {
                 const [rendeletTermek] = await db.query(
-                    `SELECT T.nev AS termek_neve, RT.mennyiseg AS rendelt_mennyiseg, R.status, R.datum
+                    `SELECT T.nev AS termek_neve, RT.mennyiseg AS rendelt_mennyiseg,  R.rendeles_szam, R.status, R.datum
                      FROM Rendeles R 
                      JOIN Partnerseg P ON R.partnerseg = P.id 
                      JOIN Rendelestetel RT ON R.id = RT.rendeles_id 
@@ -210,7 +210,7 @@ module.exports = (app, authenticateToken) => {
             res.status(500).json({ error: "Adatbázis hiba!" });
         }
     });
-    app.post('/api/Rendeles_torles', authenticateToken, async (req, res) => {
+    app.post('/api/Rendeles_delet', authenticateToken, async (req, res) => {
         try {
             const { rendelesId } = req.body;
 

@@ -191,24 +191,4 @@ module.exports = (app, authenticateToken) => {
             });
         }
     });
-
-    app.post('/api/Termek_torles', authenticateToken, async (req, res) => {
-        try {
-            const { termekId } = req.body;
-            const { tulajdonosId } = req.body;
-
-            // Validáció
-            if (!termekId || !tulajdonosId) {
-                return res.status(400).json({ ok: false, uzenet: "Hiányzó termék ID vagy tulajdonos ID!" });
-            }
-            await db.query(
-                `DELETE FROM Termek WHERE id = ? AND tulajdonos = ?`,
-                [termekId, tulajdonosId]
-            );
-            return res.status(200).json({ ok: true, uzenet: "Termék sikeresen törölve!" });
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({ error: "Adatbázis hiba!" });
-        }
-    });
 }

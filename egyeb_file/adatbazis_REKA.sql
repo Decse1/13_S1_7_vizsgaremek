@@ -81,7 +81,9 @@ CREATE TABLE Rendeles (
     INDEX (sz_cim),
     FOREIGN KEY (partnerseg) REFERENCES Partnerseg(id),
     FOREIGN KEY (sz_cim) REFERENCES Felhasznalo(id),
-    rendeles_szam VARCHAR(15) NOT NULL
+    rendeles_szam VARCHAR(15) NOT NULL,
+    szamla_kesz BOOLEAN,
+    szamla_kesz_datum DATE
 );
 
 CREATE TABLE RendelesTetel (
@@ -259,17 +261,17 @@ INSERT INTO Partnerseg (id, elado, vevo, fizetesi_ido, fizetesi_forma) VALUES
 -- ----------------------------
 -- INSERT DATA: Rendeles
 -- ----------------------------
-INSERT INTO Rendeles (id, partnerseg, datum, status, sz_cim, rendeles_szam) VALUES
-(1,1,'2025-11-01','Új',1,'AB0000001'),
-(2,1,'2025-11-05','Teljesítve',2,'AB0000002'),
-(3,2,'2025-11-03','Új',3,'AB0000003'),
-(4,3,'2025-11-04','Teljesítve',4,'LKK000001'),
-(5,5,'2025-11-06','Új',9,'EF000001'),
-(6,6,'2025-11-07','Teljesítve',12,'GH0000001'),
-(7,7,'2025-11-08','Új',13,'KO00001'),
-(8,8,'2025-11-09','Teljesítve',16,'LLWQ00001'),
-(9,11,'2025-11-10','Új',20,'AB0000004'),
-(10,12,'2025-11-11','Teljesítve',25,'CD000001');
+INSERT INTO Rendeles (id, partnerseg, datum, status, sz_cim, rendeles_szam, szamala_kesz, szamala_kesz_datum) VALUES
+(1,1,'2025-11-01','Új',1,'AB0000001',true,'2026-01-29'),
+(2,1,'2025-11-05','Teljesítve',2,'AB0000002',true,'2026-01-29'),
+(3,2,'2025-11-03','Új',3,'AB0000003',true,'2026-01-29'),
+(4,3,'2025-11-04','Teljesítve',4,'LKK000001',true,'2026-01-29'),
+(5,5,'2025-11-06','Új',9,'EF000001',true,'2026-01-29'),
+(6,6,'2025-11-07','Teljesítve',12,'GH0000001',true,'2026-01-29'),
+(7,7,'2025-11-08','Új',13,'KO00001',true,'2026-01-29'),
+(8,8,'2025-11-09','Teljesítve',16,'LLWQ00001',true,'2026-01-29'),
+(9,11,'2025-11-10','Új',20,'AB0000004',true,'2026-01-29'),
+(10,12,'2025-11-11','Teljesítve',25,'CD000001',true,'2026-01-29');
 
 -- ----------------------------
 -- INSERT DATA: RendelesTetel
