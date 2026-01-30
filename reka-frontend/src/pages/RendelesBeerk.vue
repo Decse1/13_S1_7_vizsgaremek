@@ -27,12 +27,10 @@ const allProductsChecked = computed(() => {
 
 // Group orders by order number and date
 const groupedOrders = computed(() => {
-  const grouped = [];
+  // Use a single Map to prevent duplicates across all buyers
+  const orderMap = new Map();
   
   rendelesek.value.forEach(rendeles => {
-    // Group items by rendeles_id (order number)
-    const orderMap = new Map();
-    
     rendeles.tételek.forEach(tetel => {
       const key = tetel.rendeles_id;
       if (!orderMap.has(key)) {
@@ -44,20 +42,35 @@ const groupedOrders = computed(() => {
           vevo_neve: rendeles.vevo.vevo_neve,
           vevo_id: rendeles.vevo.vevo_id,
           status: tetel.status,
-          termekek: []
+          termekek: [],
+          productSet: new Set() // Track unique products
         });
       }
-      orderMap.get(key).termekek.push({
-        termek_neve: tetel.termek_neve,
-        rendelt_mennyiseg: tetel.rendelt_mennyiseg
-      });
+      
+      // Create a unique key for each product to prevent duplicates
+      const productKey = `${tetel.termek_neve}-${tetel.rendelt_mennyiseg}`;
+      const order = orderMap.get(key);
+      
+      if (!order.productSet.has(productKey)) {
+        order.productSet.add(productKey);
+        order.termekek.push({
+          termek_neve: tetel.termek_neve,
+          rendelt_mennyiseg: tetel.rendelt_mennyiseg,
+          termek_id: tetel.termek_id,
+          rendelestetel_id: tetel.rendelestetel_id
+        });
+      }
     });
-    
-    grouped.push(...orderMap.values());
   });
   
-  // Sort by date (newest first)
-  return grouped.sort((a, b) => new Date(b.datum) - new Date(a.datum));
+  // Convert Map to array, remove productSet, and sort by rendeles_szam (descending)
+  return Array.from(orderMap.values()).map(order => {
+    const { productSet, ...orderWithoutSet } = order;
+    return orderWithoutSet;
+  }).sort((a, b) => {
+    // Sort by rendeles_szam in descending order (e.g., AB0000006, AB0000005, AB0000004)
+    return b.rendeles_szam.localeCompare(a.rendeles_szam, undefined, { numeric: true });
+  });
 });
 
 // Format price
@@ -133,10 +146,44 @@ const closeDetailsModal = () => {
 };
 
 // Handle order fulfillment
-const fulfillOrder = () => {
-  // TODO: Implement order fulfillment logic
-  console.log('Fulfilling order:', selectedOrderDetails.value);
-  console.log('Products:', editableProducts.value);
+const fulfillOrder = async () => {
+  if (!allProductsChecked.value) {
+    return;
+  }
+
+  try {
+    loading.value = true;
+
+    // Prepare the data for the API call
+    const orderData = {
+      id: selectedOrderDetails.value.rendeles_id,
+      termekek: editableProducts.value.map(product => ({
+        id: product.rendelestetel_id,
+        mennyiseg: product.editedQuantity,
+        termek_id: product.termek_id
+      }))
+    };
+
+    const response = await axios.post('/Rendeles_statusz_frissit', orderData);
+
+    if (response.data.ok) {
+      // Close modal
+      closeDetailsModal();
+      
+      // Refresh orders list
+      await fetchOrders();
+      
+      // Show success message (you can add a toast/notification here)
+      alert('Rendelés sikeresen teljesítve!');
+    } else {
+      error.value = response.data.uzenet || 'Hiba történt a rendelés teljesítése során';
+    }
+  } catch (err) {
+    console.error('Error fulfilling order:', err);
+    error.value = 'Hiba történt a rendelés teljesítése során';
+  } finally {
+    loading.value = false;
+  }
 };
 
 // On mounted
