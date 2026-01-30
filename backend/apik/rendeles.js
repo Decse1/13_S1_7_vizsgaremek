@@ -113,7 +113,7 @@ module.exports = (app, authenticateToken) => {
                     `SELECT T.nev AS termek_neve, RT.mennyiseg AS rendelt_mennyiseg, R.datum 
                      FROM Rendeles R 
                      JOIN Partnerseg P ON R.partnerseg = P.id 
-                     JOIN Rendeles_termek RT ON R.id = RT.rendeles_id 
+                     JOIN Rendelestetel RT ON R.id = RT.rendeles_id 
                      JOIN Termek T ON RT.termek_id = T.id 
                      WHERE R.status = 'Új' AND P.elado = ? AND P.vevo = ?`,
                     [cegId, vevo.vevo_id]
@@ -158,7 +158,7 @@ module.exports = (app, authenticateToken) => {
                     `SELECT T.nev AS termek_neve, RT.mennyiseg AS rendelt_mennyiseg, R.status, R.datum
                      FROM Rendeles R 
                      JOIN Partnerseg P ON R.partnerseg = P.id 
-                     JOIN Rendeles_termek RT ON R.id = RT.rendeles_id 
+                     JOIN Rendelestetel RT ON R.id = RT.rendeles_id 
                      JOIN Termek T ON RT.termek_id = T.id 
                      WHERE P.vevo = ? AND P.elado = ?`,
                     [cegId, elado.elado_id]
