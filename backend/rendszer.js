@@ -5,6 +5,7 @@ const { initDatabase } = require('./connect');
 // 1. Beimportáljuk a biztonsági őrt (Middleware)
 const authenticateToken = require('./middleware/auth'); 
 
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -35,7 +36,7 @@ async function startServer() {
         require("./apik/rendeles.js")(app, authenticateToken);
         require("./apik/regisztral.js")(app);
         require("./apik/szamla.js")(app/*, authenticateToken*/);
-        require("./apik/sztorno.js")(app/*, authenticateToken*/, url);
+        require("./apik/sztorno.js")(app/*, authenticateToken*/);
 
         // Szerver indítása
         app.listen(3000, () => {

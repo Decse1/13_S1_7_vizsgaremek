@@ -18,7 +18,7 @@ module.exports = (app) => {
             const sql = `
                 SELECT 
                     r.rendeles_szam, r.datum as rendeles_datum, 
-                    r.szamla_kesz, r.szamla_kesz_datum, r.storno,
+                    r.szamla_kesz, r.szamla_kesz_datum, r.sztorno,
                     p.fizetesi_forma, p.fizetesi_ido,
                     elado.nev as elado_nev, elado.adoszam as elado_adoszam, 
                     elado.cim as elado_cim, elado.szamlaszam as elado_bankszamla,
