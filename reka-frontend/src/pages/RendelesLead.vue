@@ -20,24 +20,37 @@ const companyId = computed(() => authStore.ceg?.id);
 
 // Group orders by order number and date
 const groupedOrders = computed(() => {
-  const grouped = [];
+  const orderMap = new Map();
   
   rendelesek.value.forEach(rendeles => {
-    // Since the API doesn't return rendeles_id and rendeles_szam,
-    // we'll group by seller and date
     rendeles.termekek.forEach(termek => {
-      grouped.push({
-        elado_neve: rendeles.elado.elado_neve,
-        elado_id: rendeles.elado.elado_id,
-        datum: termek.datum,
-        status: termek.status,
-        termekek: [termek]
-      });
+      const key = termek.rendeles_szam;
+      
+      if (!orderMap.has(key)) {
+        orderMap.set(key, {
+          rendeles_szam: termek.rendeles_szam,
+          elado_neve: rendeles.elado.elado_neve,
+          elado_id: rendeles.elado.elado_id,
+          datum: termek.datum,
+          status: termek.status,
+          termekek: []
+        });
+      }
+      
+      // Only add the product if it's not already in the array
+      const order = orderMap.get(key);
+      const productExists = order.termekek.some(p => p.termek_neve === termek.termek_neve);
+      if (!productExists) {
+        order.termekek.push({
+          termek_neve: termek.termek_neve,
+          rendelt_mennyiseg: termek.rendelt_mennyiseg
+        });
+      }
     });
   });
   
-  // Sort by date (newest first)
-  return grouped.sort((a, b) => new Date(b.datum) - new Date(a.datum));
+  // Convert map to array and sort by date (newest first)
+  return Array.from(orderMap.values()).sort((a, b) => new Date(b.datum) - new Date(a.datum));
 });
 
 // Format date
@@ -131,7 +144,8 @@ onMounted(() => {
       <table class="table custom-table">
         <thead>
           <tr>
-            <th style="width: 25%;">Eladó</th>
+            <th style="width: 20%;">Rendelésszám</th>
+            <th style="width: 20%;">Eladó</th>
             <th style="width: 20%;">Rendelési dátum</th>
             <th style="width: 15%;">Rendelés állapota</th>
             <th style="width: 15%;"></th>
@@ -139,6 +153,7 @@ onMounted(() => {
         </thead>
         <tbody>
           <tr v-for="(order, index) in groupedOrders" :key="index">
+            <td>{{ order.rendeles_szam }}</td>
             <td>{{ order.elado_neve }}</td>
             <td>{{ formatDateTime(order.datum) }}</td>
             <td>{{ order.status }}</td>
@@ -171,6 +186,12 @@ onMounted(() => {
               <button type="button" class="btn-close" @click="closeDetailsModal"></button>
             </div>
             <div class="modal-body" v-if="selectedOrderDetails">
+              <div class="row mb-3">
+                <div class="col-md-12">
+                  <label class="form-label fw-bold">Rendelésszám:</label>
+                  <p class="mb-0">{{ selectedOrderDetails.rendeles_szam }}</p>
+                </div>
+              </div>
               <div class="row mb-3">
                 <div class="col-md-12">
                   <label class="form-label fw-bold">Eladó:</label>

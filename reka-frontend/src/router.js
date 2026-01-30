@@ -3,6 +3,7 @@ import Kezdolap from "./pages/Kezdolap.vue";
 import Raktar from "./pages/Raktar.vue";
 import CegInfo from "./pages/CegInfo.vue";
 import UserInfo from './pages/UserInfo.vue';
+import UserList from './pages/UserList.vue';
 import Partnersegek from './pages/Partnersegek.vue';
 import RendelesBeerk from './pages/RendelesBeerk.vue';
 import RendelesLead from './pages/RendelesLead.vue';
@@ -33,6 +34,12 @@ const routes = [
     path: "/ceginfo", 
     name: "Cégadatok", 
     component: CegInfo,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: "/ceginfo/felhasznalok",
+    name: "Céghez tartozó felhasználók",
+    component: UserList,
     meta: { requiresAuth: true }
   },
   { 
