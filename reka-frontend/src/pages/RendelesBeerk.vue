@@ -13,10 +13,52 @@ const error = ref(null);
 
 // Modal state
 const showDetailsModal = ref(false);
-const selectedOrder = ref(null);
+const selectedOrderDetails = ref(null);
+const editableProducts = ref([]);
 
 // Computed
 const companyId = computed(() => authStore.ceg?.id);
+
+// Check if all products are checked
+const allProductsChecked = computed(() => {
+  return editableProducts.value.length > 0 && 
+         editableProducts.value.every(product => product.checked);
+});
+
+// Group orders by order number and date
+const groupedOrders = computed(() => {
+  const grouped = [];
+  
+  rendelesek.value.forEach(rendeles => {
+    // Group items by rendeles_id (order number)
+    const orderMap = new Map();
+    
+    rendeles.tételek.forEach(tetel => {
+      const key = tetel.rendeles_id;
+      if (!orderMap.has(key)) {
+        orderMap.set(key, {
+          rendeles_id: tetel.rendeles_id,
+          rendeles_szam: tetel.rendeles_szam,
+          datum: tetel.datum,
+          szallitasi_nev: tetel.szallitasi_nev,
+          vevo_neve: rendeles.vevo.vevo_neve,
+          vevo_id: rendeles.vevo.vevo_id,
+          status: tetel.status,
+          termekek: []
+        });
+      }
+      orderMap.get(key).termekek.push({
+        termek_neve: tetel.termek_neve,
+        rendelt_mennyiseg: tetel.rendelt_mennyiseg
+      });
+    });
+    
+    grouped.push(...orderMap.values());
+  });
+  
+  // Sort by date (newest first)
+  return grouped.sort((a, b) => new Date(b.datum) - new Date(a.datum));
+});
 
 // Format price
 const formatPrice = (price) => {
@@ -61,15 +103,40 @@ const fetchOrders = async () => {
   }
 };
 
+// Format date and time
+const formatDateTime = (dateString) => {
+  if (!dateString) return 'N/A';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('hu-HU', { 
+    year: 'numeric', 
+    month: 'short', 
+    day: 'numeric' 
+  });
+};
+
 // Open order details modal
 const openDetailsModal = (order) => {
-  selectedOrder.value = order;
+  selectedOrderDetails.value = order;
+  // Initialize editable products with checkboxes and editable quantities
+  editableProducts.value = order.termekek.map(termek => ({
+    ...termek,
+    checked: false,
+    editedQuantity: termek.rendelt_mennyiseg
+  }));
   showDetailsModal.value = true;
 };
 
 const closeDetailsModal = () => {
   showDetailsModal.value = false;
-  selectedOrder.value = null;
+  selectedOrderDetails.value = null;
+  editableProducts.value = [];
+};
+
+// Handle order fulfillment
+const fulfillOrder = () => {
+  // TODO: Implement order fulfillment logic
+  console.log('Fulfilling order:', selectedOrderDetails.value);
+  console.log('Products:', editableProducts.value);
 };
 
 // On mounted
@@ -98,48 +165,38 @@ onMounted(() => {
       {{ error }}
     </div>
 
-    <div v-else-if="rendelesek.length === 0" class="alert alert-info">
+    <div v-else-if="groupedOrders.length === 0" class="alert alert-info">
       Még nem érkezett be rendelés.
     </div>
 
-    <div v-else>
-      <div v-for="(rendeles, index) in rendelesek" :key="index" class="mb-4">
-        <div class="card">
-          <div class="card-header bg-light">
-            <h5 class="mb-0">
-              <strong>Vevő:</strong> {{ rendeles.vevo.vevo_neve }}
-            </h5>
-          </div>
-          <div class="card-body p-0">
-            <table class="table custom-table mb-0">
-              <thead>
-                <tr>
-                  <th style="width: 50%;">Termék neve</th>
-                  <th style="width: 20%;">Mennyiség</th>
-                  <th style="width: 20%;">Dátum</th>
-                  <th style="width: 10%;"></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(termek, tIndex) in rendeles.termekek" :key="tIndex">
-                  <td>{{ termek.termek_neve }}</td>
-                  <td>{{ termek.rendelt_mennyiseg }}</td>
-                  <td>{{ formatDate(termek.datum) }}</td>
-                  <td>
-                    <button 
-                      class="btn btn-sm btn-outline-primary"
-                      @click="openDetailsModal({ vevo: rendeles.vevo, termek })"
-                      title="Részletek"
-                    >
-                      <i class="bi bi-eye"></i>
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+    <div v-else class="table-responsive">
+      <table class="table custom-table">
+        <thead>
+          <tr>
+            <th style="width: 15%;">Rendelési azon.</th>
+            <th style="width: 25%;">Megrendelő</th>
+            <th style="width: 20%;">Rendelési dátum</th>
+            <th style="width: 15%;">Rendelés állapota</th>
+            <th style="width: 15%;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="order in groupedOrders" :key="order.rendeles_id">
+            <td>{{ order.rendeles_szam }}</td>
+            <td>{{ order.vevo_neve }}</td>
+            <td>{{ formatDateTime(order.datum) }}</td>
+            <td>{{ order.status }}</td>
+            <td>
+              <button 
+                class="btn btn-teal text-white btn-sm"
+                @click="openDetailsModal(order)"
+              >
+                Megnyitás
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <!-- Order Details Modal -->
@@ -154,28 +211,70 @@ onMounted(() => {
         <div class="modal-dialog modal-dialog-centered modal-dialog-custom" role="document" @click.stop>
           <div class="modal-content custom-modal-content">
             <div class="modal-header">
-              <h5 class="modal-title">Rendelés részletei</h5>
+              <h5 class="modal-title">{{ selectedOrderDetails.rendeles_szam }} rendelés</h5>
               <button type="button" class="btn-close" @click="closeDetailsModal"></button>
             </div>
-            <div class="modal-body" v-if="selectedOrder">
-              <div class="mb-3">
-                <label class="form-label fw-bold">Vevő</label>
-                <p class="mb-0">{{ selectedOrder.vevo.vevo_neve }}</p>
+            <div class="modal-body" v-if="selectedOrderDetails">
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Cég:</label>
+                  <p class="mb-0">{{ selectedOrderDetails.vevo_neve }}</p>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Megrendelő:</label>
+                  <p class="mb-0">{{ selectedOrderDetails.szallitasi_nev }}</p>
+                </div>
               </div>
-              <div class="mb-3">
-                <label class="form-label fw-bold">Termék</label>
-                <p class="mb-0">{{ selectedOrder.termek.termek_neve }}</p>
+              <div class="row mb-3">
+                <div class="col-md-12">
+                  <label class="form-label fw-bold">Rendelés dátuma:</label>
+                  <p class="mb-0">{{ formatDateTime(selectedOrderDetails.datum) }}</p>
+                </div>
               </div>
-              <div class="mb-3">
-                <label class="form-label fw-bold">Rendelt mennyiség</label>
-                <p class="mb-0">{{ selectedOrder.termek.rendelt_mennyiseg }}</p>
-              </div>
-              <div class="mb-3">
-                <label class="form-label fw-bold">Rendelés dátuma</label>
-                <p class="mb-0">{{ formatDate(selectedOrder.termek.datum) }}</p>
+              
+              <h6 class="fw-bold mb-3">Rendelt tétel(ek):</h6>
+              
+              <div class="products-list">
+                <div 
+                  v-for="(product, idx) in editableProducts" 
+                  :key="idx"
+                  class="product-item mb-3 p-3 border rounded"
+                >
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="form-check">
+                      <input 
+                        class="form-check-input" 
+                        type="checkbox" 
+                        v-model="product.checked"
+                        :id="'product-' + idx"
+                      />
+                    </div>
+                    <label :for="'product-' + idx" class="form-check-label flex-grow-1 mb-0">
+                      {{ product.termek_neve }}
+                    </label>
+                    <div class="d-flex align-items-center gap-2">
+                      <input 
+                        type="number" 
+                        class="form-control form-control-sm quantity-input" 
+                        v-model.number="product.editedQuantity"
+                        min="0"
+                        style="width: 100px;"
+                      />
+                      <span class="text-muted">db<!-- {{ product.editedQuantity > 1 ? 'db' : 'kg' }} --></span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer d-flex justify-content-between">
+              <button 
+                type="button" 
+                class="btn btn-teal text-white"
+                @click="fulfillOrder"
+                :disabled="!allProductsChecked"
+              >
+                Rendelés teljesítése
+              </button>
               <button type="button" class="btn btn-secondary" @click="closeDetailsModal">
                 Bezárás
               </button>
@@ -346,5 +445,38 @@ onMounted(() => {
   .spinner-border {
     width: 3rem;
     height: 3rem;
+  }
+
+  .product-item {
+    background-color: #f8f9fa;
+    transition: background-color 0.2s ease;
+  }
+
+  .product-item:hover {
+    background-color: #e9ecef;
+  }
+
+  .form-check-input {
+    width: 1.25rem;
+    height: 1.25rem;
+    cursor: pointer;
+  }
+
+  .form-check-label {
+    cursor: pointer;
+    font-weight: 500;
+  }
+
+  .quantity-input {
+    border: 1px solid #ced4da;
+  }
+
+  .quantity-input:focus {
+    border-color: #00948B;
+    box-shadow: 0 0 0 0.2rem rgba(0, 148, 139, 0.25);
+  }
+
+  .modal-footer {
+    border-top: 1px solid #dee2e6;
   }
 </style>

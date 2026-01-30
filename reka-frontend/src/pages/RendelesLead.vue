@@ -13,18 +13,32 @@ const error = ref(null);
 
 // Modal state
 const showDetailsModal = ref(false);
-const selectedOrder = ref(null);
+const selectedOrderDetails = ref(null);
 
 // Computed
 const companyId = computed(() => authStore.ceg?.id);
 
-// Format price
-const formatPrice = (price) => {
-  return new Intl.NumberFormat('hu-HU', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(Math.round(price));
-};
+// Group orders by order number and date
+const groupedOrders = computed(() => {
+  const grouped = [];
+  
+  rendelesek.value.forEach(rendeles => {
+    // Since the API doesn't return rendeles_id and rendeles_szam,
+    // we'll group by seller and date
+    rendeles.termekek.forEach(termek => {
+      grouped.push({
+        elado_neve: rendeles.elado.elado_neve,
+        elado_id: rendeles.elado.elado_id,
+        datum: termek.datum,
+        status: termek.status,
+        termekek: [termek]
+      });
+    });
+  });
+  
+  // Sort by date (newest first)
+  return grouped.sort((a, b) => new Date(b.datum) - new Date(a.datum));
+});
 
 // Format date
 const formatDate = (dateString) => {
@@ -33,18 +47,15 @@ const formatDate = (dateString) => {
   return date.toLocaleDateString('hu-HU');
 };
 
-// Get status badge class
-const getStatusClass = (status) => {
-  switch (status) {
-    case 'Új':
-      return 'badge bg-primary';
-    case 'Teljesítve':
-      return 'badge bg-success';
-    case 'Törölt':
-      return 'badge bg-danger';
-    default:
-      return 'badge bg-secondary';
-  }
+// Format date and time
+const formatDateTime = (dateString) => {
+  if (!dateString) return 'N/A';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('hu-HU', { 
+    year: 'numeric', 
+    month: 'short', 
+    day: 'numeric' 
+  });
 };
 
 // Fetch orders
@@ -77,20 +88,13 @@ const fetchOrders = async () => {
 
 // Open order details modal
 const openDetailsModal = (order) => {
-  selectedOrder.value = order;
+  selectedOrderDetails.value = order;
   showDetailsModal.value = true;
 };
 
 const closeDetailsModal = () => {
   showDetailsModal.value = false;
-  selectedOrder.value = null;
-};
-
-// Calculate total for an order
-const calculateOrderTotal = (termekek) => {
-  // Note: The API doesn't return prices in this endpoint
-  // This is a placeholder - you may need to modify the backend to include prices
-  return 'N/A';
+  selectedOrderDetails.value = null;
 };
 
 // On mounted
@@ -119,54 +123,36 @@ onMounted(() => {
       {{ error }}
     </div>
 
-    <div v-else-if="rendelesek.length === 0" class="alert alert-info">
+    <div v-else-if="groupedOrders.length === 0" class="alert alert-info">
       Még nem adtál le rendelést.
     </div>
 
-    <div v-else>
-      <div v-for="(rendeles, index) in rendelesek" :key="index" class="mb-4">
-        <div class="card">
-          <div class="card-header bg-light">
-            <h5 class="mb-0">
-              <strong>Eladó:</strong> {{ rendeles.elado.elado_neve }}
-            </h5>
-          </div>
-          <div class="card-body p-0">
-            <table class="table custom-table mb-0">
-              <thead>
-                <tr>
-                  <th style="width: 40%;">Termék neve</th>
-                  <th style="width: 15%;">Mennyiség</th>
-                  <th style="width: 15%;">Dátum</th>
-                  <th style="width: 20%;">Státusz</th>
-                  <th style="width: 10%;"></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(termek, tIndex) in rendeles.termekek" :key="tIndex">
-                  <td>{{ termek.termek_neve }}</td>
-                  <td>{{ termek.rendelt_mennyiseg }}</td>
-                  <td>{{ formatDate(termek.datum) }}</td>
-                  <td>
-                    <span :class="getStatusClass(termek.status)">
-                      {{ termek.status }}
-                    </span>
-                  </td>
-                  <td>
-                    <button 
-                      class="btn btn-sm btn-outline-primary"
-                      @click="openDetailsModal({ elado: rendeles.elado, termek })"
-                      title="Részletek"
-                    >
-                      <i class="bi bi-eye"></i>
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+    <div v-else class="table-responsive">
+      <table class="table custom-table">
+        <thead>
+          <tr>
+            <th style="width: 25%;">Eladó</th>
+            <th style="width: 20%;">Rendelési dátum</th>
+            <th style="width: 15%;">Rendelés állapota</th>
+            <th style="width: 15%;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(order, index) in groupedOrders" :key="index">
+            <td>{{ order.elado_neve }}</td>
+            <td>{{ formatDateTime(order.datum) }}</td>
+            <td>{{ order.status }}</td>
+            <td>
+              <button 
+                class="btn btn-teal text-white btn-sm"
+                @click="openDetailsModal(order)"
+              >
+                Megnyitás
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <!-- Order Details Modal -->
@@ -184,30 +170,41 @@ onMounted(() => {
               <h5 class="modal-title">Rendelés részletei</h5>
               <button type="button" class="btn-close" @click="closeDetailsModal"></button>
             </div>
-            <div class="modal-body" v-if="selectedOrder">
-              <div class="mb-3">
-                <label class="form-label fw-bold">Eladó</label>
-                <p class="mb-0">{{ selectedOrder.elado.elado_neve }}</p>
+            <div class="modal-body" v-if="selectedOrderDetails">
+              <div class="row mb-3">
+                <div class="col-md-12">
+                  <label class="form-label fw-bold">Eladó:</label>
+                  <p class="mb-0">{{ selectedOrderDetails.elado_neve }}</p>
+                </div>
               </div>
-              <div class="mb-3">
-                <label class="form-label fw-bold">Termék</label>
-                <p class="mb-0">{{ selectedOrder.termek.termek_neve }}</p>
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Rendelés dátuma:</label>
+                  <p class="mb-0">{{ formatDateTime(selectedOrderDetails.datum) }}</p>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Állapot:</label>
+                  <p class="mb-0">{{ selectedOrderDetails.status }}</p>
+                </div>
               </div>
-              <div class="mb-3">
-                <label class="form-label fw-bold">Rendelt mennyiség</label>
-                <p class="mb-0">{{ selectedOrder.termek.rendelt_mennyiseg }}</p>
-              </div>
-              <div class="mb-3">
-                <label class="form-label fw-bold">Rendelés dátuma</label>
-                <p class="mb-0">{{ formatDate(selectedOrder.termek.datum) }}</p>
-              </div>
-              <div class="mb-3">
-                <label class="form-label fw-bold">Státusz</label>
-                <p class="mb-0">
-                  <span :class="getStatusClass(selectedOrder.termek.status)">
-                    {{ selectedOrder.termek.status }}
-                  </span>
-                </p>
+              
+              <h6 class="fw-bold mb-3">Rendelt tétel(ek):</h6>
+              
+              <div class="products-list">
+                <div 
+                  v-for="(product, idx) in selectedOrderDetails.termekek" 
+                  :key="idx"
+                  class="product-item mb-3 p-3 border rounded"
+                >
+                  <div class="d-flex align-items-center justify-content-between">
+                    <div class="flex-grow-1">
+                      <strong>{{ product.termek_neve }}</strong>
+                    </div>
+                    <div class="text-muted">
+                      {{ product.rendelt_mennyiseg }} db
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
             <div class="modal-footer">
@@ -302,11 +299,6 @@ onMounted(() => {
     border-color: #6c757d !important;
   }
 
-  .badge {
-    padding: 0.35em 0.65em;
-    font-size: 0.875rem;
-  }
-
   .modal-backdrop-custom {
     position: fixed;
     inset: 0;
@@ -386,5 +378,18 @@ onMounted(() => {
   .spinner-border {
     width: 3rem;
     height: 3rem;
+  }
+
+  .product-item {
+    background-color: #f8f9fa;
+    transition: background-color 0.2s ease;
+  }
+
+  .product-item:hover {
+    background-color: #e9ecef;
+  }
+
+  .modal-footer {
+    border-top: 1px solid #dee2e6;
   }
 </style>

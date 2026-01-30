@@ -76,16 +76,9 @@
     fetchCategories()
   })
 
-  const edit = (item) => {
-    console.log('Edit:', item)
-  }
-
-  const remove = (item) => {
-    console.log('Delete:', item)
-  }
-
   // Modal state and form model for new product
   const showAddModal = ref(false)
+  const showEditModal = ref(false)
   const formError = ref('')
   const newProduct = ref({
     name: '',
@@ -98,6 +91,36 @@
     ar: 0,
     afa_kulcs: 27
   })
+
+  const editProduct = ref({
+    id: null,
+    name: '',
+    stock: 0,
+    kiszereles: '',
+    category: '',
+    cikkszam: '',
+    min_vas_menny: 1,
+    leiras: '',
+    ar: 0,
+    afa_kulcs: 27
+  })
+
+  const edit = (item) => {
+    editProduct.value = {
+      id: item.id,
+      name: item.nev,
+      stock: item.mennyiseg,
+      kiszereles: item.kiszereles,
+      category: item.kategoria,
+      cikkszam: item.cikkszam,
+      min_vas_menny: item.min_vas_menny,
+      leiras: item.leiras,
+      ar: item.ar,
+      afa_kulcs: item.afa_kulcs
+    }
+    formError.value = ''
+    showEditModal.value = true
+  }
 
   const openAddModal = () => {
     newProduct.value = {
@@ -117,6 +140,11 @@
 
   const closeAddModal = () => {
     showAddModal.value = false
+    formError.value = ''
+  }
+
+  const closeEditModal = () => {
+    showEditModal.value = false
     formError.value = ''
   }
 
@@ -201,6 +229,89 @@
       formError.value = response?.data?.uzenet || 'Hiba történt a szerver kapcsolat során!'
     }
   }
+
+  const saveEditProduct = async () => {
+    // Validate form fields
+    formError.value = ''
+
+    if (!editProduct.value.name || editProduct.value.name.trim() === '') {
+      formError.value = 'A terméknév megadása kötelező!'
+      return
+    }
+
+    if (!editProduct.value.cikkszam || editProduct.value.cikkszam.trim() === '') {
+      formError.value = 'A cikkszám megadása kötelező!'
+      return
+    }
+
+    if (!editProduct.value.kiszereles || editProduct.value.kiszereles.trim() === '') {
+      formError.value = 'A kiszerelés megadása kötelező!'
+      return
+    }
+
+    if (!editProduct.value.leiras || editProduct.value.leiras.trim() === '') {
+      formError.value = 'A termék leírása kötelező!'
+      return
+    }
+
+    if (!editProduct.value.category) {
+      formError.value = 'A kategória kiválasztása kötelező!'
+      return
+    }
+
+    if (editProduct.value.stock < 0) {
+      formError.value = 'A készlet nem lehet negatív szám!'
+      return
+    }
+
+    if (editProduct.value.min_vas_menny < 1) {
+      formError.value = 'A minimum vásárlási mennyiség legalább 1 kell legyen!'
+      return
+    }
+
+    if (editProduct.value.ar < 1) {
+      formError.value = 'Az ár legalább 1 Ft kell legyen!'
+      return
+    }
+
+    if (editProduct.value.afa_kulcs < 0) {
+      formError.value = 'Az áfakulcs nem lehet negatív!'
+      return
+    }
+
+    // Check if user is logged in
+    if (!authStore.ceg || !authStore.ceg.id) {
+      formError.value = 'Nincs bejelentkezve cég!'
+      return
+    }
+
+    // If all validations pass, send to backend
+    try {
+      const response = await axios.post('/Termek_update', {
+        id: editProduct.value.id,
+        tulajdonos: authStore.ceg.id,
+        nev: editProduct.value.name,
+        cikkszam: editProduct.value.cikkszam,
+        mennyiseg: editProduct.value.stock,
+        kiszereles: editProduct.value.kiszereles,
+        min_vas_menny: editProduct.value.min_vas_menny,
+        leiras: editProduct.value.leiras,
+        ar: editProduct.value.ar,
+        kategoria: editProduct.value.category,
+        afa_kulcs: editProduct.value.afa_kulcs
+      })
+
+      if (response.data.ok) {
+        // Success - refresh the page
+        window.location.reload()
+      } else {
+        formError.value = response?.data?.uzenet || 'Hiba történt a termék frissítése során'
+      }
+    } catch (err) {
+      console.error('Error updating product:', err)
+      formError.value = response?.data?.uzenet || 'Hiba történt a szerver kapcsolat során!'
+    }
+  }
 </script>
 
 <template>
@@ -245,9 +356,8 @@
         <tr>
           <th style="width: 60%;">Terméknév</th>
           <!-- th style="width: 20%;">Kategória</th -->
-          <th style="width: 23%;">Ár (nettó)</th>
+          <th style="width: 25%;">Ár (nettó)</th>
           <th class="text-end" style="width: 12%;">Készlet</th>
-          <th style="width: 2.5%;"></th>
           <th style="width: 2.5%;"></th>
         </tr>
       </thead>
@@ -261,7 +371,6 @@
           <td>{{ item.ar }} Ft</td>
           <td class="text-end">{{ item.mennyiseg }} {{ item.kiszereles }}</td>
           <td><i class="bi bi-pencil" @click="edit(item)"/></td>
-          <td><i class="bi bi-trash" @click="remove(item)"/></td>
         </tr>
       </tbody>
     </table>
@@ -390,6 +499,138 @@
                 Mégse
               </button>
               <button type="submit" class="btn btn-primary btn-teal rounded-pill" form="product-form">
+                Mentés
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <!-- Edit product modal -->
+    <transition name="modal-fade">
+      <div
+        v-if="showEditModal"
+        class="modal-backdrop-custom"
+        tabindex="-1"
+        role="dialog"
+        @click="closeEditModal"
+      >
+        <div class="modal-dialog modal-dialog-centered modal-dialog-custom" role="document" @click.stop>
+          <div class="modal-content custom-modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Termék módosítása</h5>
+              <button type="button" class="btn-close" @click="closeEditModal"></button>
+            </div> 
+            <div class="modal-body">
+              <form id="edit-product-form" @submit.prevent="saveEditProduct">
+                <div class="mb-3">
+                  <label class="form-label">Terméknév</label>
+                  <input
+                    v-model="editProduct.name"
+                    type="text"
+                    class="form-control custom-input"
+                    maxlength="100"
+                    required
+                  />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Készlet (db)</label>
+                  <input
+                    v-model.number="editProduct.stock"
+                    type="number"
+                    min="0"
+                    class="form-control custom-input"
+                    required
+                  />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Cikkszám</label>
+                  <input
+                    v-model="editProduct.cikkszam"
+                    type="text"
+                    class="form-control custom-input"
+                    maxlength="100"
+                    required
+                  />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Termék kiszerelése</label>
+                  <input
+                    v-model="editProduct.kiszereles"
+                    type="text"
+                    class="form-control custom-input"
+                    maxlength="10"
+                    required
+                  />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Minimum vásárlási mennyiség</label>
+                  <input
+                    v-model.number="editProduct.min_vas_menny"
+                    type="number"
+                    min="1"
+                    class="form-control custom-input"
+                    required
+                  />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Termék leírása</label>
+                  <input
+                    v-model="editProduct.leiras"
+                    type="text"
+                    class="form-control custom-input"
+                    required
+                  />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Ár (magyar forint, nettó)</label>
+                  <input
+                    v-model.number="editProduct.ar"
+                    type="number"
+                    min="1"
+                    class="form-control custom-input"
+                    required
+                  />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Termék kategóriája</label>
+                  <select
+                    v-model="editProduct.category"
+                    class="form-select custom-input"
+                    required
+                  >
+                    <option value="" disabled>Válasszon kategóriát...</option>
+                    <option 
+                      v-for="category in categories" 
+                      :key="category.id" 
+                      :value="category.id"
+                    >
+                      {{ category.nev }}
+                    </option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Áfakulcs</label>
+                  <input
+                    v-model.number="editProduct.afa_kulcs"
+                    type="number"
+                    min="0"
+                    class="form-control custom-input"
+                    required
+                  />
+                </div>
+              </form>
+              <!-- Error message display -->
+              <div v-if="formError" class="alert alert-danger mt-3 mb-0" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ formError }}
+              </div>
+            </div>            
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary rounded-pill" @click="closeEditModal">
+                Mégse
+              </button>
+              <button type="submit" class="btn btn-primary btn-teal rounded-pill" form="edit-product-form">
                 Mentés
               </button>
             </div>
