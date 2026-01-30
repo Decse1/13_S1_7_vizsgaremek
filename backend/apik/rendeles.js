@@ -95,33 +95,42 @@ module.exports = (app, authenticateToken) => {
 
             if (!cegId) return res.status(400).json({ ok: false, uzenet: "Hiányzó cég ID" });
 
-            // 1. lépés: Kik rendeltek tőlem?
+            // 1. lépés: Kik rendeltek tőlem? 
+            // Itt is beemeljük a DISTINCT vevőket, akiknek van 'Új' rendelésük nálam.
             const [rendelok] = await db.query(
                 `SELECT DISTINCT C.id AS vevo_id, C.nev AS vevo_neve 
-                 FROM Rendeles R 
-                 JOIN Partnerseg P ON R.partnerseg = P.id 
-                 JOIN Ceg C ON P.vevo = C.id 
-                 WHERE P.elado = ? AND R.status = 'Új'`, // Csak az új rendelések érdekelnek?
+                FROM Rendeles R 
+                JOIN Partnerseg P ON R.partnerseg = P.id 
+                JOIN Ceg C ON P.vevo = C.id 
+                WHERE P.elado = ? AND R.status = 'Új'`, 
                 [cegId]
             );
 
             const rendelesek = [];
 
-            // 2. lépés: Minden vevőhöz lekérjük a tételeket
+            // 2. lépés: Minden vevőhöz lekérjük a konkrét rendeléseket és a szállítási nevet
             for (const vevo of rendelok) {
                 const [rendeletTermek] = await db.query(
-                    `SELECT T.nev AS termek_neve, RT.mennyiseg AS rendelt_mennyiseg, R.datum 
-                     FROM Rendeles R 
-                     JOIN Partnerseg P ON R.partnerseg = P.id 
-                     JOIN Rendelestetel RT ON R.id = RT.rendeles_id 
-                     JOIN Termek T ON RT.termek_id = T.id 
-                     WHERE R.status = 'Új' AND P.elado = ? AND P.vevo = ?`,
+                    `SELECT 
+                        R.id AS rendeles_id,
+                        R.rendeles_szam,
+                        R.datum,
+                        F.nev AS szallitasi_nev,
+                        T.nev AS termek_neve, 
+                        RT.mennyiseg AS rendelt_mennyiseg
+                    FROM Rendeles R 
+                    JOIN Partnerseg P ON R.partnerseg = P.id 
+                    JOIN RendelesTetel RT ON R.id = RT.rendeles_id 
+                    JOIN Termek T ON RT.termek_id = T.id 
+                    JOIN Felhasznalo F ON R.sz_cim = F.id
+                    WHERE R.status = 'Új' AND P.elado = ? AND P.vevo = ?
+                    ORDER BY R.datum DESC`,
                     [cegId, vevo.vevo_id]
                 );
 
                 rendelesek.push({
                     vevo: vevo,
-                    termekek: rendeletTermek,
+                    tételek: rendeletTermek,
                 });
             }
 
@@ -201,5 +210,40 @@ module.exports = (app, authenticateToken) => {
             res.status(500).json({ error: "Adatbázis hiba!" });
         }
     });
-        
+    app.post('/api/Rendeles_torles', authenticateToken, async (req, res) => {
+        try {
+            const { rendelesId } = req.body;
+
+            // Validáció
+            if (!rendelesId) {
+                return res.status(400).json({ ok: false, uzenet: "Hiányzó rendelés ID!" });
+            }
+
+            // 1. lépés: Tételek törlése (Az idegen kulcsok miatt ezzel kell kezdeni)
+            await db.query(
+                `DELETE FROM RendelesTetel WHERE rendeles_id = ?`,
+                [rendelesId]
+            );
+
+            // 2. lépés: A rendelés fejléc törlése
+            const [result] = await db.query(
+                `DELETE FROM Rendeles WHERE id = ?`,
+                [rendelesId]
+            );
+
+            // Ellenőrizzük, hogy történt-e valódi törlés
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ ok: false, uzenet: "A rendeles nem található!" });
+            }
+
+            return res.status(200).json({ 
+                ok: true, 
+                uzenet: "Rendelés sikeresen törölve a rendszerből!" 
+            });
+
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ ok: false, error: "Adatbázis hiba a törlés során!" });
+        }
+    }); 
 };

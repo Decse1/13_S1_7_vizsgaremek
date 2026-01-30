@@ -58,6 +58,7 @@ async function startServer() {
                 +`\n\t${url}/api/Ceg_osszes`
                 +`\n\t${url}/api/Rendeles_ad`
                 +`\n\t${url}/api/Beerkezett_rendeles`
+                +`\n\t${url}/api/Leadott_rendeles`
                 +`\n\t${url}/api/Termek_ad`
                 +`\n\t${url}/api/Termek_update`
                 +`\n\t${url}/api/Regisz/Ceg_ad`

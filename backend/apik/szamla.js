@@ -6,8 +6,8 @@ const formatMoney = (num) => {
     return Number(num).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " Ft";
 };
 
-module.exports = (app) => {
-    app.post('/api/Szamla_create', async (req, res) => {
+module.exports = (app, authenticateToken) => {
+    app.post('/api/Szamla_create', authenticateToken, async (req, res) => {
         try {
             const rendelesId = req.body.id;
             if (!rendelesId) return res.status(400).send('Hiba: Hiányzó ID');
