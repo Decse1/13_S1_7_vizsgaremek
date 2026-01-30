@@ -1,7 +1,7 @@
 const db = require('../connect');
 
 
-module.exports = (app, authenticateToken) => {
+module.exports = (app, authenticateToken, url) => {
 
     // 1. Új rendelés leadása (Védett)
     app.post('/api/Rendeles_ad', authenticateToken, async (req, res) => {
@@ -61,8 +61,8 @@ module.exports = (app, authenticateToken) => {
 
             // 3. Rendelés fejléc beszúrása az új rendelésszámmal
             const [result] = await db.query(
-                `INSERT INTO Rendeles (partnerseg, datum, status, sz_cim, rendeles_szam) VALUES (?, ?, ?, ?, ?)`,
-                [partnerseg, datum, status, sz_cim, kovetkezoRendszam]
+                `INSERT INTO Rendeles (partnerseg, datum, status, sz_cim, rendeles_szam, szamla_kesz, szamla_kesz_datum, sztorno) VALUES (?, ?, ?, ?, ?, false, NULL, false)`,
+                [partnerseg, datum, status, sz_cim, kovetkezoRendszam, false, null, false]
             );
             
             const ujRendelesId = result.insertId;
@@ -219,31 +219,56 @@ module.exports = (app, authenticateToken) => {
                 return res.status(400).json({ ok: false, uzenet: "Hiányzó rendelés ID!" });
             }
 
-            // 1. lépés: Tételek törlése (Az idegen kulcsok miatt ezzel kell kezdeni)
-            await db.query(
-                `DELETE FROM RendelesTetel WHERE rendeles_id = ?`,
+            // 0. lépés: Lekérdezzük a rendelés állapotát (szamla_kesz)
+            const [rendeles] = await db.query(
+                `SELECT szamla_kesz FROM Rendeles WHERE id = ?`,
                 [rendelesId]
             );
 
-            // 2. lépés: A rendelés fejléc törlése
-            const [result] = await db.query(
-                `DELETE FROM Rendeles WHERE id = ?`,
-                [rendelesId]
-            );
-
-            // Ellenőrizzük, hogy történt-e valódi törlés
-            if (result.affectedRows === 0) {
-                return res.status(404).json({ ok: false, uzenet: "A rendeles nem található!" });
+            if (rendeles.length === 0) {
+                return res.status(404).json({ ok: false, uzenet: "A rendelés nem található!" });
             }
 
-            return res.status(200).json({ 
-                ok: true, 
-                uzenet: "Rendelés sikeresen törölve a rendszerből!" 
-            });
+            const szamlaKesz = rendeles[0].szamla_kesz;
+
+            if (!szamlaKesz) {
+                // --- FIZIKAI TÖRLÉS ---
+                // Ha a számla nem készült el, töröljük az egészet
+                await db.query(
+                    `DELETE FROM RendelesTetel WHERE rendeles_id = ?`,
+                    [rendelesId]
+                );
+
+                await db.query(
+                    `DELETE FROM Rendeles WHERE id = ?`,
+                    [rendelesId]
+                );
+
+                return res.status(200).json({ 
+                    ok: true, 
+                    uzenet: "Rendelés véglegesen törölve (fizikai törlés)." 
+                });
+
+            } else {
+
+                await db.query(
+                    `UPDATE Rendeles SET storno = true WHERE id = ?`,
+                    [rendelesId]
+                );
+
+                await axios.post(`${url}/api/Szamla_storno`, { id: rendelesId });
+
+                console.log(`API hívás helye: Rendelés stornózva (ID: ${rendelesId})`);
+
+                return res.status(200).json({ 
+                    ok: true, 
+                    uzenet: "Rendelés sikeresen stornózva!" 
+                });
+            }
 
         } catch (err) {
             console.error(err);
-            res.status(500).json({ ok: false, error: "Adatbázis hiba a törlés során!" });
+            res.status(500).json({ ok: false, error: "Adatbázis hiba a törlés/módosítás során!" });
         }
     }); 
 };

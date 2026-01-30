@@ -35,7 +35,7 @@ async function startServer() {
         require("./apik/rendeles.js")(app, authenticateToken);
         require("./apik/regisztral.js")(app);
         require("./apik/szamla.js")(app/*, authenticateToken*/);
-        require("./apik/szallitolevel.js")(app/*, authenticateToken*/);
+        require("./apik/sztorno.js")(app/*, authenticateToken*/, url);
 
         // Szerver indítása
         app.listen(3000, () => {
@@ -64,7 +64,7 @@ async function startServer() {
                 +`\n\t${url}/api/Regisz/Ceg_ad`
                 +`\n\t${url}/api/Regisz/Felhasznalo_ad`
                 +`\n\t${url}/api/Szamla_create`
-                +`\n\t${url}/api/Szallitolev_create`
+                +`\n\t${url}/api/Szamla_storno`
                 +`\n\t${url}/api/Rendeles_statusz_frissit`
                 +`\n\t${url}/api/detail`
                 +`\n\t${url}/api/search/name`
