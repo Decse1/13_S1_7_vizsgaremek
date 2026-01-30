@@ -5,6 +5,7 @@ import authStore from './auth.js';
 const cartStore = reactive({
   companyId: null, // ID of the company we're buying from
   companyName: null, // Name of the company for display
+  partnershipId: null, // ID of the partnership (for orders)
   items: [], // Array of cart items
   initialized: false
 });
@@ -27,16 +28,19 @@ const loadCart = () => {
       const cart = JSON.parse(savedCart);
       cartStore.companyId = cart.companyId || null;
       cartStore.companyName = cart.companyName || null;
+      cartStore.partnershipId = cart.partnershipId || null;
       cartStore.items = cart.items || [];
     } else {
       cartStore.companyId = null;
       cartStore.companyName = null;
+      cartStore.partnershipId = null;
       cartStore.items = [];
     }
   } catch (error) {
     console.error('Error loading cart:', error);
     cartStore.companyId = null;
     cartStore.companyName = null;
+    cartStore.partnershipId = null;
     cartStore.items = [];
   }
   
@@ -54,6 +58,7 @@ const saveCart = () => {
     const cart = {
       companyId: cartStore.companyId,
       companyName: cartStore.companyName,
+      partnershipId: cartStore.partnershipId,
       items: cartStore.items
     };
     localStorage.setItem(cartKey, JSON.stringify(cart));
@@ -66,12 +71,13 @@ const saveCart = () => {
 export const clearCart = () => {
   cartStore.companyId = null;
   cartStore.companyName = null;
+  cartStore.partnershipId = null;
   cartStore.items = [];
   saveCart();
 };
 
 // Add item to cart
-export const addToCart = (item, quantity, companyId, companyName) => {
+export const addToCart = (item, quantity, companyId, companyName, partnershipId) => {
   if (!authStore.isAuthenticated || !authStore.ceg || !authStore.ceg.id) {
     console.error('User must be logged in to add items to cart');
     return { success: false, message: 'Jelentkezz be a kosár használatához!' };
@@ -91,6 +97,7 @@ export const addToCart = (item, quantity, companyId, companyName) => {
   if (!cartStore.companyId) {
     cartStore.companyId = companyId;
     cartStore.companyName = companyName;
+    cartStore.partnershipId = partnershipId;
   }
 
   // Check if item already exists in cart
@@ -118,9 +125,9 @@ export const addToCart = (item, quantity, companyId, companyName) => {
 };
 
 // Add item to cart after confirmation (clears existing cart)
-export const addToCartWithClear = (item, quantity, companyId, companyName) => {
+export const addToCartWithClear = (item, quantity, companyId, companyName, partnershipId) => {
   clearCart();
-  return addToCart(item, quantity, companyId, companyName);
+  return addToCart(item, quantity, companyId, companyName, partnershipId);
 };
 
 // Remove item from cart
@@ -134,6 +141,7 @@ export const removeFromCart = (itemId) => {
   if (cartStore.items.length === 0) {
     cartStore.companyId = null;
     cartStore.companyName = null;
+    cartStore.partnershipId = null;
   }
 
   saveCart();
@@ -179,6 +187,7 @@ watch(() => authStore.isAuthenticated, (newValue) => {
     // User logged out, clear cart
     cartStore.companyId = null;
     cartStore.companyName = null;
+    cartStore.partnershipId = null;
     cartStore.items = [];
     cartStore.initialized = false;
   } else {

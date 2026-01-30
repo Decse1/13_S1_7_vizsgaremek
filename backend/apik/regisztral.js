@@ -95,13 +95,14 @@ module.exports = (app) => {
         try {
             const ceg = req.body;
             let fizet = ceg.elofiz ? 1 : 0; // Rövidített if-else
+            let requiredFields;
+            
             if(fizet == 1){
-                const requiredFields = ['adoszam', 'nev', 'cim', 'szamla_minta', 'szamlaszam'];
+                requiredFields = ['adoszam', 'nev', 'cim', 'szamla_minta', 'szamlaszam'];
             }
             else{
-                const requiredFields = ['adoszam', 'nev', 'cim', 'szamlaszam'];
+                requiredFields = ['adoszam', 'nev', 'cim', 'szamlaszam'];
             }
-            
 
             for (const field of requiredFields) {
                 if (!ceg[field] || ceg[field].toString().trim() === '') {

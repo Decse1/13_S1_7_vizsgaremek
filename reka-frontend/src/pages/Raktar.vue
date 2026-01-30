@@ -19,6 +19,11 @@
     )
   )
 
+  // Check if company has active subscription
+  const hasSubscription = computed(() => {
+    return authStore.ceg && authStore.ceg.elofiz === 1
+  })
+
   // Fetch products from backend
   const fetchProducts = async () => {
     if (!authStore.ceg || !authStore.ceg.id) {
@@ -106,6 +111,10 @@
   })
 
   const edit = (item) => {
+    if (!hasSubscription.value) {
+      alert('A termékek szerkesztése csak aktív RÉKA előfizetéssel érhető el!')
+      return
+    }
     editProduct.value = {
       id: item.id,
       name: item.nev,
@@ -123,6 +132,10 @@
   }
 
   const openAddModal = () => {
+    if (!hasSubscription.value) {
+      alert('Új termék felvétele csak aktív RÉKA előfizetéssel érhető el!')
+      return
+    }
     newProduct.value = {
       name: '',
       stock: 0,
@@ -332,12 +345,16 @@
       </div>
 
       <button
+        v-if="hasSubscription"
         class="btn btn-success btn-teal add-btn rounded-5 d-flex align-items-center"
         @click="openAddModal"
       >
         <i class="bi bi-plus-lg"></i>
         <span class="d-none d-sm-inline ms-2">Új termék felvétele</span>
       </button>
+      <div v-else class="alert alert-warning mb-0 py-2 px-3 rounded-5" role="alert">
+        <i class="bi bi-lock-fill me-2"></i>Előfizetés szükséges
+      </div>
     </div>
 
     <!-- First table -->
@@ -370,7 +387,10 @@
           <!-- td>asd</td -->
           <td>{{ item.ar }} Ft</td>
           <td class="text-end">{{ item.mennyiseg }} {{ item.kiszereles }}</td>
-          <td><i class="bi bi-pencil" @click="edit(item)"/></td>
+          <td>
+            <i v-if="hasSubscription" class="bi bi-pencil" @click="edit(item)"/>
+            <i v-else class="bi bi-lock-fill text-muted" style="cursor: not-allowed;" title="Előfizetés szükséges"/>
+          </td>
         </tr>
       </tbody>
     </table>

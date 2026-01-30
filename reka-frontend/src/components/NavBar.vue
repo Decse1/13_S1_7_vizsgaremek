@@ -175,7 +175,7 @@ onUnmounted(() => {
     <router-link to="/rendelesek/leadott" @click="closeSidebar" class="sidebar-item">Leadott rendelések</router-link>
     <router-link to="/ceginfo" @click="closeSidebar" class="sidebar-item">Cégem</router-link>
     <router-link to="/kosar" @click="closeSidebar" class="sidebar-item">Kosár</router-link>
-    <router-link to="/" @click="closeSidebar" class="sidebar-item">Beállítások</router-link>
+    <!-- <router-link to="/" @click="closeSidebar" class="sidebar-item">Beállítások</router-link> -->
   </div>
 
   <!-- Overlay -->

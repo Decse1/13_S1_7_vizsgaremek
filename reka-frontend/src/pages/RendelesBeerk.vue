@@ -25,6 +25,11 @@ const allProductsChecked = computed(() => {
          editableProducts.value.every(product => product.checked);
 });
 
+// Check if current order is fulfilled
+const isOrderFulfilled = computed(() => {
+  return selectedOrderDetails.value?.status === 'Teljesítve';
+});
+
 // Group orders by order number and date
 const groupedOrders = computed(() => {
   // Use a single Map to prevent duplicates across all buyers
@@ -56,8 +61,7 @@ const groupedOrders = computed(() => {
         order.termekek.push({
           termek_neve: tetel.termek_neve,
           rendelt_mennyiseg: tetel.rendelt_mennyiseg,
-          termek_id: tetel.termek_id,
-          rendelestetel_id: tetel.rendelestetel_id
+          termek_id: tetel.termek_id
         });
       }
     });
@@ -158,7 +162,6 @@ const fulfillOrder = async () => {
     const orderData = {
       id: selectedOrderDetails.value.rendeles_id,
       termekek: editableProducts.value.map(product => ({
-        id: product.rendelestetel_id,
         mennyiseg: product.editedQuantity,
         termek_id: product.termek_id
       }))
@@ -181,6 +184,121 @@ const fulfillOrder = async () => {
   } catch (err) {
     console.error('Error fulfilling order:', err);
     error.value = 'Hiba történt a rendelés teljesítése során';
+  } finally {
+    loading.value = false;
+  }
+};
+
+// Handle invoice generation
+const generateInvoice = async () => {
+  // Verify order is actually fulfilled
+  if (!isOrderFulfilled.value) {
+    error.value = 'A számla csak teljesített rendeléshez generálható';
+    return;
+  }
+
+  try {
+    loading.value = true;
+    error.value = null;
+
+    // Call the invoice generation API
+    const response = await axios.post('/Szamla_create', {
+      id: selectedOrderDetails.value.rendeles_id
+    }, {
+      responseType: 'blob' // Important for handling PDF response
+    });
+
+    // Create a blob URL and trigger download
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Szamla_${selectedOrderDetails.value.rendeles_szam}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    
+    // Cleanup
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    // Show success message
+    alert('Számla sikeresen legenerálva és letöltve!');
+    
+  } catch (err) {
+    console.error('Error generating invoice:', err);
+    error.value = 'Hiba történt a számla generálása során';
+    alert('Hiba történt a számla generálása során. Kérjük, próbálja újra.');
+  } finally {
+    loading.value = false;
+  }
+};
+
+// Handle order deletion
+const deleteOrder = async () => {
+  // Show confirmation dialog
+  const confirmed = confirm(
+    `Biztosan törölni szeretné a(z) ${selectedOrderDetails.value.rendeles_szam} rendelést?`
+  );
+  
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    loading.value = true;
+    error.value = null;
+
+    // Call the deletion API
+    const response = await axios.post('/Rendeles_delete', {
+      rendelesId: selectedOrderDetails.value.rendeles_id
+    });
+
+    if (response.data.ok) {
+      // Check if we need to generate a storno invoice
+      if (response.data.action === 'generate_pdf_required') {
+        // Generate storno invoice
+        try {
+          const szornoResponse = await axios.post('/Szamla_storno', {
+            id: selectedOrderDetails.value.rendeles_id
+          }, {
+            responseType: 'blob'
+          });
+
+          // Download the storno invoice
+          const blob = new Blob([szornoResponse.data], { type: 'application/pdf' });
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `Sztorno_Szamla_${selectedOrderDetails.value.rendeles_szam}.pdf`;
+          document.body.appendChild(link);
+          link.click();
+          
+          // Cleanup
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+
+          alert('Rendelés sztornózva és sztornó számla legenerálva!');
+        } catch (szornoErr) {
+          console.error('Error generating storno invoice:', szornoErr);
+          alert('Rendelés sztornózva, de hiba történt a sztornó számla generálása során.');
+        }
+      } else {
+        // Physical deletion - no invoice needed
+        alert(response.data.uzenet || 'Rendelés sikeresen törölve!');
+      }
+
+      // Close modal and refresh orders list
+      closeDetailsModal();
+      await fetchOrders();
+      
+    } else {
+      error.value = response.data.uzenet || 'Hiba történt a rendelés törlése során';
+      alert(error.value);
+    }
+  } catch (err) {
+    console.error('Error deleting order:', err);
+    error.value = 'Hiba történt a rendelés törlése során';
+    alert('Hiba történt a rendelés törlése során. Kérjük, próbálja újra.');
   } finally {
     loading.value = false;
   }
@@ -212,8 +330,8 @@ onMounted(() => {
       {{ error }}
     </div>
 
-    <div v-else-if="groupedOrders.length === 0" class="alert alert-info">
-      Még nem érkezett be rendelés.
+    <div v-else-if="groupedOrders.length === 0" class="alert alert-warning">
+      Nincsenek beérkezett rendelések.
     </div>
 
     <div v-else class="table-responsive">
@@ -288,7 +406,7 @@ onMounted(() => {
                   class="product-item mb-3 p-3 border rounded"
                 >
                   <div class="d-flex align-items-center gap-3">
-                    <div class="form-check">
+                    <div class="form-check" v-if="!isOrderFulfilled">
                       <input 
                         class="form-check-input" 
                         type="checkbox" 
@@ -296,7 +414,7 @@ onMounted(() => {
                         :id="'product-' + idx"
                       />
                     </div>
-                    <label :for="'product-' + idx" class="form-check-label flex-grow-1 mb-0">
+                    <label :for="isOrderFulfilled ? '' : 'product-' + idx" class="form-check-label flex-grow-1 mb-0" :class="{ 'cursor-default': isOrderFulfilled }">
                       {{ product.termek_neve }}
                     </label>
                     <div class="d-flex align-items-center gap-2">
@@ -306,6 +424,8 @@ onMounted(() => {
                         v-model.number="product.editedQuantity"
                         min="0"
                         style="width: 100px;"
+                        :disabled="isOrderFulfilled"
+                        :readonly="isOrderFulfilled"
                       />
                       <span class="text-muted">db<!-- {{ product.editedQuantity > 1 ? 'db' : 'kg' }} --></span>
                     </div>
@@ -314,14 +434,32 @@ onMounted(() => {
               </div>
             </div>
             <div class="modal-footer d-flex justify-content-between">
-              <button 
-                type="button" 
-                class="btn btn-teal text-white"
-                @click="fulfillOrder"
-                :disabled="!allProductsChecked"
-              >
-                Rendelés teljesítése
-              </button>
+              <div class="d-flex gap-2">
+                <button 
+                  v-if="!isOrderFulfilled"
+                  type="button" 
+                  class="btn btn-teal text-white"
+                  @click="fulfillOrder"
+                  :disabled="!allProductsChecked"
+                >
+                  Rendelés teljesítése
+                </button>
+                <button 
+                  v-else
+                  type="button" 
+                  class="btn btn-teal text-white"
+                  @click="generateInvoice"
+                >
+                  Számla generálása
+                </button>
+                <button 
+                  type="button" 
+                  class="btn btn-danger text-white"
+                  @click="deleteOrder"
+                >
+                  Törlés
+                </button>
+              </div>
               <button type="button" class="btn btn-secondary" @click="closeDetailsModal">
                 Bezárás
               </button>
@@ -512,6 +650,10 @@ onMounted(() => {
   .form-check-label {
     cursor: pointer;
     font-weight: 500;
+  }
+
+  .cursor-default {
+    cursor: default !important;
   }
 
   .quantity-input {

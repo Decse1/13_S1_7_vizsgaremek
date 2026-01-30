@@ -136,8 +136,8 @@ onMounted(() => {
       {{ error }}
     </div>
 
-    <div v-else-if="groupedOrders.length === 0" class="alert alert-info">
-      Még nem adtál le rendelést.
+    <div v-else-if="groupedOrders.length === 0" class="alert alert-warning">
+      Nincsenek leadott rendelések.
     </div>
 
     <div v-else class="table-responsive">

@@ -18,6 +18,10 @@ const elofizText = computed(() => {
   return 'no';
 });
 
+const goToUsers = (cegId) => {
+  router.push(`/ceginfo/felhasznalok`);
+};
+
 const closeError = () => {
   showError.value = false;
 };
@@ -265,8 +269,16 @@ const deactivateReka = async () => {
     <p>Email: {{ authStore.ceg.email }}</p>
     <p>Telefonszám: {{ authStore.ceg.telefon }}</p>
     <p>Számlaszám: {{ authStore.ceg.szamlaszam }}</p>
+    <button
+        class="btn btn-success btn-teal add-btn rounded-5 d-flex align-items-center"
+        @click="goToUsers"
+      >
+        <span class="d-none d-sm-inline">Felhasználók</span>
+    </button>
+
     <h2>Előfizetés állapota</h2>
     <p>Előfizet-e a RÉKA vállalatirányítási rendszerére: {{ elofizText }}</p>
+    
     
     <!-- Error Alert -->
     <div

@@ -68,6 +68,27 @@
         if (partner) {
           hasPartnership.value = true
           partnerCompany.value = partner
+          
+          // Check if partner company has subscription
+          try {
+            const cegResponse = await axios.get('/Ceg_osszes')
+            
+            if (cegResponse.data.ok && cegResponse.data.cegek) {
+              const partnerCegData = cegResponse.data.cegek.find(c => c.id === partnerId)
+              
+              if (partnerCegData && !partnerCegData.elofiz) {
+                hasPartnership.value = false
+                error.value = 'Ez a cég jelenleg nem rendelkezik előfizetéssel, így nem tud termékeket értékesíteni!'
+                return false
+              }
+            }
+          } catch (err) {
+            console.error('Subscription check error:', err)
+            error.value = 'Hiba történt az előfizetés ellenőrzése során!'
+            hasPartnership.value = false
+            return false
+          }
+          
           return true
         } else {
           hasPartnership.value = false
@@ -117,7 +138,11 @@
       }
     } catch (err) {
       console.error('Axios error:', err)
-      error.value = 'Hiba történt a szerver kapcsolat során!'
+      if (err.response && err.response.status === 404) {
+        error.value = 'A partnernek nincsenek termékei a raktáron'
+      } else {
+        error.value = 'Hiba történt a szerver kapcsolat során!'
+      }
     } finally {
       loading.value = false
     }
@@ -174,9 +199,10 @@
   const addToCart = (item) => {
     const quantity = quantities.value[item.id]
     const partnerId = parseInt(route.params.id)
+    const partnershipId = partnerCompany.value ? partnerCompany.value.id : null
     const companyName = partnerCompany.value ? partnerCompany.value.nev : 'Partner'
     
-    const result = addItemToCart(item, quantity, partnerId, companyName)
+    const result = addItemToCart(item, quantity, partnerId, companyName, partnershipId)
     
     if (result.requiresConfirmation) {
       // Show confirmation modal
@@ -194,9 +220,10 @@
   const confirmAddToCart = () => {
     if (pendingCartItem.value) {
       const partnerId = parseInt(route.params.id)
+      const partnershipId = partnerCompany.value ? partnerCompany.value.id : null
       const companyName = partnerCompany.value ? partnerCompany.value.nev : 'Partner'
       
-      const result = addToCartWithClear(pendingCartItem.value, pendingQuantity.value, partnerId, companyName)
+      const result = addToCartWithClear(pendingCartItem.value, pendingQuantity.value, partnerId, companyName, partnershipId)
       
       if (result.success) {
         alert(result.message)

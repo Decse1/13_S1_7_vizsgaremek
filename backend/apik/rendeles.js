@@ -84,20 +84,30 @@ module.exports = (app, authenticateToken, url) => {
             const rendelesek = [];
             for (const vevo of rendelok) {
                 const [rendeletTermek] = await db.query(
-                    `SELECT R.id AS rendeles_id, R.rendeles_szam, R.datum, F.nev AS szallitasi_nev, T.nev AS termek_neve, RT.mennyiseg AS rendelt_mennyiseg
+                    `SELECT 
+                        R.id AS rendeles_id,
+                        R.rendeles_szam,
+                        R.datum,
+                        R.status,
+                        F.nev AS szallitasi_nev,
+                        T.id AS termek_id,
+                        T.nev AS termek_neve,
+                        RT.mennyiseg AS rendelt_mennyiseg
                     FROM Rendeles R 
                     JOIN Partnerseg P ON R.partnerseg = P.id 
                     JOIN RendelesTetel RT ON R.id = RT.rendeles_id 
                     JOIN Termek T ON RT.termek_id = T.id 
                     JOIN Felhasznalo F ON R.sz_cim = F.id
                     WHERE P.elado = ? AND P.vevo = ?
-                    ORDER BY R.datum DESC`, [cegId, vevo.vevo_id]
+                    ORDER BY R.datum DESC`,
+                    [cegId, vevo.vevo_id]
                 );
                 rendelesek.push({ vevo: vevo, tételek: rendeletTermek });
             }
             return res.status(200).json({ ok: true, rendelesek });
         } catch (err) {
-            res.status(500).json({ error: "Adatbázis hiba!" });
+            console.error("Hiba a beérkezett rendeléseknél:", err);
+            res.status(500).json({ error: "Adatbázis hiba!", details: err.message });
         }
     });
 
@@ -119,7 +129,7 @@ module.exports = (app, authenticateToken, url) => {
                     `SELECT T.nev AS termek_neve, RT.mennyiseg AS rendelt_mennyiseg,  R.rendeles_szam, R.status, R.datum
                      FROM Rendeles R 
                      JOIN Partnerseg P ON R.partnerseg = P.id 
-                     JOIN Rendelestetel RT ON R.id = RT.rendeles_id 
+                     JOIN RendelesTetel RT ON R.id = RT.rendeles_id 
                      JOIN Termek T ON RT.termek_id = T.id 
                      WHERE P.vevo = ? AND P.elado = ?`, [cegId, elado.elado_id]
                 );
@@ -137,8 +147,11 @@ module.exports = (app, authenticateToken, url) => {
             const rendeles = req.body;
             await db.query(`UPDATE Rendeles SET status = "Teljesítve" WHERE id = ?`, [rendeles.id]);
             for (const t of rendeles.termekek) {
-                await db.query(`UPDATE RendelesTetel SET mennyiseg = ? WHERE id = ?`, [t.mennyiseg, t.id]);
-                await db.query(`UPDATE Termek SET mennyiseg = mennyiseg - ? WHERE id = ?`, [t.mennyiseg, t.id]);
+                await db.query(
+                    `UPDATE RendelesTetel SET mennyiseg = ? WHERE rendeles_id = ? AND termek_id = ?`, 
+                    [t.mennyiseg, rendeles.id, t.termek_id]
+                );
+                await db.query(`UPDATE Termek SET mennyiseg = mennyiseg - ? WHERE id = ?`, [t.mennyiseg, t.termek_id]);
             }
             return res.status(200).json({ ok: true, uzenet: "Rendelés státusza frissítve!" });
         } catch (err) {

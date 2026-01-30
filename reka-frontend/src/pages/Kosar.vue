@@ -85,8 +85,8 @@ const placeOrder = async () => {
     return;
   }
 
-  if (!cartStore.companyId) {
-    alert('Hiba: Hiányzó cég információ!');
+  if (!cartStore.partnershipId) {
+    alert('Hiba: Hiányzó partnerség információ!');
     return;
   }
 
@@ -104,7 +104,7 @@ const placeOrder = async () => {
 
     // Prepare order data
     const orderData = {
-      partnerseg: cartStore.companyId, // Partnership/Company ID
+      partnerseg: cartStore.partnershipId, // Partnership ID
       sz_cim: authStore.user.id, // Billing address (User ID)
       termekek: termekek
     };
