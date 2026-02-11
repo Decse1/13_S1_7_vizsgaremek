@@ -313,7 +313,7 @@
         class="btn btn-success btn-teal add-btn rounded-5 d-flex align-items-center"
         @click="openAddModal"
       >
-        <i class="bi bi-plus-lg"></i>
+        <Icons name="plus" size="1.5rem"/>
         <span class="d-none d-sm-none d-md-none d-lg-inline ms-2">Új eladói partnerség felvétele</span>
       </button>
     </div>

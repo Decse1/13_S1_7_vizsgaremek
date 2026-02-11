@@ -349,7 +349,7 @@
         class="btn btn-success btn-teal add-btn rounded-5 d-flex align-items-center"
         @click="openAddModal"
       >
-        <i class="bi bi-plus-lg"></i>
+        <Icons name="plus" size="1.5rem"/>
         <span class="d-none d-sm-inline ms-2">Új termék felvétele</span>
       </button>
       <div v-else class="alert alert-warning mb-0 py-2 px-3 rounded-5" role="alert">
@@ -388,7 +388,9 @@
           <td>{{ item.ar }} Ft</td>
           <td class="text-end">{{ item.mennyiseg }} {{ item.kiszereles }}</td>
           <td>
-            <i v-if="hasSubscription" class="bi bi-pencil" @click="edit(item)"/>
+            <span v-if="hasSubscription" class="cursor-pointer" @click="edit(item)">
+              <Icons name="pencil" size="1.25rem" />
+            </span>
             <i v-else class="bi bi-lock-fill text-muted" style="cursor: not-allowed;" title="Előfizetés szükséges"/>
           </td>
         </tr>
@@ -708,6 +710,21 @@
   .bi-pencil {
     color: #000;
     cursor: pointer;
+  }
+
+  .cursor-pointer {
+    cursor: pointer;
+    color: #000;
+    transition: opacity 0.2s;
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+    position: relative;
+    top: -2px;
+  }
+
+  .cursor-pointer:hover {
+    opacity: 0.6;
   }
 
   .bi-trash {

@@ -1,0 +1,40 @@
+/* Outfit Variable Font */
+@font-face {
+  font-family: 'Outfit';
+  src: url('/Outfit-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Century Gothic fonts */
+@font-face {
+  font-family: 'Century Gothic';
+  src: url('/centurygothic.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Century Gothic';
+  src: url('/centurygothic_bold.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Override Bootstrap's default font stack */
+:root {
+  --bs-body-font-family: 'Outfit', 'Century Gothic', 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  --bs-body-font-weight: 400;
+}
+
+body, .btn, .form-control, .form-select, input, textarea, select, h1, h2, h3, h4, h5, h6 {
+  font-family: 'Outfit', 'Century Gothic', 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif !important;
+  font-weight: 400;
+}
+
+strong, b, .fw-bold {
+  font-weight: 700 !important;
+}
