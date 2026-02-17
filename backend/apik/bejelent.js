@@ -75,7 +75,6 @@ router.post('/Bejelent', async (req, res) => {
             { 
                 id: felhasznalo.id, 
                 nev: felhasznalo.nev,
-                role: felhasznalo.kategoria 
             },
             SECRET_KEY,
             { expiresIn: '10m' } // A belépés 8 óráig érvényes
@@ -89,7 +88,12 @@ router.post('/Bejelent', async (req, res) => {
             felhasznalo: {
                 id: felhasznalo.id,
                 nev: felhasznalo.nev,
-                kategoria: felhasznalo.kategoria,
+                jogkor: {
+                    rendeles_osszkesz: felhasznalo.rendeles_osszkesz,
+                    rendeles_lead: felhasznalo.rendeles_lead,
+                    szamla_keszit: felhasznalo.szamla_keszit,
+                    raktar_kezel: felhasznalo.raktar_kezel
+                },
                 telephely_cim: felhasznalo.telephely_cim,
                 telefon: felhasznalo.telefon
             },

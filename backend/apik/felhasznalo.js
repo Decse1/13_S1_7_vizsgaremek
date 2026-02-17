@@ -11,8 +11,8 @@ async function getFelhasznaloIdByNev(nev) {
 
 async function felhasznalo_ad(profil, hashedPassword) {
     const [rows] = await db.query(
-        `INSERT INTO Felhasznalo (nev, jelszo, kategoria, telephely_cim, telefon) VALUES (?, ?, ?, ?, ?)`,
-        [profil.nev, hashedPassword, profil.kategoria, profil.telephely_cim, profil.telefon]
+        `INSERT INTO Felhasznalo (id, nev, jelszo, telephely_cim, telefon, rendeles_osszkesz, rendeles_lead, szamla_keszit, raktar_kezel) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [profil.nev, hashedPassword, profil.kategoria, profil.telephely_cim, profil.telefon, profil.rendeles_osszkesz, profil.rendeles_lead, profil.szamla_keszit, profil.raktar_kezel]
     );
     return rows;
 }
@@ -28,8 +28,8 @@ async function alkalmazott_ad(profil, tmp) {
 async function felhasznalo_update(profil, hashedPassword) {
     // JAVÍTÁS: Helyes SQL UPDATE szintaxis (SET használata és ? jelek)
     const [rows] = await db.query(
-        `UPDATE Felhasznalo SET nev = ?, jelszo = ?, kategoria = ?, telephely_cim = ?, telefon = ? WHERE id = ?`,
-        [profil.nev, hashedPassword, profil.kategoria, profil.telephely_cim, profil.telefon, profil.id]
+        `UPDATE Felhasznalo SET nev = ?, jelszo = ?, telephely_cim = ?, telefon = ?, rendeles_osszkesz = ?, rendeles_lead = ?, szamla_keszit = ?, raktar_kezel = ? WHERE id = ?`,
+        [profil.nev, hashedPassword, profil.kategoria, profil.telephely_cim, profil.telefon, profil.rendeles_osszkesz, profil.rendeles_lead, profil.szamla_keszit, profil.raktar_kezel, profil.id]
     );
     return rows;
 }
@@ -56,7 +56,7 @@ module.exports = (app, authenticateToken) => {
     app.post('/api/Felhasznalo_ad', authenticateToken, async (req, res) => {
         try {
             const profil = req.body;
-            const requiredFields = ['nev', 'jelszo', 'kategoria', 'telephely_cim', 'telefon', 'cegId'];
+            const requiredFields = ['id', 'nev', 'jelszo', 'telephely_cim', 'telefon', 'rendeles_osszkesz', 'rendeles_lead', 'szamla_keszit', 'raktar_kezek'];
 
             for (const field of requiredFields) {
                 if (!profil[field] || profil[field].toString().trim() === '') {
