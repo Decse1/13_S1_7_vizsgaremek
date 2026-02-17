@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import authStore from '../stores/auth.js';
+import authStore, { clearAuthState } from '../stores/auth.js';
 import axios from '../axios.js';
 
 // User list from database
@@ -147,6 +147,110 @@ const saveNewUser = async () => {
     formError.value = err.response?.data?.uzenet || 'Hiba történt a szerver kapcsolat során!';
   }
 };
+
+// Edit user functionality
+const showEditModal = ref(false);
+const editUser = ref({
+  id: null,
+  nev: '',
+  jelszo: '',
+  kategoria: 2,
+  telephely_cim: '',
+  telefon: ''
+});
+
+const openEditModal = (user) => {
+  editUser.value = {
+    id: user.id,
+    nev: user.nev,
+    jelszo: '', // Leave empty, user will need to enter a new password
+    kategoria: user.kategoria,
+    telephely_cim: user.telephely_cim,
+    telefon: user.telefon
+  };
+  formError.value = '';
+  showEditModal.value = true;
+};
+
+const closeEditModal = () => {
+  showEditModal.value = false;
+  formError.value = '';
+};
+
+const saveEditUser = async () => {
+  // Validate form fields
+  formError.value = '';
+
+  if (!editUser.value.nev || editUser.value.nev.trim() === '') {
+    formError.value = 'A felhasználónév megadása kötelező!';
+    return;
+  }
+
+  if (!editUser.value.jelszo || editUser.value.jelszo.trim() === '') {
+    formError.value = 'A jelszó megadása kötelező!';
+    return;
+  }
+
+  if (editUser.value.jelszo.length < 6) {
+    formError.value = 'A jelszónak legalább 6 karakter hosszúnak kell lennie!';
+    return;
+  }
+
+  if (!editUser.value.telephely_cim || editUser.value.telephely_cim.trim() === '') {
+    formError.value = 'A telephely cím megadása kötelező!';
+    return;
+  }
+
+  if (!editUser.value.telefon || editUser.value.telefon.trim() === '') {
+    formError.value = 'A telefonszám megadása kötelező!';
+    return;
+  }
+
+  if (!editUser.value.kategoria) {
+    formError.value = 'A kategória kiválasztása kötelező!';
+    return;
+  }
+
+  // Check if user is logged in
+  if (!authStore.ceg || !authStore.ceg.id) {
+    formError.value = 'Nincs bejelentkezve cég!';
+    return;
+  }
+
+  // If all validations pass, send to backend
+  try {
+    const response = await axios.post('/Felhasznalo_update', {
+      id: editUser.value.id,
+      nev: editUser.value.nev,
+      jelszo: editUser.value.jelszo,
+      kategoria: editUser.value.kategoria,
+      telephely_cim: editUser.value.telephely_cim,
+      telefon: editUser.value.telefon,
+      cegId: authStore.ceg.id
+    });
+
+    if (response.data.ok) {
+      // Check if the edited user is the currently logged-in user
+      const isCurrentUser = authStore.user && authStore.user.id === editUser.value.id;
+      
+      if (isCurrentUser) {
+        // Log out the user since their data has been modified
+        clearAuthState();
+        // Redirect to login page
+        window.location.href = '/bejelentkezes';
+      } else {
+        // Success - refresh the user list
+        await fetchUsers();
+        closeEditModal();
+      }
+    } else {
+      formError.value = response?.data?.uzenet || 'Hiba történt a felhasználó módosítása során';
+    }
+  } catch (err) {
+    console.error('Error updating user:', err);
+    formError.value = err.response?.data?.uzenet || 'Hiba történt a szerver kapcsolat során!';
+  }
+};
 </script>
 
 <template>
@@ -193,20 +297,26 @@ const saveNewUser = async () => {
       <thead>
         <tr>
           <th style="width: 25%;">Név</th>
-          <th style="width: 20%;">Kategória</th>
+          <th style="width: 15%;">Kategória</th>
           <th style="width: 30%;">Telephely cím</th>
-          <th style="width: 25%;">Telefon</th>
+          <th style="width: 20%;">Telefon</th>
+          <th v-if="canAddUser" style="width: 10%;">Műveletek</th>
         </tr>
       </thead>
       <tbody>
         <tr v-if="filteredUsers.length === 0">
-          <td colspan="4" class="text-center">Nincs megjeleníthető felhasználó</td>
+          <td :colspan="canAddUser ? 5 : 4" class="text-center">Nincs megjeleníthető felhasználó</td>
         </tr>
         <tr v-for="(user, index) in filteredUsers" :key="user.id || index">
           <td>{{ user.nev }}</td>
           <td>{{ user.kategoria }}</td>
           <td>{{ user.telephely_cim }}</td>
           <td>{{ user.telefon }}</td>
+          <td v-if="canAddUser">
+            <span class="cursor-pointer" @click="openEditModal(user)" title="Szerkesztés">
+              <Icons name="pencil" size="1.25rem" />
+            </span>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -297,6 +407,98 @@ const saveNewUser = async () => {
         </div>
       </div>
     </transition>
+
+    <!-- Edit user modal -->
+    <transition name="modal-fade">
+      <div
+        v-if="showEditModal"
+        class="modal-backdrop-custom"
+        tabindex="-1"
+        role="dialog"
+        @click="closeEditModal"
+      >
+        <div class="modal-dialog modal-dialog-centered modal-dialog-custom" role="document" @click.stop>
+          <div class="modal-content custom-modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Felhasználó szerkesztése</h5>
+              <button type="button" class="btn-close" @click="closeEditModal"></button>
+            </div> 
+            <div class="modal-body">
+              <form id="edit-user-form" @submit.prevent="saveEditUser">
+                <div class="mb-3">
+                  <label class="form-label">Felhasználónév</label>
+                  <input
+                    v-model="editUser.nev"
+                    type="text"
+                    class="form-control custom-input"
+                    maxlength="100"
+                    required
+                  />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Új jelszó</label>
+                  <input
+                    v-model="editUser.jelszo"
+                    type="password"
+                    class="form-control custom-input"
+                    maxlength="100"
+                    required
+                    placeholder="Adjon meg új jelszót"
+                  />
+                  <small class="text-muted">A jelszó módosításához adjon meg új jelszót (min. 6 karakter)</small>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Kategória</label>
+                  <select
+                    v-model.number="editUser.kategoria"
+                    class="form-select custom-input"
+                    :disabled="editUser.kategoria === 1"
+                    required
+                  >
+                    <option v-if="editUser.kategoria === 1" :value="1">1 (Admin - nem módosítható)</option>
+                    <option :value="2">2</option>
+                    <option :value="3">3</option>
+                  </select>
+                  <small v-if="editUser.kategoria === 1" class="text-muted">Az admin kategória nem módosítható</small>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Telephely cím</label>
+                  <input
+                    v-model="editUser.telephely_cim"
+                    type="text"
+                    class="form-control custom-input"
+                    maxlength="255"
+                    required
+                  />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Telefonszám</label>
+                  <input
+                    v-model="editUser.telefon"
+                    type="tel"
+                    class="form-control custom-input"
+                    maxlength="15"
+                    required
+                  />
+                </div>
+              </form>
+              <!-- Error message display -->
+              <div v-if="formError" class="alert alert-danger mt-3 mb-0" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ formError }}
+              </div>
+            </div>            
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary rounded-pill" @click="closeEditModal">
+                Mégse
+              </button>
+              <button type="submit" class="btn btn-primary btn-teal rounded-pill" form="edit-user-form">
+                Mentés
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -344,6 +546,21 @@ const saveNewUser = async () => {
     vertical-align: middle;
   }
 
+  .cursor-pointer {
+    cursor: pointer;
+    color: #000;
+    transition: opacity 0.2s;
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+    position: relative;
+    top: -2px;
+  }
+
+  .cursor-pointer:hover {
+    opacity: 0.6;
+  }
+
   .custom-table {
     --bs-table-bg: lightgray;
   }
@@ -359,6 +576,12 @@ const saveNewUser = async () => {
     border-color: #00948B;
     background-color: white;
     box-shadow: none;
+  }
+
+  .custom-input:disabled {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+    opacity: 0.7;
   }
 
   .modal-backdrop {

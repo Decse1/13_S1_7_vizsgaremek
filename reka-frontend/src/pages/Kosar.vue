@@ -95,7 +95,32 @@ const placeOrder = async () => {
     return;
   }
 
+  if (!cartStore.companyId) {
+    alert('Hiba: Hiányzó cég információ!');
+    return;
+  }
+
   try {
+    // Check if the seller company has an active subscription
+    const companiesResponse = await axios.get('/Ceg_osszes');
+    
+    if (!companiesResponse.data.ok || !companiesResponse.data.cegek) {
+      alert('Hiba: Nem sikerült ellenőrizni a cég előfizetési státuszát!');
+      return;
+    }
+
+    const sellerCompany = companiesResponse.data.cegek.find(c => c.id === cartStore.companyId);
+    
+    if (!sellerCompany) {
+      alert('Hiba: Az eladó cég nem található!');
+      return;
+    }
+
+    if (!sellerCompany.elofiz) {
+      alert(`Hiba: A(z) ${sellerCompany.nev} cég nem rendelkezik aktív RÉKA előfizetéssel. A rendelés leadása nem lehetséges!`);
+      return;
+    }
+
     // Transform cart items to the expected format
     const termekek = cartItems.value.map(item => ({
       termekId: item.id,
@@ -115,7 +140,7 @@ const placeOrder = async () => {
     if (response.data.ok) {
       alert(`Rendelés sikeresen leadva! Rendelés azonosító: ${response.data.rendelesId}`);
       clearCart();
-      router.push('/rendeles-leadott'); // Redirect to orders page
+      router.push('/rendelesek/leadott'); // Redirect to orders page
     } else {
       alert(`Hiba a rendelés leadásakor: ${response.data.uzenet || 'Ismeretlen hiba'}`);
     }
