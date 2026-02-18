@@ -1,7 +1,7 @@
 <script setup>
   import { ref, computed, onMounted } from 'vue'
   import axios from '../axios.js'
-  import authStore from '../stores/auth'
+  import authStore, { setAuthState, hasPermission, isAdmin } from '../stores/auth.js';
 
   // product list from database
   const items = ref([])
@@ -134,6 +134,10 @@
   const openAddModal = () => {
     if (!hasSubscription.value) {
       alert('Új termék felvétele csak aktív RÉKA előfizetéssel érhető el!')
+      return
+    }
+    else if (!hasPermission('raktar_kezel')) {
+      alert('Új termék felvétele csak megfelelő jogosultsággal rendelkező felhasználók számára érhető el!')
       return
     }
     newProduct.value = {
@@ -345,14 +349,14 @@
       </div>
 
       <button
-        v-if="hasSubscription"
+        v-if="hasSubscription && hasPermission('raktar_kezel')"
         class="btn btn-success btn-teal add-btn rounded-5 d-flex align-items-center"
         @click="openAddModal"
       >
         <Icons name="plus" size="1.5rem"/>
         <span class="d-none d-sm-inline ms-2">Új termék felvétele</span>
       </button>
-      <div v-else class="alert alert-warning mb-0 py-2 px-3 rounded-5" role="alert">
+      <div v-else-if="!hasSubscription" class="alert alert-warning mb-0 py-2 px-3 rounded-5" role="alert">
         <i class="bi bi-lock-fill me-2"></i>Előfizetés szükséges
       </div>
     </div>
@@ -388,10 +392,10 @@
           <td>{{ item.ar }} Ft</td>
           <td class="text-end">{{ item.mennyiseg }} {{ item.kiszereles }}</td>
           <td>
-            <span v-if="hasSubscription" class="cursor-pointer" @click="edit(item)">
+            <span v-if="hasSubscription && hasPermission('raktar_kezel')" class="cursor-pointer" @click="edit(item)">
               <Icons name="pencil" size="1.25rem" />
             </span>
-            <i v-else class="bi bi-lock-fill text-muted" style="cursor: not-allowed;" title="Előfizetés szükséges"/>
+            <i v-else-if="!hasSubscription" class="bi bi-lock-fill text-muted" style="cursor: not-allowed;" title="Előfizetés szükséges"/>
           </td>
         </tr>
       </tbody>

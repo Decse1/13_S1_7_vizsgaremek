@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import authStore from '../stores/auth.js';
+import authStore, { setAuthState, hasPermission, isAdmin } from '../stores/auth.js';
 
 const quantity = ref(1);
 

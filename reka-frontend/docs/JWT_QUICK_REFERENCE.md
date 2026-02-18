@@ -48,7 +48,28 @@ if (authStore.isAuthenticated) {
 import authStore from '../stores/auth.js';
 const userId = authStore.user?.id;
 const userName = authStore.user?.nev;
-const userRole = authStore.user?.kategoria;
+const userPermissions = authStore.user?.jogkor;
+```
+
+### Check user permissions
+```javascript
+import authStore, { hasPermission, isAdmin } from '../stores/auth.js';
+
+// Check specific permission
+if (hasPermission('raktar_kezel')) {
+  // User can manage warehouse
+}
+
+// Check if user has all permissions (admin)
+if (isAdmin()) {
+  // User is admin (has all permissions)
+}
+
+// Available permissions:
+// - rendeles_osszkesz (order assembly)
+// - rendeles_lead (order submission)
+// - szamla_keszit (invoice creation)
+// - raktar_kezel (warehouse management)
 ```
 
 ### Get company info

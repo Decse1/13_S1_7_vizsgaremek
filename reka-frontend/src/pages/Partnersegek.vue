@@ -1,7 +1,7 @@
 <script setup>
   import { ref, computed, onMounted } from 'vue'
   import axios from '../axios.js'
-  import authStore from '../stores/auth'
+  import authStore, { setAuthState, hasPermission, isAdmin } from '../stores/auth.js';
 
   //Teljesen megadott adószám esetén megjeleníteni a cég nevét a mező alatt
   //Partnerség felvételéhez majd integrálni a CégadatAPI-t

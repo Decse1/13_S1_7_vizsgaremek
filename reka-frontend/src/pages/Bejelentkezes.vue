@@ -39,8 +39,9 @@ export default {
         console.log("Felhasználó:", response.data.felhasznalo);
         console.log("Cég:", response.data.ceg);
         console.log("Token:", response.data.token);
+        console.log("Jogosultságok:", response.data.felhasznalo.jogkor);
         
-        // Store authentication data with JWT token
+        // Store authentication data with JWT token (includes user permissions in jogkor)
         setAuthState(response.data.felhasznalo, response.data.ceg, response.data.token);
         
         this.$router.push("/kezdolap");

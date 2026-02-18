@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from '../axios.js';
-import authStore, { setAuthState } from '../stores/auth.js';
+import authStore, { setAuthState, hasPermission, isAdmin } from '../stores/auth.js';
 
 
 const route = useRoute();
@@ -254,7 +254,7 @@ const deactivateReka = async () => {
       </div>
 
       <button
-        v-if="authStore.user.kategoria == 1"
+        v-if="isAdmin()"
         class="btn btn-success btn-teal add-btn rounded-5 d-flex align-items-center"
         @click="openAddModal"
       >
@@ -292,7 +292,7 @@ const deactivateReka = async () => {
     </div>
     
     <!-- Számla minta input for subscription activation -->
-    <div v-if="authStore.ceg.elofiz == 0 && authStore.user.kategoria == 1" class="mb-3">
+    <div v-if="authStore.ceg.elofiz == 0 && isAdmin()" class="mb-3">
       <label class="form-label fw-bold">Számla minta (előfizetés aktiválásához szükséges)</label>
       <input
         v-model="szamla_minta"
@@ -304,7 +304,7 @@ const deactivateReka = async () => {
       />
     </div>
 
-    <button v-if="authStore.ceg.elofiz == 0 && authStore.user.kategoria == 1"
+    <button v-if="authStore.ceg.elofiz == 0 && isAdmin()"
         class="btn btn-success btn-teal add-btn rounded-5 d-flex align-items-center"
         @click="activateReka"
         :disabled="isUpdating"
@@ -314,7 +314,7 @@ const deactivateReka = async () => {
           {{ isUpdating ? 'Frissítés...' : 'RÉKA-előfizetés bekapcsolása' }}
         </span>
     </button>
-    <button v-if="authStore.ceg.elofiz == 1 && authStore.user.kategoria == 1"
+    <button v-if="authStore.ceg.elofiz == 1 && isAdmin()"
         class="btn btn-danger add-btn rounded-5 d-flex align-items-center"
         @click="deactivateReka"
         :disabled="isUpdating"
@@ -324,8 +324,8 @@ const deactivateReka = async () => {
           {{ isUpdating ? 'Frissítés...' : 'RÉKA-előfizetés kikapcsolása' }}
         </span>
     </button>
-    <br v-if="authStore.ceg.elofiz == 1 && authStore.user.kategoria == 1">
-    <p v-if="authStore.ceg.elofiz == 1 && authStore.user.kategoria == 1">Számla minta: {{ authStore.ceg.szamla_minta }}</p>
+    <br v-if="authStore.ceg.elofiz == 1 && isAdmin()">
+    <p v-if="authStore.ceg.elofiz == 1 && isAdmin()">Számla minta: {{ authStore.ceg.szamla_minta }}</p>
 
     <transition name="modal-fade">
       <div

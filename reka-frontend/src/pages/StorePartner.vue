@@ -2,7 +2,7 @@
   import { ref, computed, onMounted } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import axios from '../axios.js'
-  import authStore from '../stores/auth'
+  import authStore, { setAuthState, hasPermission, isAdmin } from '../stores/auth.js';
   import cartStore, { addToCart as addItemToCart, addToCartWithClear } from '../stores/cart'
 
   const route = useRoute()

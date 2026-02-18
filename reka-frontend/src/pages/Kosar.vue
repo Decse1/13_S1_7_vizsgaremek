@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from '../axios.js';
-import authStore from '../stores/auth.js';
+import authStore, { setAuthState, hasPermission, isAdmin } from '../stores/auth.js';
 import cartStore, { removeFromCart, updateQuantity, getTotalPrice, getTotalPriceWithVAT, clearCart } from '../stores/cart.js';
 
 const router = useRouter();

@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import authStore, { clearAuthState } from '../stores/auth.js';
+import authStore, { clearAuthState, setAuthState, hasPermission, isAdmin } from '../stores/auth.js';
 import axios from '../axios.js';
 
 // User list from database

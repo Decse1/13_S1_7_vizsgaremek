@@ -172,6 +172,24 @@ export const clearAuthState = () => {
   clearAutoLogout();
 };
 
+// Check if user has specific permission
+// Note: Database stores permissions as TINYINT (0/1), so we need to check for truthy values
+export const hasPermission = (permissionName) => {
+  const value = authStore.user?.jogkor?.[permissionName];
+  return value === true || value === 1;
+};
+
+// Check if user has all permissions (equivalent to old kategoria == 1)
+export const isAdmin = () => {
+  const jogkor = authStore.user?.jogkor;
+  if (!jogkor) return false;
+  // Check for truthy values (handles both boolean true and number 1)
+  return !!(jogkor.rendeles_osszkesz && 
+           jogkor.rendeles_lead && 
+           jogkor.szamla_keszit && 
+           jogkor.raktar_kezel);
+};
+
 // Initialize auth state
 loadAuthState();
 

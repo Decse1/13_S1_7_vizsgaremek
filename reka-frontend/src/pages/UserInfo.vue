@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
-import authStore, { setAuthState } from '../stores/auth.js';
+import authStore, { setAuthState, hasPermission, isAdmin } from '../stores/auth.js';
 
 const route = useRoute();
 const router = useRouter();
@@ -163,7 +163,26 @@ const deactivateReka = async () => {
     </div>
     <p>Felhasználónév: {{ authStore.user.nev }}</p>
     <p>Telefonszám: {{ authStore.user.telefon }}</p>
-    <p>Kategória: {{ authStore.user.kategoria }}</p>
+    <div class="mb-3">
+      <strong>Jogosultságok:</strong>
+      <ul class="mt-2">
+        <li v-if="isAdmin()" class="text-primary">
+          Teljes hozzáférés
+        </li>
+        <li v-if="authStore.user.jogkor?.rendeles_osszkesz">
+          Rendelés összekészítése
+        </li>
+        <li v-if="authStore.user.jogkor?.rendeles_lead">
+          Rendelés leadása
+        </li>
+        <li v-if="authStore.user.jogkor?.szamla_keszit">
+          Számla készítése
+        </li>
+        <li v-if="authStore.user.jogkor?.raktar_kezel">
+          Raktár kezelése
+        </li>
+      </ul>
+    </div>
     <p>Telephely címe: {{ authStore.user.telephely_cim }}</p>
     <p>Cég neve: {{ authStore.ceg.nev }}</p>
     <p>Adószám: {{ authStore.ceg.adoszam }}</p>

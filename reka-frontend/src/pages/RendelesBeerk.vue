@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from '../axios.js';
-import authStore from '../stores/auth.js';
+import authStore, { setAuthState, hasPermission, isAdmin } from '../stores/auth.js';
 
 const router = useRouter();
 
