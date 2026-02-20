@@ -49,7 +49,7 @@ module.exports = (app) => {
     app.post('/api/Regisz/Felhasznalo_ad', async (req, res) => {
         try {
             const profil = req.body;
-            const requiredFields = ['nev', 'jelszo', 'kategoria', 'telephely_cim', 'telefon', 'cegId'];
+            const requiredFields = ['id', 'nev', 'jelszo', 'telephely_cim', 'telefon', 'rendeles_osszkesz', 'rendeles_lead', 'szamla_keszit', 'raktar_kezek'];
 
             for (const field of requiredFields) {
                 if (!profil[field] || profil[field].toString().trim() === '') {

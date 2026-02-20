@@ -37,7 +37,7 @@ async function felhasznalo_update(profil, hashedPassword) {
 async function alkalmazottak_list(cegId) {
     // JAVÍTÁS: ? paraméter használata SQL injection ellen
     const [rows] = await db.query(
-        `SELECT f.id, f.nev, f.kategoria, f.telephely_cim, f.telefon 
+        `SELECT f.id, f.nev, f.rendeles_osszkesz, f.rendeles_lead, f.szamla_keszit, f.raktar_kezel, f.telephely_cim, f.telefon 
          FROM Ceg_alkalmazott ca 
          INNER JOIN Felhasznalo f ON f.id = ca.felhasznaloId 
          INNER JOIN Ceg c ON c.id = ca.cegId 
@@ -102,7 +102,7 @@ module.exports = (app, authenticateToken) => {
     app.post('/api/Felhasznalo_update', authenticateToken, async (req, res) => {
         try {
             const profil = req.body;
-            const requiredFields = ['nev', 'jelszo', 'kategoria', 'telephely_cim', 'telefon', 'cegId', 'id'];
+            const requiredFields = ['nev', 'jelszo', 'rendeles_osszkesz', 'rendeles_lead', 'szamla_keszit', 'raktar_kezel', 'telephely_cim', 'telefon', 'cegId', 'id'];
 
             for (const field of requiredFields) {
                 if (!profil[field] || profil[field].toString().trim() === '') {
