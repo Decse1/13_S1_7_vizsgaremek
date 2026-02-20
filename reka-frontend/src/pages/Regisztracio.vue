@@ -170,9 +170,12 @@ const handleSubmit = async () => {
       const felhasznaloData = {
         nev: formData.value.felhasznalonev,
         jelszo: formData.value.jelszo,
-        kategoria: 1, // System manager category
         telephely_cim: formData.value.telephelyCime || formData.value.cegCime, // Use cegCime if telephelyCime is empty
         telefon: formData.value.felhszTel,
+        rendeles_osszkesz: 1, // System manager permissions
+        rendeles_lead: 1,
+        szamla_keszit: 1,
+        raktar_kezel: 1,
         cegId: registeredCegId.value
       };
 
@@ -200,10 +203,10 @@ const handleSubmit = async () => {
           elfogadom: false
         };
 
-        // Redirect to login page after 2 seconds
+        // Redirect to login page after 3 seconds
         setTimeout(() => {
           router.push('/bejelentkezes');
-        }, 2000);
+        }, 3000);
       } else {
         // User creation failed
         errorMessage.value = 'A cég létrehozva, de a felhasználó létrehozása sikertelen: ' + (userResponse.data.uzenet || 'Ismeretlen hiba');

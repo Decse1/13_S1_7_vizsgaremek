@@ -63,18 +63,24 @@ const formError = ref('');
 const newUser = ref({
   nev: '',
   jelszo: '',
-  kategoria: 2,
   telephely_cim: '',
-  telefon: ''
+  telefon: '',
+  rendeles_osszkesz: 0,
+  rendeles_lead: 0,
+  szamla_keszit: 0,
+  raktar_kezel: 0
 });
 
 const openAddModal = () => {
   newUser.value = {
     nev: '',
     jelszo: '',
-    kategoria: 2,
     telephely_cim: '',
-    telefon: ''
+    telefon: '',
+    rendeles_osszkesz: 0,
+    rendeles_lead: 0,
+    szamla_keszit: 0,
+    raktar_kezel: 0
   };
   formError.value = '';
   showAddModal.value = true;
@@ -114,11 +120,6 @@ const saveNewUser = async () => {
     return;
   }
 
-  if (!newUser.value.kategoria) {
-    formError.value = 'A kategória kiválasztása kötelező!';
-    return;
-  }
-
   // Check if user is logged in
   if (!authStore.ceg || !authStore.ceg.id) {
     formError.value = 'Nincs bejelentkezve cég!';
@@ -130,9 +131,12 @@ const saveNewUser = async () => {
     const response = await axios.post('/Felhasznalo_ad', {
       nev: newUser.value.nev,
       jelszo: newUser.value.jelszo,
-      kategoria: newUser.value.kategoria,
       telephely_cim: newUser.value.telephely_cim,
       telefon: newUser.value.telefon,
+      rendeles_osszkesz: newUser.value.rendeles_osszkesz ? 1 : 0,
+      rendeles_lead: newUser.value.rendeles_lead ? 1 : 0,
+      szamla_keszit: newUser.value.szamla_keszit ? 1 : 0,
+      raktar_kezel: newUser.value.raktar_kezel ? 1 : 0,
       cegId: authStore.ceg.id
     });
 
@@ -154,9 +158,12 @@ const editUser = ref({
   id: null,
   nev: '',
   jelszo: '',
-  kategoria: 2,
   telephely_cim: '',
-  telefon: ''
+  telefon: '',
+  rendeles_osszkesz: 0,
+  rendeles_lead: 0,
+  szamla_keszit: 0,
+  raktar_kezel: 0
 });
 
 const openEditModal = (user) => {
@@ -164,9 +171,12 @@ const openEditModal = (user) => {
     id: user.id,
     nev: user.nev,
     jelszo: '', // Leave empty, user will need to enter a new password
-    kategoria: user.kategoria,
     telephely_cim: user.telephely_cim,
-    telefon: user.telefon
+    telefon: user.telefon,
+    rendeles_osszkesz: user.rendeles_osszkesz || 0,
+    rendeles_lead: user.rendeles_lead || 0,
+    szamla_keszit: user.szamla_keszit || 0,
+    raktar_kezel: user.raktar_kezel || 0
   };
   formError.value = '';
   showEditModal.value = true;
@@ -206,11 +216,6 @@ const saveEditUser = async () => {
     return;
   }
 
-  if (!editUser.value.kategoria) {
-    formError.value = 'A kategória kiválasztása kötelező!';
-    return;
-  }
-
   // Check if user is logged in
   if (!authStore.ceg || !authStore.ceg.id) {
     formError.value = 'Nincs bejelentkezve cég!';
@@ -223,9 +228,12 @@ const saveEditUser = async () => {
       id: editUser.value.id,
       nev: editUser.value.nev,
       jelszo: editUser.value.jelszo,
-      kategoria: editUser.value.kategoria,
       telephely_cim: editUser.value.telephely_cim,
       telefon: editUser.value.telefon,
+      rendeles_osszkesz: editUser.value.rendeles_osszkesz ? 1 : 0,
+      rendeles_lead: editUser.value.rendeles_lead ? 1 : 0,
+      szamla_keszit: editUser.value.szamla_keszit ? 1 : 0,
+      raktar_kezel: editUser.value.raktar_kezel ? 1 : 0,
       cegId: authStore.ceg.id
     });
 
@@ -271,7 +279,7 @@ const saveEditUser = async () => {
       </div>
 
       <button
-        v-if="canAddUser"
+        v-if="isAdmin()"
         class="btn btn-success btn-teal add-btn rounded-5 d-flex align-items-center"
         @click="openAddModal"
       >
@@ -296,20 +304,38 @@ const saveEditUser = async () => {
     <table v-else class="table custom-table" style="border-bottom: 1px solid black;">
       <thead>
         <tr>
-          <th style="width: 25%;">Név</th>
-          <th style="width: 15%;">Kategória</th>
-          <th style="width: 30%;">Telephely cím</th>
-          <th style="width: 20%;">Telefon</th>
+          <th style="width: 20%;">Név</th>
+          <th style="width: 10%;">Rendelés összeállítás</th>
+          <th style="width: 10%;">Rendelés leadás</th>
+          <th style="width: 10%;">Számla készítés</th>
+          <th style="width: 10%;">Raktár kezelés</th>
+          <th style="width: 20%;">Telephely cím</th>
+          <th style="width: 10%;">Telefon</th>
           <th v-if="canAddUser" style="width: 10%;">Műveletek</th>
         </tr>
       </thead>
       <tbody>
         <tr v-if="filteredUsers.length === 0">
-          <td :colspan="canAddUser ? 5 : 4" class="text-center">Nincs megjeleníthető felhasználó</td>
+          <td :colspan="canAddUser ? 8 : 7" class="text-center">Nincs megjeleníthető felhasználó</td>
         </tr>
         <tr v-for="(user, index) in filteredUsers" :key="user.id || index">
           <td>{{ user.nev }}</td>
-          <td>{{ user.kategoria }}</td>
+          <td class="text-center">
+            <i v-if="user.rendeles_osszkesz" class="bi bi-check-circle-fill text-success"></i>
+            <i v-else class="bi bi-x-circle-fill text-danger"></i>
+          </td>
+          <td class="text-center">
+            <i v-if="user.rendeles_lead" class="bi bi-check-circle-fill text-success"></i>
+            <i v-else class="bi bi-x-circle-fill text-danger"></i>
+          </td>
+          <td class="text-center">
+            <i v-if="user.szamla_keszit" class="bi bi-check-circle-fill text-success"></i>
+            <i v-else class="bi bi-x-circle-fill text-danger"></i>
+          </td>
+          <td class="text-center">
+            <i v-if="user.raktar_kezel" class="bi bi-check-circle-fill text-success"></i>
+            <i v-else class="bi bi-x-circle-fill text-danger"></i>
+          </td>
           <td>{{ user.telephely_cim }}</td>
           <td>{{ user.telefon }}</td>
           <td v-if="canAddUser">
@@ -359,15 +385,59 @@ const saveEditUser = async () => {
                   />
                 </div>
                 <div class="mb-3">
-                  <label class="form-label">Kategória</label>
-                  <select
-                    v-model.number="newUser.kategoria"
-                    class="form-select custom-input"
-                    required
-                  >
-                    <option :value="2">2</option>
-                    <option :value="3">3</option>
-                  </select>
+                  <label class="form-label d-block mb-2">Jogosultságok</label>
+                  <div class="form-check mb-2">
+                    <input
+                      v-model="newUser.rendeles_osszkesz"
+                      class="form-check-input"
+                      type="checkbox"
+                      id="new-rendeles-osszkesz"
+                      :true-value="1"
+                      :false-value="0"
+                    />
+                    <label class="form-check-label" for="new-rendeles-osszkesz">
+                      Rendelés összeállítás
+                    </label>
+                  </div>
+                  <div class="form-check mb-2">
+                    <input
+                      v-model="newUser.rendeles_lead"
+                      class="form-check-input"
+                      type="checkbox"
+                      id="new-rendeles-lead"
+                      :true-value="1"
+                      :false-value="0"
+                    />
+                    <label class="form-check-label" for="new-rendeles-lead">
+                      Rendelés leadás
+                    </label>
+                  </div>
+                  <div class="form-check mb-2">
+                    <input
+                      v-model="newUser.szamla_keszit"
+                      class="form-check-input"
+                      type="checkbox"
+                      id="new-szamla-keszit"
+                      :true-value="1"
+                      :false-value="0"
+                    />
+                    <label class="form-check-label" for="new-szamla-keszit">
+                      Számla készítés
+                    </label>
+                  </div>
+                  <div class="form-check">
+                    <input
+                      v-model="newUser.raktar_kezel"
+                      class="form-check-input"
+                      type="checkbox"
+                      id="new-raktar-kezel"
+                      :true-value="1"
+                      :false-value="0"
+                    />
+                    <label class="form-check-label" for="new-raktar-kezel">
+                      Raktár kezelés
+                    </label>
+                  </div>
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Telephely cím</label>
@@ -448,18 +518,59 @@ const saveEditUser = async () => {
                   <small class="text-muted">A jelszó módosításához adjon meg új jelszót (min. 6 karakter)</small>
                 </div>
                 <div class="mb-3">
-                  <label class="form-label">Kategória</label>
-                  <select
-                    v-model.number="editUser.kategoria"
-                    class="form-select custom-input"
-                    :disabled="editUser.kategoria === 1"
-                    required
-                  >
-                    <option v-if="editUser.kategoria === 1" :value="1">1 (Admin - nem módosítható)</option>
-                    <option :value="2">2</option>
-                    <option :value="3">3</option>
-                  </select>
-                  <small v-if="editUser.kategoria === 1" class="text-muted">Az admin kategória nem módosítható</small>
+                  <label class="form-label d-block mb-2">Jogosultságok</label>
+                  <div class="form-check mb-2">
+                    <input
+                      v-model="editUser.rendeles_osszkesz"
+                      class="form-check-input"
+                      type="checkbox"
+                      id="edit-rendeles-osszkesz"
+                      :true-value="1"
+                      :false-value="0"
+                    />
+                    <label class="form-check-label" for="edit-rendeles-osszkesz">
+                      Rendelés összeállítás
+                    </label>
+                  </div>
+                  <div class="form-check mb-2">
+                    <input
+                      v-model="editUser.rendeles_lead"
+                      class="form-check-input"
+                      type="checkbox"
+                      id="edit-rendeles-lead"
+                      :true-value="1"
+                      :false-value="0"
+                    />
+                    <label class="form-check-label" for="edit-rendeles-lead">
+                      Rendelés leadás
+                    </label>
+                  </div>
+                  <div class="form-check mb-2">
+                    <input
+                      v-model="editUser.szamla_keszit"
+                      class="form-check-input"
+                      type="checkbox"
+                      id="edit-szamla-keszit"
+                      :true-value="1"
+                      :false-value="0"
+                    />
+                    <label class="form-check-label" for="edit-szamla-keszit">
+                      Számla készítés
+                    </label>
+                  </div>
+                  <div class="form-check">
+                    <input
+                      v-model="editUser.raktar_kezel"
+                      class="form-check-input"
+                      type="checkbox"
+                      id="edit-raktar-kezel"
+                      :true-value="1"
+                      :false-value="0"
+                    />
+                    <label class="form-check-label" for="edit-raktar-kezel">
+                      Raktár kezelés
+                    </label>
+                  </div>
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Telephely cím</label>

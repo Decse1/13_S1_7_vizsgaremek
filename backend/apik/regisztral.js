@@ -29,8 +29,8 @@ async function ceg_ad(ceg, fizet) {
 
 async function felhasznalo_ad(profil, hashedPassword) {
     const [rows] = await db.query(
-        `INSERT INTO Felhasznalo (nev, jelszo, kategoria, telephely_cim, telefon) VALUES (?, ?, ?, ?, ?)`,
-        [profil.nev, hashedPassword, profil.kategoria, profil.telephely_cim, profil.telefon]
+        `INSERT INTO Felhasznalo (nev, jelszo, telephely_cim, telefon, rendeles_osszkesz, rendeles_lead, szamla_keszit, raktar_kezel) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [profil.nev, hashedPassword, profil.telephely_cim, profil.telefon, profil.rendeles_osszkesz, profil.rendeles_lead, profil.szamla_keszit, profil.raktar_kezel]
     );
     return rows;
 }
@@ -49,7 +49,7 @@ module.exports = (app) => {
     app.post('/api/Regisz/Felhasznalo_ad', async (req, res) => {
         try {
             const profil = req.body;
-            const requiredFields = ['id', 'nev', 'jelszo', 'telephely_cim', 'telefon', 'rendeles_osszkesz', 'rendeles_lead', 'szamla_keszit', 'raktar_kezek'];
+            const requiredFields = ['nev', 'jelszo', 'telephely_cim', 'telefon', 'rendeles_osszkesz', 'rendeles_lead', 'szamla_keszit', 'raktar_kezel'];
 
             for (const field of requiredFields) {
                 if (!profil[field] || profil[field].toString().trim() === '') {
