@@ -108,6 +108,11 @@
     fetchPartnerships()
   })
 
+  // Check if company has subscription
+  const hasSubscription = computed(() => {
+    return authStore.ceg?.elofiz === true || authStore.ceg?.elofiz === 1
+  })
+
   const edit = (item) => {
     console.log('Edit:', item)
   }
@@ -137,6 +142,11 @@
   ])
 
   const openAddModal = () => {
+    // Check if company has subscription
+    if (!hasSubscription.value) {
+      return
+    }
+    
     newPartnership.value = { vatNumber: '', paymentTime: 30, paymentMethod: 'Átutalás' }
     addModalError.value = ''
     addModalLoading.value = false
@@ -310,6 +320,7 @@
       </div>
 
       <button
+        v-if="hasSubscription && hasPermission('szamla_keszit')"
         class="btn btn-success btn-teal add-btn rounded-5 d-flex align-items-center"
         @click="openAddModal"
       >
@@ -605,6 +616,13 @@
   .btn-teal:focus {
     background-color: #007a72 !important; /* a bit darker on hover */
     border-color: #007a72 !important;
+  }
+
+  .btn-teal:disabled {
+    background-color: #a0a0a0 !important;
+    border-color: #a0a0a0 !important;
+    cursor: not-allowed !important;
+    opacity: 0.6;
   }
 
   .modal-backdrop-custom {

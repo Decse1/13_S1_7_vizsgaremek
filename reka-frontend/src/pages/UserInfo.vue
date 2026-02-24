@@ -167,7 +167,7 @@ const deactivateReka = async () => {
       <strong>Jogosultságok:</strong>
       <ul class="mt-2">
         <li v-if="isAdmin()" class="text-primary">
-          Teljes hozzáférés
+          Teljeskörű hozzáférés
         </li>
         <li v-if="authStore.user.jogkor?.rendeles_osszkesz">
           Rendelés összekészítése

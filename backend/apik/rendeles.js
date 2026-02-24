@@ -89,6 +89,7 @@ module.exports = (app, authenticateToken, url) => {
                         R.rendeles_szam,
                         R.datum,
                         R.status,
+                        R.sztorno,
                         F.nev AS szallitasi_nev,
                         T.id AS termek_id,
                         T.nev AS termek_neve,

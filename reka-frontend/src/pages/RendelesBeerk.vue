@@ -47,6 +47,7 @@ const groupedOrders = computed(() => {
           vevo_neve: rendeles.vevo.vevo_neve,
           vevo_id: rendeles.vevo.vevo_id,
           status: tetel.status,
+          sztorno: tetel.sztorno,
           termekek: [],
           productSet: new Set() // Track unique products
         });
@@ -90,6 +91,14 @@ const formatDate = (dateString) => {
   if (!dateString) return 'N/A';
   const date = new Date(dateString);
   return date.toLocaleDateString('hu-HU');
+};
+
+// Get order status display text
+const getOrderStatus = (order) => {
+  if (order.sztorno === 1 || order.sztorno === true) {
+    return 'Sztornózva';
+  }
+  return order.status;
 };
 
 // Fetch orders
@@ -233,8 +242,50 @@ const generateInvoice = async () => {
   }
 };
 
+// Handle storno invoice download
+const downloadStornoInvoice = async () => {
+  try {
+    loading.value = true;
+    error.value = null;
+
+    // Call the storno invoice API
+    const response = await axios.post('/Szamla_storno', {
+      id: selectedOrderDetails.value.rendeles_id
+    }, {
+      responseType: 'blob'
+    });
+
+    // Download the storno invoice
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Sztorno_Szamla_${selectedOrderDetails.value.rendeles_szam}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    
+    // Cleanup
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    alert('Sztornó számla sikeresen letöltve!');
+  } catch (err) {
+    console.error('Error downloading storno invoice:', err);
+    error.value = 'Hiba történt a sztornó számla letöltése során';
+    alert('Hiba történt a sztornó számla letöltése során. Kérjük, próbálja újra.');
+  } finally {
+    loading.value = false;
+  }
+};
+
 // Handle order deletion
 const deleteOrder = async () => {
+  // Check if user has all four permissions
+  if (!isAdmin()) {
+    alert('Nincs jogosultsága a rendelés törléséhez. Minden jogosultság szükséges ehhez a művelethez.');
+    return;
+  }
+
   // Show confirmation dialog
   const confirmed = confirm(
     `Biztosan törölni szeretné a(z) ${selectedOrderDetails.value.rendeles_szam} rendelést?`
@@ -350,7 +401,7 @@ onMounted(() => {
             <td>{{ order.rendeles_szam }}</td>
             <td>{{ order.vevo_neve }}</td>
             <td>{{ formatDateTime(order.datum) }}</td>
-            <td>{{ order.status }}</td>
+            <td>{{ getOrderStatus(order) }}</td>
             <td>
               <button 
                 class="btn btn-teal text-white btn-sm"
@@ -391,9 +442,13 @@ onMounted(() => {
                 </div>
               </div>
               <div class="row mb-3">
-                <div class="col-md-12">
+                <div class="col-md-6">
                   <label class="form-label fw-bold">Rendelés dátuma:</label>
                   <p class="mb-0">{{ formatDateTime(selectedOrderDetails.datum) }}</p>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Rendelés állapota:</label>
+                  <p class="mb-0">{{ getOrderStatus(selectedOrderDetails) }}</p>
                 </div>
               </div>
               
@@ -436,7 +491,7 @@ onMounted(() => {
             <div class="modal-footer d-flex justify-content-between">
               <div class="d-flex gap-2">
                 <button 
-                  v-if="!isOrderFulfilled"
+                  v-if="!isOrderFulfilled && !(selectedOrderDetails.sztorno === 1 || selectedOrderDetails.sztorno === true)"
                   type="button" 
                   class="btn btn-teal text-white"
                   @click="fulfillOrder"
@@ -445,14 +500,23 @@ onMounted(() => {
                   Rendelés teljesítése
                 </button>
                 <button 
-                  v-else
+                  v-if="isOrderFulfilled"
                   type="button" 
                   class="btn btn-teal text-white"
                   @click="generateInvoice"
                 >
                   Számla generálása
                 </button>
-                <button 
+                <button
+                  v-if="selectedOrderDetails.sztorno === 1 || selectedOrderDetails.sztorno === true"
+                  type="button" 
+                  class="btn btn-danger text-white"
+                  @click="downloadStornoInvoice"
+                >
+                  Sztornó számla letöltése
+                </button>
+                <button
+                  v-if="isAdmin() && !(selectedOrderDetails.sztorno === 1 || selectedOrderDetails.sztorno === true)"
                   type="button" 
                   class="btn btn-danger text-white"
                   @click="deleteOrder"

@@ -58,11 +58,25 @@ module.exports = (app, authenticateToken) => {
             const requiredFields = ['nev', 'jelszo', 'telephely_cim', 'telefon', 'rendeles_osszkesz', 'rendeles_lead', 'szamla_keszit', 'raktar_kezel'];
 
             for (const field of requiredFields) {
-                if (!profil[field] || profil[field].toString().trim() === '') {
-                    return res.status(422).json({
-                        ok: false,
-                        uzenet: `Hiányzó mező: ${field}`
-                    });
+                // Special handling for permission fields - they can be 0 or 1
+                const permissionFields = ['rendeles_osszkesz', 'rendeles_lead', 'szamla_keszit', 'raktar_kezel'];
+                
+                if (permissionFields.includes(field)) {
+                    // For permission fields, check if it's a valid number (0 or 1)
+                    if (profil[field] !== 0 && profil[field] !== 1) {
+                        return res.status(422).json({
+                            ok: false,
+                            uzenet: `Érvénytelen érték a(z) ${field} mezőben`
+                        });
+                    }
+                } else {
+                    // For other fields, check if they exist and are not empty strings
+                    if (!profil[field] || profil[field].toString().trim() === '') {
+                        return res.status(422).json({
+                            ok: false,
+                            uzenet: `Hiányzó mező: ${field}`
+                        });
+                    }
                 }
             }
 
@@ -104,11 +118,25 @@ module.exports = (app, authenticateToken) => {
             const requiredFields = ['nev', 'jelszo', 'rendeles_osszkesz', 'rendeles_lead', 'szamla_keszit', 'raktar_kezel', 'telephely_cim', 'telefon', 'cegId', 'id'];
 
             for (const field of requiredFields) {
-                if (!profil[field] || profil[field].toString().trim() === '') {
-                    return res.status(422).json({
-                        ok: false,
-                        uzenet: `Hiányzó mező: ${field}`
-                    });
+                // Special handling for permission fields - they can be 0 or 1
+                const permissionFields = ['rendeles_osszkesz', 'rendeles_lead', 'szamla_keszit', 'raktar_kezel'];
+                
+                if (permissionFields.includes(field)) {
+                    // For permission fields, check if it's a valid number (0 or 1)
+                    if (profil[field] !== 0 && profil[field] !== 1) {
+                        return res.status(422).json({
+                            ok: false,
+                            uzenet: `Érvénytelen érték a(z) ${field} mezőben`
+                        });
+                    }
+                } else {
+                    // For other fields, check if they exist and are not empty strings
+                    if (!profil[field] || profil[field].toString().trim() === '') {
+                        return res.status(422).json({
+                            ok: false,
+                            uzenet: `Hiányzó mező: ${field}`
+                        });
+                    }
                 }
             }
 

@@ -120,6 +120,13 @@ const saveNewUser = async () => {
     return;
   }
 
+  // Check if at least one permission is selected (value must be 1, not 0)
+  if (newUser.value.rendeles_osszkesz !== 1 && newUser.value.rendeles_lead !== 1 && 
+      newUser.value.szamla_keszit !== 1 && newUser.value.raktar_kezel !== 1) {
+    formError.value = 'Legalább egy jogosultságot ki kell választani!';
+    return;
+  }
+
   // Check if user is logged in
   if (!authStore.ceg || !authStore.ceg.id) {
     formError.value = 'Nincs bejelentkezve cég!';
@@ -133,10 +140,10 @@ const saveNewUser = async () => {
       jelszo: newUser.value.jelszo,
       telephely_cim: newUser.value.telephely_cim,
       telefon: newUser.value.telefon,
-      rendeles_osszkesz: newUser.value.rendeles_osszkesz ? 1 : 0,
-      rendeles_lead: newUser.value.rendeles_lead ? 1 : 0,
-      szamla_keszit: newUser.value.szamla_keszit ? 1 : 0,
-      raktar_kezel: newUser.value.raktar_kezel ? 1 : 0,
+      rendeles_osszkesz: newUser.value.rendeles_osszkesz || 0,
+      rendeles_lead: newUser.value.rendeles_lead || 0,
+      szamla_keszit: newUser.value.szamla_keszit || 0,
+      raktar_kezel: newUser.value.raktar_kezel || 0,
       cegId: authStore.ceg.id
     });
 
@@ -148,6 +155,7 @@ const saveNewUser = async () => {
     }
   } catch (err) {
     console.error('Error saving user:', err);
+    console.error('Full error response:', err.response);
     formError.value = err.response?.data?.uzenet || 'Hiba történt a szerver kapcsolat során!';
   }
 };
@@ -216,6 +224,13 @@ const saveEditUser = async () => {
     return;
   }
 
+  // Check if at least one permission is selected (value must be 1, not 0)
+  if (editUser.value.rendeles_osszkesz !== 1 && editUser.value.rendeles_lead !== 1 && 
+      editUser.value.szamla_keszit !== 1 && editUser.value.raktar_kezel !== 1) {
+    formError.value = 'Legalább egy jogosultságot ki kell választani!';
+    return;
+  }
+
   // Check if user is logged in
   if (!authStore.ceg || !authStore.ceg.id) {
     formError.value = 'Nincs bejelentkezve cég!';
@@ -230,10 +245,10 @@ const saveEditUser = async () => {
       jelszo: editUser.value.jelszo,
       telephely_cim: editUser.value.telephely_cim,
       telefon: editUser.value.telefon,
-      rendeles_osszkesz: editUser.value.rendeles_osszkesz ? 1 : 0,
-      rendeles_lead: editUser.value.rendeles_lead ? 1 : 0,
-      szamla_keszit: editUser.value.szamla_keszit ? 1 : 0,
-      raktar_kezel: editUser.value.raktar_kezel ? 1 : 0,
+      rendeles_osszkesz: editUser.value.rendeles_osszkesz || 0,
+      rendeles_lead: editUser.value.rendeles_lead || 0,
+      szamla_keszit: editUser.value.szamla_keszit || 0,
+      raktar_kezel: editUser.value.raktar_kezel || 0,
       cegId: authStore.ceg.id
     });
 
@@ -311,7 +326,7 @@ const saveEditUser = async () => {
           <th style="width: 10%;">Raktár kezelés</th>
           <th style="width: 20%;">Telephely cím</th>
           <th style="width: 10%;">Telefon</th>
-          <th v-if="canAddUser" style="width: 10%;">Műveletek</th>
+          <th v-if="isAdmin()" style="width: 10%;">Műveletek</th>
         </tr>
       </thead>
       <tbody>
@@ -338,7 +353,7 @@ const saveEditUser = async () => {
           </td>
           <td>{{ user.telephely_cim }}</td>
           <td>{{ user.telefon }}</td>
-          <td v-if="canAddUser">
+          <td v-if="isAdmin()">
             <span class="cursor-pointer" @click="openEditModal(user)" title="Szerkesztés">
               <Icons name="pencil" size="1.25rem" />
             </span>
