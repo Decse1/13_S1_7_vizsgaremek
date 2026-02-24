@@ -160,6 +160,11 @@ const closeDetailsModal = () => {
 
 // Handle order fulfillment
 const fulfillOrder = async () => {
+  if (!hasPermission('rendeles_osszkesz')) {
+    alert('Nincsen megfelelő jogosultsága ehhez a funkcióhoz.');
+    return;
+  }
+
   if (!allProductsChecked.value) {
     return;
   }
@@ -471,7 +476,7 @@ onMounted(() => {
                   class="product-item mb-3 p-3 border rounded"
                 >
                   <div class="d-flex align-items-center gap-3">
-                    <div class="form-check" v-if="!isOrderFulfilled">
+                    <div class="form-check" v-if="hasPermission('rendeles_osszkesz') && !isOrderFulfilled">
                       <input 
                         class="form-check-input" 
                         type="checkbox" 
@@ -479,7 +484,7 @@ onMounted(() => {
                         :id="'product-' + idx"
                       />
                     </div>
-                    <label :for="isOrderFulfilled ? '' : 'product-' + idx" class="form-check-label flex-grow-1 mb-0" :class="{ 'cursor-default': isOrderFulfilled }">
+                    <label :for="(isOrderFulfilled || !hasPermission('rendeles_osszkesz')) ? '' : 'product-' + idx" class="form-check-label flex-grow-1 mb-0" :class="{ 'cursor-default': isOrderFulfilled || !hasPermission('rendeles_osszkesz') }">
                       {{ product.termek_neve }}
                     </label>
                     <div class="d-flex align-items-center gap-2">
@@ -489,8 +494,8 @@ onMounted(() => {
                         v-model.number="product.editedQuantity"
                         min="0"
                         style="width: 100px;"
-                        :disabled="isOrderFulfilled"
-                        :readonly="isOrderFulfilled"
+                        :disabled="isOrderFulfilled || !hasPermission('rendeles_osszkesz')"
+                        :readonly="isOrderFulfilled || !hasPermission('rendeles_osszkesz')"
                       />
                       <span class="text-muted">db<!-- {{ product.editedQuantity > 1 ? 'db' : 'kg' }} --></span>
                     </div>
@@ -501,7 +506,7 @@ onMounted(() => {
             <div class="modal-footer d-flex justify-content-between">
               <div class="d-flex gap-2">
                 <button 
-                  v-if="!isOrderFulfilled && !(selectedOrderDetails.sztorno === 1 || selectedOrderDetails.sztorno === true)"
+                  v-if="hasPermission('rendeles_osszkesz') && !isOrderFulfilled && !(selectedOrderDetails.sztorno === 1 || selectedOrderDetails.sztorno === true)"
                   type="button" 
                   class="btn btn-teal text-white"
                   @click="fulfillOrder"
@@ -510,7 +515,7 @@ onMounted(() => {
                   Rendelés teljesítése
                 </button>
                 <button 
-                  v-if="isOrderFulfilled"
+                  v-if="hasPermission('szamla_keszit') && isOrderFulfilled"
                   type="button" 
                   class="btn btn-teal text-white"
                   @click="generateInvoice"
@@ -518,7 +523,7 @@ onMounted(() => {
                   Számla generálása
                 </button>
                 <button
-                  v-if="selectedOrderDetails.sztorno === 1 || selectedOrderDetails.sztorno === true"
+                  v-if="hasPermission('szamla_keszit') && (selectedOrderDetails.sztorno === 1 || selectedOrderDetails.sztorno === true)"
                   type="button" 
                   class="btn btn-danger text-white"
                   @click="downloadStornoInvoice"
