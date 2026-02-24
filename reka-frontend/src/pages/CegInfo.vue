@@ -271,6 +271,7 @@ const deactivateReka = async () => {
     <p>Telefonszám: {{ authStore.ceg.telefon }}</p>
     <p>Számlaszám: {{ authStore.ceg.szamlaszam }}</p>
     <button
+        v-if="isAdmin()"
         class="btn btn-success btn-teal add-btn rounded-5 d-flex align-items-center"
         @click="goToUsers"
       >

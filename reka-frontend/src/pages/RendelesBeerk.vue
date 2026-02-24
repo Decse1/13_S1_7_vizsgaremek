@@ -200,6 +200,11 @@ const fulfillOrder = async () => {
 
 // Handle invoice generation
 const generateInvoice = async () => {
+  if (!hasPermission('szamla_keszit')) {
+    alert('Nincsen megfelelő jogosultsága ehhez a funkcióhoz.');
+    return;
+  }
+
   // Verify order is actually fulfilled
   if (!isOrderFulfilled.value) {
     error.value = 'A számla csak teljesített rendeléshez generálható';
@@ -244,6 +249,11 @@ const generateInvoice = async () => {
 
 // Handle storno invoice download
 const downloadStornoInvoice = async () => {
+  if (!hasPermission('szamla_keszit')) {
+    alert('Nincsen megfelelő jogosultsága ehhez a funkcióhoz.');
+    return;
+  }
+
   try {
     loading.value = true;
     error.value = null;

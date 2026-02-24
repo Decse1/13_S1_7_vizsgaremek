@@ -84,7 +84,9 @@
   // Modal state and form model for new product
   const showAddModal = ref(false)
   const showEditModal = ref(false)
+  const showDetailsModal = ref(false)
   const formError = ref('')
+  const selectedProduct = ref(null)
   const newProduct = ref({
     name: '',
     stock: 0,
@@ -129,6 +131,30 @@
     }
     formError.value = ''
     showEditModal.value = true
+  }
+
+  const showDetails = (item) => {
+    selectedProduct.value = item
+    showDetailsModal.value = true
+  }
+
+  const closeDetailsModal = () => {
+    showDetailsModal.value = false
+    selectedProduct.value = null
+  }
+
+  // Get category name by ID
+  const getCategoryName = (categoryId) => {
+    const category = categories.value.find(cat => cat.id === categoryId)
+    return category ? category.nev : 'N/A'
+  }
+
+  // Format price
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('hu-HU', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(Math.round(price))
   }
 
   const openAddModal = () => {
@@ -387,7 +413,11 @@
           <td colspan="5" class="text-center">Nincs megjeleníthető termék</td>
         </tr>
         <tr v-for="(item, index) in filteredItems" :key="item.id || index">
-          <td>{{ item.nev }}</td>
+          <td>
+            <span class="product-name-link" @click="showDetails(item)">
+              {{ item.nev }}
+            </span>
+          </td>
           <!-- td>asd</td -->
           <td>{{ item.ar }} Ft</td>
           <td class="text-end">{{ item.mennyiseg }} {{ item.kiszereles }}</td>
@@ -664,6 +694,61 @@
         </div>
       </div>
     </transition>
+
+    <!-- Product Details Modal -->
+    <transition name="modal-fade">
+      <div
+        v-if="showDetailsModal && selectedProduct"
+        class="modal-backdrop-custom"
+        tabindex="-1"
+        role="dialog"
+        @click="closeDetailsModal"
+      >
+        <div class="modal-dialog modal-dialog-centered modal-dialog-custom" role="document" @click.stop>
+          <div class="modal-content custom-modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">{{ selectedProduct.nev }}</h5>
+              <button type="button" class="btn-close" @click="closeDetailsModal"></button>
+            </div> 
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label fw-bold">Leírás</label>
+                <p class="mb-0">{{ selectedProduct.leiras || 'Nincs leírás megadva' }}</p>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-bold">Ár (nettó)</label>
+                <p class="mb-0">{{ formatPrice(selectedProduct.ar) }} Ft</p>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-bold">ÁFA kulcs</label>
+                <p class="mb-0">{{ selectedProduct.afa_kulcs }}%</p>
+              </div>
+              <div class="mb-3" v-if="selectedProduct.kategoria">
+                <label class="form-label fw-bold">Termékkategória</label>
+                <p class="mb-0">{{ getCategoryName(selectedProduct.kategoria) }}</p>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-bold">Cikkszám</label>
+                <p class="mb-0">{{ selectedProduct.cikkszam }}</p>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-bold">Minimum vásárlási mennyiség</label>
+                <p class="mb-0">{{ selectedProduct.min_vas_menny || 1 }} {{ selectedProduct.kiszereles }}</p>
+              </div>
+              <div class="mb-3" v-if="selectedProduct.mennyiseg !== undefined">
+                <label class="form-label fw-bold">Jelenleg készleten</label>
+                <p class="mb-0">{{ selectedProduct.mennyiseg }} {{ selectedProduct.kiszereles }}</p>
+              </div>
+            </div>            
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary rounded-pill" @click="closeDetailsModal">
+                Bezárás
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -834,6 +919,18 @@
   /* Space between footer buttons */
   .custom-modal-content .modal-footer .btn + .btn {
     margin-left: 0.5rem;
+  }
+
+  /* Clickable product name styling */
+  .product-name-link {
+    color: #00948B;
+    cursor: pointer;
+    text-decoration: underline;
+    transition: opacity 0.2s;
+  }
+
+  .product-name-link:hover {
+    opacity: 0.7;
   }
 
   /* Style for close button with gray shadow */

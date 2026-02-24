@@ -8,11 +8,20 @@ const showError = ref(false);
 const errorMessage = ref('');
 
 onMounted(() => {
+  // Check for various error types
   if (route.query.error === 'page-not-found') {
     errorMessage.value = 'Az oldal nem található! Átirányítottunk a kezdőlapra.';
     showError.value = true;
-    
-    // Auto-hide error after 5 seconds
+  } else if (route.query.error === 'admin-only') {
+    errorMessage.value = 'Ez az oldal csak adminisztrátorok számára érhető el!';
+    showError.value = true;
+  } else if (route.query.error === 'insufficient-permissions') {
+    errorMessage.value = 'Nincs megfelelő jogosultságod az oldal megtekintéséhez!';
+    showError.value = true;
+  }
+  
+  // Auto-hide error after 5 seconds if shown
+  if (showError.value) {
     setTimeout(() => {
       showError.value = false;
     }, 5000);

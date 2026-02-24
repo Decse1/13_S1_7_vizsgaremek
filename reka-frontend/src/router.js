@@ -14,7 +14,7 @@ import StoreMain from './pages/StoreMain.vue';
 import StorePartner from './pages/StorePartner.vue';
 import Aszf from './pages/Aszf.vue';
 import Kosar from './pages/Kosar.vue';
-import authStore from './stores/auth.js';
+import authStore, { hasPermission, isAdmin } from './stores/auth.js';
 
 const routes = [
   { path: "/", redirect: "/bejelentkezes" },
@@ -28,7 +28,10 @@ const routes = [
     path: "/raktar", 
     name: "Raktár", 
     component: Raktar,
-    meta: { requiresAuth: true }
+    meta: { 
+      requiresAuth: true,
+      requiredPermission: ['raktar_kezel', 'rendeles_osszkesz'] // User needs ANY of these permissions
+    }
   },
   { 
     path: "/ceginfo", 
@@ -40,7 +43,10 @@ const routes = [
     path: "/ceginfo/felhasznalok",
     name: "Céghez tartozó felhasználók",
     component: UserList,
-    meta: { requiresAuth: true }
+    meta: { 
+      requiresAuth: true,
+      requiresAdmin: true // Only admin users with all permissions
+    }
   },
   { 
     path: "/userinfo", 
@@ -58,31 +64,46 @@ const routes = [
     path: "/rendelesek/beerkezett",
     name: "Beérkezett rendelések",
     component: RendelesBeerk,
-    meta: { requiresAuth: true }
+    meta: { 
+      requiresAuth: true,
+      requiredPermission: ['rendeles_osszkesz', 'szamla_keszit'] // Only users who can complete orders
+    }
   },
   {
     path: "/rendelesek/leadott",
     name: "Leadott rendelések",
     component: RendelesLead,
-    meta: { requiresAuth: true }
+    meta: { 
+      requiresAuth: true,
+      requiredPermission: 'rendeles_lead' // Only users who can submit orders
+    }
   },
   {
     path: "/store",
     name: "Áruház",
     component: StoreMain,
-    meta: { requiresAuth: true }
+    meta: { 
+      requiresAuth: true,
+      requiredPermission: 'rendeles_lead'
+    }
   },
   {
     path: "/store/:id",
     name: "Partner készlete",
     component: StorePartner,
-    meta: { requiresAuth: true }
+    meta: {
+      requiresAuth: true,
+      requiredPermission: 'rendeles_lead'
+    }
   },
   {
     path: "/kosar",
     name: "Kosár",
     component: Kosar,
-    meta: { requiresAuth: true }
+    meta: { 
+      requiresAuth: true, 
+      requiredPermission: 'rendeles_lead' 
+    }
   },  
   { 
     path: "/bejelentkezes", 
@@ -133,7 +154,40 @@ router.beforeEach((to, from, next) => {
   // If user is logged in and tries to access login page
   else if (to.meta.requiresGuest && isAuthenticated) {
     next('/kezdolap');
-  } 
+  }
+  // Check if route requires admin privileges
+  else if (to.meta.requiresAdmin) {
+    if (!isAdmin()) {
+      // Redirect to home page with error message
+      next({ path: '/kezdolap', query: { error: 'admin-only' } });
+    } else {
+      next();
+    }
+  }
+  // Check if route requires specific permission
+  else if (to.meta.requiredPermission) {
+    const permission = to.meta.requiredPermission;
+    
+    // If permission is an array, check if user has ANY of them
+    if (Array.isArray(permission)) {
+      const hasAnyPermission = permission.some(perm => hasPermission(perm));
+      if (!hasAnyPermission && !isAdmin()) {
+        // Redirect to home page with error message
+        next({ path: '/kezdolap', query: { error: 'insufficient-permissions' } });
+      } else {
+        next();
+      }
+    } 
+    // If permission is a string, check if user has that specific permission
+    else {
+      if (!hasPermission(permission) && !isAdmin()) {
+        // Redirect to home page with error message
+        next({ path: '/kezdolap', query: { error: 'insufficient-permissions' } });
+      } else {
+        next();
+      }
+    }
+  }
   // Otherwise, proceed
   else {
     next();

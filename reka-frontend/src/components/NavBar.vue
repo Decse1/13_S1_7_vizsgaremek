@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
-import authStore, { clearAuthState, getToken, onTokenUpdate } from '../stores/auth.js';
+import authStore, { clearAuthState, getToken, onTokenUpdate, hasPermission, isAdmin } from '../stores/auth.js';
 
 const router = useRouter();
 const sidebarOpen = ref(false);
@@ -168,13 +168,13 @@ onUnmounted(() => {
   <!-- Sidebar -->
   <div class="sidebar bg-light" :class="{ show: sidebarOpen }">
     <router-link to="/kezdolap" @click="closeSidebar" class="sidebar-item">Kezdőlap</router-link>
-    <router-link to="/store" @click="closeSidebar" class="sidebar-item">Áruház</router-link>
-    <router-link to="/raktar" @click="closeSidebar" class="sidebar-item">Raktárkezelés</router-link>
+    <router-link v-if="hasPermission('rendeles_lead')" to="/store" @click="closeSidebar" class="sidebar-item">Áruház</router-link>
+    <router-link v-if="hasPermission('raktar_kezel') || hasPermission('rendeles_osszkesz')" to="/raktar" @click="closeSidebar" class="sidebar-item">Raktárkezelés</router-link>
     <router-link to="/partnersegek" @click="closeSidebar" class="sidebar-item">Partnerségek</router-link>
-    <router-link to="/rendelesek/beerkezett" @click="closeSidebar" class="sidebar-item">Beérkezett rendelések</router-link>
-    <router-link to="/rendelesek/leadott" @click="closeSidebar" class="sidebar-item">Leadott rendelések</router-link>
+    <router-link v-if="hasPermission('rendeles_osszkesz') || hasPermission('szamla_keszit')" to="/rendelesek/beerkezett" @click="closeSidebar" class="sidebar-item">Beérkezett rendelések</router-link>
+    <router-link v-if="hasPermission('rendeles_lead')" to="/rendelesek/leadott" @click="closeSidebar" class="sidebar-item">Leadott rendelések</router-link>
     <router-link to="/ceginfo" @click="closeSidebar" class="sidebar-item">Cégem</router-link>
-    <router-link to="/kosar" @click="closeSidebar" class="sidebar-item">Kosár</router-link>
+    <router-link v-if="hasPermission('rendeles_lead')" to="/kosar" @click="closeSidebar" class="sidebar-item">Kosár</router-link>
     <!-- <router-link to="/" @click="closeSidebar" class="sidebar-item">Beállítások</router-link> -->
   </div>
 
