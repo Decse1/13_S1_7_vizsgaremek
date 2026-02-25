@@ -14,6 +14,7 @@
     "test": "mocha --require tests/e2e/setup.js tests/e2e/**/*.test.js",
     "test:login": "mocha --require tests/e2e/setup.js tests/e2e/login.test.js",
     "test:register": "mocha --require tests/e2e/setup.js tests/e2e/register.test.js",
+    "test:sbmenus": "mocha --require tests/e2e/setup.js tests/e2e/sbmenus.test.js",
     "test:watch": "mocha --require tests/e2e/setup.js tests/e2e/**/*.test.js --watch",
     "test:grep": "mocha --require tests/e2e/setup.js tests/e2e/**/*.test.js --grep"
   },

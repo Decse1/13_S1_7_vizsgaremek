@@ -131,34 +131,35 @@ onUnmounted(() => {
       
       <!-- Left: Hamburger + Logo -->
       <div class="d-flex align-items-center">
-        <button class="btn d-lg-none me-2" @click="toggleSidebar">
+        <button class="btn d-lg-none me-2" data-test="sb-menu-open" @click="toggleSidebar">
           <span class="navbar-toggler-icon"></span>
         </button>
 
-        <router-link class="navbar-brand d-flex align-items-center m-0" to="/">
+        <router-link class="navbar-brand d-flex align-items-center m-0" data-test="logo-home" to="/">
           <img src="/src/reka_logo_alt.png" alt="Logo" class="logo-img me-2" />
         </router-link>
       </div>
 
       <!-- Right: Profile -->
-      <div class="d-flex align-items-center position-relative" ref="dropdownRef">
+      <div class="d-flex align-items-center position-relative" ref="dropdownRef" data-test="pf-menu">
         <img 
           src="/src/pfp.png" 
           alt="Profile" 
-          class="profile-img rounded-circle d-lg-none" 
+          class="profile-img rounded-circle d-lg-none"
+          data-test="pf-menu-open-pfp" 
           @click="toggleDropdown"
           style="cursor: pointer;"
         />
 
-        <div class="d-none d-lg-flex align-items-center" @click="toggleDropdown" style="cursor: pointer;">
+        <div class="d-none d-lg-flex align-items-center" @click="toggleDropdown" data-test="pf-menu-open-name" style="cursor: pointer;">
           <img src="/src/pfp.png" alt="Profile" class="profile-img rounded-circle me-2" />
           <span>{{ userName }} <span class="token-countdown">{{ countdown }}</span></span>
         </div>
 
         <!-- Dropdown Menu -->
         <div class="profile-dropdown" :class="{ show: dropdownOpen }">
-          <router-link to="/userinfo" class="dropdown-item" @click="closeDropdown">Profiladatok</router-link>
-          <a href="#" class="dropdown-item logout" @click.prevent="handleLogout">Kijelentkezés</a>
+          <router-link to="/userinfo" class="dropdown-item" data-test="pf-menu-pfinfo" @click="closeDropdown">Profiladatok</router-link>
+          <a href="#" class="dropdown-item logout" data-test="pf-menu-logout" @click.prevent="handleLogout">Kijelentkezés</a>
         </div>
       </div>
 
