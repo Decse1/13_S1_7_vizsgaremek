@@ -1,0 +1,5 @@
+npm install --save-dev selenium-webdriver geckodriver mocha
+
+npm run test:login
+npm run test:register
+npm test
