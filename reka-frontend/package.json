@@ -9,7 +9,13 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "pretest": "npx geckodriver --version",
+    "test": "mocha --require tests/e2e/setup.js tests/e2e/**/*.test.js",
+    "test:login": "mocha --require tests/e2e/setup.js tests/e2e/login.test.js",
+    "test:register": "mocha --require tests/e2e/setup.js tests/e2e/register.test.js",
+    "test:watch": "mocha --require tests/e2e/setup.js tests/e2e/**/*.test.js --watch",
+    "test:grep": "mocha --require tests/e2e/setup.js tests/e2e/**/*.test.js --grep"
   },
   "dependencies": {
     "@heroicons/vue": "^2.2.0",
@@ -23,6 +29,9 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.1",
+    "geckodriver": "^6.1.0",
+    "mocha": "^11.7.5",
+    "selenium-webdriver": "^4.41.0",
     "vite": "^7.1.11",
     "vite-plugin-vue-devtools": "^8.0.3"
   }

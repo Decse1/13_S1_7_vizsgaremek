@@ -252,7 +252,7 @@ const handleSubmit = async () => {
   <div class="content">
     <h2 class="mb-4">Regisztráció</h2>
     
-    <form @submit.prevent="handleSubmit">
+    <form @submit.prevent="handleSubmit" data-test="registration-form">
       <!-- Cég adatai -->
       <section class="mb-4">
         <h5 class="mb-3">I. Cég adatai</h5>
@@ -270,16 +270,18 @@ const handleSubmit = async () => {
               autocomplete="off"
               required
               maxlength="100"
+              data-test="company-name-input"
             />
-            <div v-if="isLoadingCompanies" class="autocomplete-loading">
+            <div v-if="isLoadingCompanies" class="autocomplete-loading" data-test="autocomplete-loading">
               <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
               Keresés...
             </div>
-            <div v-else-if="showSuggestions" class="autocomplete-dropdown">
+            <div v-else-if="showSuggestions" class="autocomplete-dropdown" data-test="autocomplete-dropdown">
               <div 
                 v-for="(company, index) in filteredCompanies" 
                 :key="index"
                 class="autocomplete-item"
+                :data-test="`autocomplete-item-${index}`"
                 @click="selectCompany(company)"
               >
                 <div class="company-name">{{ company.shortName }}</div>
@@ -298,6 +300,7 @@ const handleSubmit = async () => {
             v-model="formData.cegCime"
             required
             maxlength="255"
+            data-test="company-address-input"
           />
         </div>
 
@@ -310,6 +313,7 @@ const handleSubmit = async () => {
             v-model="formData.adoszamMagyar"
             required
             maxlength="11"
+            data-test="tax-number-hu-input"
           />
         </div>
 
@@ -321,6 +325,7 @@ const handleSubmit = async () => {
             id="adoszamEuropai" 
             v-model="formData.adoszamEuropai"
             maxlength="20"
+            data-test="tax-number-eu-input"
           />
         </div>
 
@@ -333,6 +338,7 @@ const handleSubmit = async () => {
             v-model="formData.cegTelszam"
             required
             maxlength="15"
+            data-test="company-phone-input"
           />
         </div>
 
@@ -345,6 +351,7 @@ const handleSubmit = async () => {
             v-model="formData.cegEmail"
             required
             maxlength="100"
+            data-test="company-email-input"
           />
         </div>
 
@@ -358,6 +365,7 @@ const handleSubmit = async () => {
             required
             maxlength="26"
             placeholder="pl. 11700002-20000001-00000001"
+            data-test="bank-account-input"
           />
         </div>
       </section>
@@ -374,6 +382,7 @@ const handleSubmit = async () => {
             v-model="formData.felhasznalonev"
             required
             maxlength="100"
+            data-test="username-input"
           />
         </div>
 
@@ -385,6 +394,7 @@ const handleSubmit = async () => {
             id="jelszo" 
             v-model="formData.jelszo"
             required
+            data-test="password-input"
           />
         </div>
 
@@ -397,6 +407,7 @@ const handleSubmit = async () => {
             id="telephelyCime" 
             v-model="formData.telephelyCime"
             maxlength="255"
+            data-test="site-address-input"
           />
         </div>
 
@@ -409,6 +420,7 @@ const handleSubmit = async () => {
             v-model="formData.felhszTel"
             required
             maxlength="15"
+            data-test="user-phone-input"
           />
         </div>
       </section>
@@ -421,6 +433,7 @@ const handleSubmit = async () => {
           id="elfogadom" 
           v-model="formData.elfogadom"
           required
+          data-test="terms-checkbox"
         />
         <label class="form-check-label" for="elfogadom">
           Elfogadom a <a href="/aszf">RÉKA általános szerződési feltételeit és adatkezelési nyilatkozatát</a>.
@@ -432,8 +445,9 @@ const handleSubmit = async () => {
         v-if="showError"
         class="alert alert-danger d-flex justify-content-between align-items-center mb-4"
         role="alert"
+        data-test="error-alert"
       >
-        <span>{{ errorMessage }}</span>
+        <span data-test="error-message">{{ errorMessage }}</span>
         <button type="button" class="btn-close" aria-label="Bezárás" @click="showError = false"></button>
       </div>
 
@@ -442,8 +456,9 @@ const handleSubmit = async () => {
         v-if="showSuccess"
         class="alert alert-success d-flex justify-content-between align-items-center mb-4"
         role="alert"
+        data-test="success-alert"
       >
-        <span>{{ successMessage }}</span>
+        <span data-test="success-message">{{ successMessage }}</span>
         <button type="button" class="btn-close" aria-label="Bezárás" @click="showSuccess = false"></button>
       </div>
 
@@ -453,6 +468,7 @@ const handleSubmit = async () => {
           type="submit" 
           class="btn btn-primary btn-lg fw-bold px-5 rounded-pill"
           :disabled="isSubmitting || !formData.elfogadom"
+          data-test="submit-button"
         >
           <span v-if="isSubmitting">
             <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>

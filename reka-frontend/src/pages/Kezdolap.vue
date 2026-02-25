@@ -40,9 +40,10 @@ const closeError = () => {
       v-if="showError"
       class="alert alert-danger alert-dismissible fade show d-flex justify-content-between align-items-center mb-4"
       role="alert"
+      data-test="error-alert"
     >
       <div>
-        <strong>Hiba!</strong> {{ errorMessage }}
+        <strong>Hiba!</strong> <span data-test="error-message">{{ errorMessage }}</span>
       </div>
       <button type="button" class="btn-close" aria-label="Bezárás" @click="closeError"></button>
     </div>

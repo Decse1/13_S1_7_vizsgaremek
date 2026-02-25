@@ -81,7 +81,7 @@ export default {
         <h3 class="fw-bold">Bejelentkezés a RÉKA-rendszerbe</h3>
       </div>
 
-      <form @submit.prevent="onSubmit">
+      <form @submit.prevent="onSubmit" data-test="login-form">
         <div class="mb-3">
           <input
             id="username"
@@ -89,6 +89,7 @@ export default {
             type="text"
             class="form-control form-control-lg custom-input"
             placeholder="Felhasználónév"
+            data-test="username-input"
             required
           />
         </div>
@@ -100,6 +101,7 @@ export default {
             type="password"
             class="form-control form-control-lg custom-input"
             placeholder="Jelszó"
+            data-test="password-input"
             required
           />
         </div>
@@ -109,8 +111,9 @@ export default {
           v-if="showError"
           class="alert alert-danger d-flex justify-content-between align-items-center mb-4"
           role="alert"
+          data-test="error-alert"
         >
-          <span>{{ errorMessage }}</span>
+          <span data-test="error-message">{{ errorMessage }}</span>
           <button type="button" class="btn-close" aria-label="Bezárás" @click="showError = false"></button>
         </div>
 
@@ -118,6 +121,7 @@ export default {
           <button
             type="submit"
             class="btn btn-primary btn-login-teal btn-lg px-5 py-2 fw-bold rounded-pill w-100"
+            data-test="login-button"
           >
             Bejelentkezés
           </button>
@@ -126,7 +130,7 @@ export default {
 
       <div class="text-center mt-4 small text-muted">
         <p class="mb-1"><a href="#" @click.prevent="onForgotPassword">Elfelejtettem a jelszavamat</a></p>
-        <p><a href="/regisztracio">Hozzáférés kérése a RÉKA-rendszerhez</a></p>
+        <p data-test="option-registration" ><a href="/regisztracio">Hozzáférés kérése a RÉKA-rendszerhez</a></p>
       </div>
     </div>
   </div>

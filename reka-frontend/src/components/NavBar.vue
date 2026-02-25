@@ -166,16 +166,16 @@ onUnmounted(() => {
   </nav>
 
   <!-- Sidebar -->
-  <div class="sidebar bg-light" :class="{ show: sidebarOpen }">
-    <router-link to="/kezdolap" @click="closeSidebar" class="sidebar-item">Kezdőlap</router-link>
-    <router-link v-if="hasPermission('rendeles_lead')" to="/store" @click="closeSidebar" class="sidebar-item">Áruház</router-link>
-    <router-link v-if="hasPermission('raktar_kezel') || hasPermission('rendeles_osszkesz')" to="/raktar" @click="closeSidebar" class="sidebar-item">Raktárkezelés</router-link>
-    <router-link to="/partnersegek" @click="closeSidebar" class="sidebar-item">Partnerségek</router-link>
-    <router-link v-if="hasPermission('rendeles_osszkesz') || hasPermission('szamla_keszit')" to="/rendelesek/beerkezett" @click="closeSidebar" class="sidebar-item">Beérkezett rendelések</router-link>
-    <router-link v-if="hasPermission('rendeles_lead')" to="/rendelesek/leadott" @click="closeSidebar" class="sidebar-item">Leadott rendelések</router-link>
-    <router-link to="/ceginfo" @click="closeSidebar" class="sidebar-item">Cégem</router-link>
-    <router-link v-if="hasPermission('rendeles_lead')" to="/kosar" @click="closeSidebar" class="sidebar-item">Kosár</router-link>
-    <!-- <router-link to="/" @click="closeSidebar" class="sidebar-item">Beállítások</router-link> -->
+  <div class="sidebar bg-light" :class="{ show: sidebarOpen } " data-test="sb-menu">
+    <router-link to="/kezdolap" @click="closeSidebar" class="sidebar-item" data-test="sb-menu-home">Kezdőlap</router-link>
+    <router-link v-if="hasPermission('rendeles_lead')" to="/store" @click="closeSidebar" class="sidebar-item" data-test="sb-menu-store">Áruház</router-link>
+    <router-link v-if="hasPermission('raktar_kezel') || hasPermission('rendeles_osszkesz')" to="/raktar" @click="closeSidebar" class="sidebar-item" data-test="sb-menu-warehouse">Raktárkezelés</router-link>
+    <router-link to="/partnersegek" @click="closeSidebar" class="sidebar-item" data-test="sb-menu-partnerships">Partnerségek</router-link>
+    <router-link v-if="hasPermission('rendeles_osszkesz') || hasPermission('szamla_keszit')" to="/rendelesek/beerkezett" @click="closeSidebar" class="sidebar-item" data-test="sb-menu-receivedorders">Beérkezett rendelések</router-link>
+    <router-link v-if="hasPermission('rendeles_lead')" to="/rendelesek/leadott" @click="closeSidebar" class="sidebar-item" data-test="sb-menu-sentorders">Leadott rendelések</router-link>
+    <router-link to="/ceginfo" @click="closeSidebar" class="sidebar-item" data-test="sb-menu-companyinfo">Cégem</router-link>
+    <router-link v-if="hasPermission('rendeles_lead')" to="/kosar" @click="closeSidebar" class="sidebar-item" data-test="sb-menu-cart">Kosár</router-link>
+    <!-- <router-link to="/" @click="closeSidebar" class="sidebar-item" data-test="sb-menu-settings">Beállítások</router-link> -->
   </div>
 
   <!-- Overlay -->
