@@ -362,7 +362,7 @@
     <!-- Header -->
     <div class="d-flex align-items-center justify-content-between flex-wrap mb-3">
       <div class="d-flex align-items-center flex-grow-1 mb-2 mb-md-0">
-        <h2 class="me-3 mb-0">Raktár</h2>
+        <h2 class="me-3 mb-0" data-test="page-title">Raktár</h2>
 
         <div class="input-group" style="width: clamp(100px, 40vw, 300px);">
           <input
@@ -370,6 +370,7 @@
             type="text"
             class="form-control custom-input rounded-5"
             placeholder="Keresés"
+            data-test="search-input"
           />
         </div>
       </div>
@@ -378,54 +379,55 @@
         v-if="hasSubscription && hasPermission('raktar_kezel')"
         class="btn btn-success btn-teal add-btn rounded-5 d-flex align-items-center"
         @click="openAddModal"
+        data-test="add-product-btn"
       >
         <Icons name="plus" size="1.5rem"/>
         <span class="d-none d-sm-inline ms-2">Új termék felvétele</span>
       </button>
-      <div v-else-if="!hasSubscription" class="alert alert-warning mb-0 py-2 px-3 rounded-5" role="alert">
+      <div v-else-if="!hasSubscription" class="alert alert-warning mb-0 py-2 px-3 rounded-5" role="alert" data-test="subscription-required-warning">
         <i class="bi bi-lock-fill me-2"></i>Előfizetés szükséges
       </div>
     </div>
 
     <!-- First table -->
-    <div v-if="loading" class="text-center my-4">
+    <div v-if="loading" class="text-center my-4" data-test="loading-spinner">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Betöltés...</span>
       </div>
     </div>
 
-    <div v-else-if="error" class="alert alert-warning" role="alert">
+    <div v-else-if="error" class="alert alert-warning" role="alert" data-test="error-message">
       {{ error }}
     </div>
 
-    <table v-else class="table custom-table" style="border-bottom: 1px solid black;">
+    <table v-else class="table custom-table" style="border-bottom: 1px solid black;" data-test="products-table">
       <thead>
         <tr>
-          <th style="width: 60%;">Terméknév</th>
+          <th style="width: 60%;" data-test="table-header-name">Terméknév</th>
           <!-- th style="width: 20%;">Kategória</th -->
-          <th style="width: 25%;">Ár (nettó)</th>
-          <th class="text-end" style="width: 12%;">Készlet</th>
-          <th style="width: 2.5%;"></th>
+          <th style="width: 25%;" data-test="table-header-price">Ár (nettó)</th>
+          <th class="text-end" style="width: 12%;" data-test="table-header-stock">Készlet</th>
+          <th style="width: 2.5%;" data-test="table-header-actions"></th>
         </tr>
       </thead>
       <tbody>
         <tr v-if="filteredItems.length === 0">
-          <td colspan="5" class="text-center">Nincs megjeleníthető termék</td>
+          <td colspan="5" class="text-center" data-test="no-products-message">Nincs megjeleníthető termék</td>
         </tr>
-        <tr v-for="(item, index) in filteredItems" :key="item.id || index">
-          <td>
-            <span class="product-name-link" @click="showDetails(item)">
+        <tr v-for="(item, index) in filteredItems" :key="item.id || index" :data-test="`product-row-${item.id}`">
+          <td :data-test="`product-name-${item.id}`">
+            <span class="product-name-link" @click="showDetails(item)" :data-test="`product-name-link-${item.id}`">
               {{ item.nev }}
             </span>
           </td>
           <!-- td>asd</td -->
-          <td>{{ item.ar }} Ft</td>
-          <td class="text-end">{{ item.mennyiseg }} {{ item.kiszereles }}</td>
+          <td :data-test="`product-price-${item.id}`">{{ item.ar }} Ft</td>
+          <td class="text-end" :data-test="`product-stock-${item.id}`">{{ item.mennyiseg }} {{ item.kiszereles }}</td>
           <td>
-            <span v-if="hasSubscription && hasPermission('raktar_kezel')" class="cursor-pointer" @click="edit(item)">
+            <span v-if="hasSubscription && hasPermission('raktar_kezel')" class="cursor-pointer" @click="edit(item)" :data-test="`edit-product-btn-${item.id}`">
               <Icons name="pencil" size="1.25rem" />
             </span>
-            <i v-else-if="!hasSubscription" class="bi bi-lock-fill text-muted" style="cursor: not-allowed;" title="Előfizetés szükséges"/>
+            <i v-else-if="!hasSubscription" class="bi bi-lock-fill text-muted" style="cursor: not-allowed;" title="Előfizetés szükséges" data-test="edit-locked-icon"/>
           </td>
         </tr>
       </tbody>
@@ -439,12 +441,13 @@
         tabindex="-1"
         role="dialog"
         @click="closeAddModal"
+        data-test="add-product-modal"
       >
         <div class="modal-dialog modal-dialog-centered modal-dialog-custom" role="document" @click.stop>
           <div class="modal-content custom-modal-content">
             <div class="modal-header">
-              <h5 class="modal-title">Új termék felvétele</h5>
-              <button type="button" class="btn-close" @click="closeAddModal"></button>
+              <h5 class="modal-title" data-test="add-modal-title">Új termék felvétele</h5>
+              <button type="button" class="btn-close" @click="closeAddModal" data-test="add-modal-close-btn"></button>
             </div> 
             <div class="modal-body">
               <form id="product-form" @submit.prevent="saveNewProduct">
@@ -456,6 +459,7 @@
                     class="form-control custom-input"
                     maxlength="100"
                     required
+                    data-test="add-product-name-input"
                   />
                 </div>
                 <div class="mb-3">
@@ -463,9 +467,10 @@
                   <input
                     v-model.number="newProduct.stock"
                     type="number"
-                    min="0"
+                    min="1"
                     class="form-control custom-input"
                     required
+                    data-test="add-product-stock-input"
                   />
                 </div>
                 <div class="mb-3">
@@ -476,6 +481,7 @@
                     class="form-control custom-input"
                     maxlength="100"
                     required
+                    data-test="add-product-cikkszam-input"
                   />
                 </div>
                 <div class="mb-3">
@@ -486,6 +492,7 @@
                     class="form-control custom-input"
                     maxlength="10"
                     required
+                    data-test="add-product-kiszereles-input"
                   />
                 </div>
                 <div class="mb-3">
@@ -496,6 +503,7 @@
                     min="1"
                     class="form-control custom-input"
                     required
+                    data-test="add-product-min-quantity-input"
                   />
                 </div>
                 <div class="mb-3">
@@ -505,6 +513,7 @@
                     type="text"
                     class="form-control custom-input"
                     required
+                    data-test="add-product-description-input"
                   />
                 </div>
                 <div class="mb-3">
@@ -515,6 +524,7 @@
                     min="1"
                     class="form-control custom-input"
                     required
+                    data-test="add-product-price-input"
                   />
                 </div>
                 <div class="mb-3">
@@ -523,12 +533,14 @@
                     v-model="newProduct.category"
                     class="form-select custom-input"
                     required
+                    data-test="add-product-category-select"
                   >
                     <option value="" disabled>Válasszon kategóriát...</option>
                     <option 
                       v-for="category in categories" 
                       :key="category.id" 
                       :value="category.id"
+                      :data-test="`add-product-category-${category.id}`"
                     >
                       {{ category.nev }}
                     </option>
@@ -542,19 +554,20 @@
                     min="0"
                     class="form-control custom-input"
                     required
+                    data-test="add-product-vat-input"
                   />
                 </div>
               </form>
               <!-- Error message display -->
-              <div v-if="formError" class="alert alert-danger mt-3 mb-0" role="alert">
+              <div v-if="formError" class="alert alert-danger mt-3 mb-0" role="alert" data-test="add-product-error">
                 <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ formError }}
               </div>
             </div>            
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary rounded-pill" @click="closeAddModal">
+              <button type="button" class="btn btn-secondary rounded-pill" @click="closeAddModal" data-test="add-modal-cancel-btn">
                 Mégse
               </button>
-              <button type="submit" class="btn btn-primary btn-teal rounded-pill" form="product-form">
+              <button type="submit" class="btn btn-primary btn-teal rounded-pill" form="product-form" data-test="add-modal-save-btn">
                 Mentés
               </button>
             </div>
@@ -571,12 +584,13 @@
         tabindex="-1"
         role="dialog"
         @click="closeEditModal"
+        data-test="edit-product-modal"
       >
         <div class="modal-dialog modal-dialog-centered modal-dialog-custom" role="document" @click.stop>
           <div class="modal-content custom-modal-content">
             <div class="modal-header">
-              <h5 class="modal-title">Termék módosítása</h5>
-              <button type="button" class="btn-close" @click="closeEditModal"></button>
+              <h5 class="modal-title" data-test="edit-modal-title">Termék módosítása</h5>
+              <button type="button" class="btn-close" @click="closeEditModal" data-test="edit-modal-close-btn"></button>
             </div> 
             <div class="modal-body">
               <form id="edit-product-form" @submit.prevent="saveEditProduct">
@@ -588,6 +602,7 @@
                     class="form-control custom-input"
                     maxlength="100"
                     required
+                    data-test="edit-product-name-input"
                   />
                 </div>
                 <div class="mb-3">
@@ -598,6 +613,7 @@
                     min="0"
                     class="form-control custom-input"
                     required
+                    data-test="edit-product-stock-input"
                   />
                 </div>
                 <div class="mb-3">
@@ -608,6 +624,7 @@
                     class="form-control custom-input"
                     maxlength="100"
                     required
+                    data-test="edit-product-cikkszam-input"
                   />
                 </div>
                 <div class="mb-3">
@@ -618,6 +635,7 @@
                     class="form-control custom-input"
                     maxlength="10"
                     required
+                    data-test="edit-product-kiszereles-input"
                   />
                 </div>
                 <div class="mb-3">
@@ -628,6 +646,7 @@
                     min="1"
                     class="form-control custom-input"
                     required
+                    data-test="edit-product-min-quantity-input"
                   />
                 </div>
                 <div class="mb-3">
@@ -637,6 +656,7 @@
                     type="text"
                     class="form-control custom-input"
                     required
+                    data-test="edit-product-description-input"
                   />
                 </div>
                 <div class="mb-3">
@@ -647,6 +667,7 @@
                     min="1"
                     class="form-control custom-input"
                     required
+                    data-test="edit-product-price-input"
                   />
                 </div>
                 <div class="mb-3">
@@ -655,6 +676,7 @@
                     v-model="editProduct.category"
                     class="form-select custom-input"
                     required
+                    data-test="edit-product-category-select"
                   >
                     <option value="" disabled>Válasszon kategóriát...</option>
                     <option 
@@ -674,19 +696,20 @@
                     min="0"
                     class="form-control custom-input"
                     required
+                    data-test="edit-product-vat-input"
                   />
                 </div>
               </form>
               <!-- Error message display -->
-              <div v-if="formError" class="alert alert-danger mt-3 mb-0" role="alert">
+              <div v-if="formError" class="alert alert-danger mt-3 mb-0" role="alert" data-test="edit-product-error">
                 <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ formError }}
               </div>
             </div>            
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary rounded-pill" @click="closeEditModal">
+              <button type="button" class="btn btn-secondary rounded-pill" @click="closeEditModal" data-test="edit-modal-cancel-btn">
                 Mégse
               </button>
-              <button type="submit" class="btn btn-primary btn-teal rounded-pill" form="edit-product-form">
+              <button type="submit" class="btn btn-primary btn-teal rounded-pill" form="edit-product-form" data-test="edit-modal-save-btn">
                 Mentés
               </button>
             </div>
@@ -703,45 +726,46 @@
         tabindex="-1"
         role="dialog"
         @click="closeDetailsModal"
+        data-test="details-product-modal"
       >
         <div class="modal-dialog modal-dialog-centered modal-dialog-custom" role="document" @click.stop>
           <div class="modal-content custom-modal-content">
             <div class="modal-header">
-              <h5 class="modal-title">{{ selectedProduct.nev }}</h5>
-              <button type="button" class="btn-close" @click="closeDetailsModal"></button>
+              <h5 class="modal-title" data-test="details-modal-title">{{ selectedProduct.nev }}</h5>
+              <button type="button" class="btn-close" @click="closeDetailsModal" data-test="details-modal-close-btn"></button>
             </div> 
             <div class="modal-body">
               <div class="mb-3">
                 <label class="form-label fw-bold">Leírás</label>
-                <p class="mb-0">{{ selectedProduct.leiras || 'Nincs leírás megadva' }}</p>
+                <p class="mb-0" data-test="details-product-description">{{ selectedProduct.leiras || 'Nincs leírás megadva' }}</p>
               </div>
               <div class="mb-3">
                 <label class="form-label fw-bold">Ár (nettó)</label>
-                <p class="mb-0">{{ formatPrice(selectedProduct.ar) }} Ft</p>
+                <p class="mb-0" data-test="details-product-price">{{ formatPrice(selectedProduct.ar) }} Ft</p>
               </div>
               <div class="mb-3">
                 <label class="form-label fw-bold">ÁFA kulcs</label>
-                <p class="mb-0">{{ selectedProduct.afa_kulcs }}%</p>
+                <p class="mb-0" data-test="details-product-vat">{{ selectedProduct.afa_kulcs }}%</p>
               </div>
               <div class="mb-3" v-if="selectedProduct.kategoria">
                 <label class="form-label fw-bold">Termékkategória</label>
-                <p class="mb-0">{{ getCategoryName(selectedProduct.kategoria) }}</p>
+                <p class="mb-0" data-test="details-product-category">{{ getCategoryName(selectedProduct.kategoria) }}</p>
               </div>
               <div class="mb-3">
                 <label class="form-label fw-bold">Cikkszám</label>
-                <p class="mb-0">{{ selectedProduct.cikkszam }}</p>
+                <p class="mb-0" data-test="details-product-cikkszam">{{ selectedProduct.cikkszam }}</p>
               </div>
               <div class="mb-3">
                 <label class="form-label fw-bold">Minimum vásárlási mennyiség</label>
-                <p class="mb-0">{{ selectedProduct.min_vas_menny || 1 }} {{ selectedProduct.kiszereles }}</p>
+                <p class="mb-0" data-test="details-product-min-quantity">{{ selectedProduct.min_vas_menny || 1 }} {{ selectedProduct.kiszereles }}</p>
               </div>
               <div class="mb-3" v-if="selectedProduct.mennyiseg !== undefined">
                 <label class="form-label fw-bold">Jelenleg készleten</label>
-                <p class="mb-0">{{ selectedProduct.mennyiseg }} {{ selectedProduct.kiszereles }}</p>
+                <p class="mb-0" data-test="details-product-stock">{{ selectedProduct.mennyiseg }} {{ selectedProduct.kiszereles }}</p>
               </div>
             </div>            
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary rounded-pill" @click="closeDetailsModal">
+              <button type="button" class="btn btn-secondary rounded-pill" @click="closeDetailsModal" data-test="details-modal-close-btn-footer">
                 Bezárás
               </button>
             </div>
