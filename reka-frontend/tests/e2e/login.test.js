@@ -3,6 +3,7 @@ import firefox from 'selenium-webdriver/firefox.js';
 import assert from 'assert';
 import { existsSync } from 'fs';
 import { join } from 'path';
+import { BASE_URL, buildUrl } from './config.js';
 
 describe('Login E2E Tests', function () {
   this.timeout(60000); // Increased timeout for slower machines
@@ -57,7 +58,7 @@ describe('Login E2E Tests', function () {
     await driver.manage().deleteAllCookies();
     
     // Navigate to login page
-    await driver.get('http://localhost:5173/bejelentkezes');
+    await driver.get(buildUrl('/bejelentkezes'));
     
     // Clear storage after page loads (now safe to execute JS)
     await driver.executeScript('window.localStorage.clear(); window.sessionStorage.clear();');
@@ -66,7 +67,7 @@ describe('Login E2E Tests', function () {
     const currentUrl = await driver.getCurrentUrl();
     if (!currentUrl.includes('/bejelentkezes')) {
       // We were redirected (probably due to existing auth), reload the page
-      await driver.get('http://localhost:5173/bejelentkezes');
+      await driver.get(buildUrl('/bejelentkezes'));
     }
     
     // Wait a bit for the page to stabilize
@@ -141,13 +142,13 @@ describe('Login E2E Tests', function () {
 
     // Wait for redirect to home page
     await driver.wait(
-      until.urlIs('http://localhost:5173/kezdolap'),
+      until.urlIs(buildUrl('/kezdolap')),
       10000
     );
 
     // Verify we're on the home page
     const currentUrl = await driver.getCurrentUrl();
-    assert.strictEqual(currentUrl, 'http://localhost:5173/kezdolap', 'Should redirect to home page');
+    assert.strictEqual(currentUrl, buildUrl('/kezdolap'), 'Should redirect to home page');
   });
 
   it('validates required fields', async () => {
@@ -213,20 +214,20 @@ describe('Login E2E Tests', function () {
 
     // Wait for redirect to home page
     await driver.wait(
-      until.urlIs('http://localhost:5173/kezdolap'),
+      until.urlIs(buildUrl('/kezdolap')),
       10000
     );
 
     // Now try to visit login page again
-    await driver.get('http://localhost:5173/bejelentkezes');
+    await driver.get(buildUrl('/bejelentkezes'));
 
     // Should be redirected back to home page
     await driver.wait(
-      until.urlIs('http://localhost:5173/kezdolap'),
+      until.urlIs(buildUrl('/kezdolap')),
       10000
     );
 
     const currentUrl = await driver.getCurrentUrl();
-    assert.strictEqual(currentUrl, 'http://localhost:5173/kezdolap', 'Should redirect to home page if already logged in');
+    assert.strictEqual(currentUrl, buildUrl('/kezdolap'), 'Should redirect to home page if already logged in');
   });
 });

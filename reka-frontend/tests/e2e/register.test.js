@@ -2,6 +2,7 @@ import { Builder, By, until } from 'selenium-webdriver';
 import firefox from 'selenium-webdriver/firefox.js';
 import assert from 'assert';
 import { join } from 'path';
+import { BASE_URL, buildUrl } from './config.js';
 
 describe('Registration E2E Tests', function () {
   this.timeout(60000); // Increased timeout for slower machines
@@ -58,7 +59,7 @@ describe('Registration E2E Tests', function () {
     await driver.manage().deleteAllCookies();
     
     // Navigate to login page
-    await driver.get('http://localhost:5173/bejelentkezes');
+    await driver.get(buildUrl('/bejelentkezes'));
     
     // Clear storage after page loads (now safe to execute JS)
     await driver.executeScript('window.localStorage.clear(); window.sessionStorage.clear();');
@@ -69,7 +70,7 @@ describe('Registration E2E Tests', function () {
     // If we got redirected to /kezdolap, go back to /bejelentkezes
     const currentUrl = await driver.getCurrentUrl();
     if (currentUrl.includes('/kezdolap')) {
-      await driver.get('http://localhost:5173/bejelentkezes');
+      await driver.get(buildUrl('/bejelentkezes'));
       await driver.sleep(300);
     }
   });
@@ -184,13 +185,13 @@ describe('Registration E2E Tests', function () {
 
     // Wait for redirect to home page
     await driver.wait(
-      until.urlIs('http://localhost:5173/kezdolap'),
+      until.urlIs(buildUrl('/kezdolap')),
       10000
     );
 
     // Verify we're on the home page
     const homeUrl = await driver.getCurrentUrl();
-    assert.strictEqual(homeUrl, 'http://localhost:5173/kezdolap', 'Should redirect to home page after login');
+    assert.strictEqual(homeUrl, buildUrl('/kezdolap'), 'Should redirect to home page after login');
 
     // Navigate to company info page
     // Try to find the sidebar menu item directly (visible on desktop)

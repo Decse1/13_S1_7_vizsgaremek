@@ -3,6 +3,7 @@ import firefox from 'selenium-webdriver/firefox.js';
 import assert from 'assert';
 import { existsSync } from 'fs';
 import { join } from 'path';
+import { BASE_URL, buildUrl } from './config.js';
 
 describe('Sidebar and Navigation Menu E2E Tests', function () {
   this.timeout(90000); // Increased timeout for comprehensive navigation test
@@ -54,12 +55,12 @@ describe('Sidebar and Navigation Menu E2E Tests', function () {
   beforeEach(async () => {
     // Clear cookies and storage
     await driver.manage().deleteAllCookies();
-    await driver.get('http://localhost:5173/bejelentkezes');
+    await driver.get(buildUrl('/bejelentkezes'));
     await driver.executeScript('window.localStorage.clear(); window.sessionStorage.clear();');
     
     const currentUrl = await driver.getCurrentUrl();
     if (!currentUrl.includes('/bejelentkezes')) {
-      await driver.get('http://localhost:5173/bejelentkezes');
+      await driver.get(buildUrl('/bejelentkezes'));
     }
     
     await driver.sleep(300);
@@ -82,7 +83,7 @@ describe('Sidebar and Navigation Menu E2E Tests', function () {
 
     // Wait for redirect to home page
     await driver.wait(
-      until.urlIs('http://localhost:5173/kezdolap'),
+      until.urlIs(buildUrl('/kezdolap')),
       10000
     );
     console.log('✓ Login successful');
@@ -220,12 +221,12 @@ describe('Sidebar and Navigation Menu E2E Tests', function () {
     // Wait for navigation - should go to / which redirects to /kezdolap when logged in
     await driver.wait(async () => {
       const url = await driver.getCurrentUrl();
-      return url.includes('/kezdolap') || url === 'http://localhost:5173/';
+      return url.includes('/kezdolap') || url === BASE_URL || url === BASE_URL + '/';
     }, 5000);
 
     const finalUrl = await driver.getCurrentUrl();
     assert.ok(
-      finalUrl.includes('/kezdolap') || finalUrl === 'http://localhost:5173/',
+      finalUrl.includes('/kezdolap') || finalUrl === BASE_URL || finalUrl === BASE_URL + '/',
       `Logo should navigate to home, but got ${finalUrl}`
     );
     console.log('  ✓ Logo navigation successful - Redirected to home page');
@@ -249,7 +250,7 @@ describe('Sidebar and Navigation Menu E2E Tests', function () {
     await loginButton.click();
 
     await driver.wait(
-      until.urlIs('http://localhost:5173/kezdolap'),
+      until.urlIs(buildUrl('/kezdolap')),
       10000
     );
 

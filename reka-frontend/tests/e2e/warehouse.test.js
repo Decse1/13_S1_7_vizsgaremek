@@ -3,6 +3,7 @@ import firefox from 'selenium-webdriver/firefox.js';
 import assert from 'assert';
 import { existsSync } from 'fs';
 import { join } from 'path';
+import { BASE_URL, buildUrl } from './config.js';
 
 describe('Warehouse (Raktár) E2E Tests', function () {
   this.timeout(90000); // Increased timeout for complex operations
@@ -54,12 +55,12 @@ describe('Warehouse (Raktár) E2E Tests', function () {
   beforeEach(async () => {
     // Clear cookies and storage
     await driver.manage().deleteAllCookies();
-    await driver.get('http://localhost:5173/bejelentkezes');
+    await driver.get(buildUrl('/bejelentkezes'));
     await driver.executeScript('window.localStorage.clear(); window.sessionStorage.clear();');
     
     const currentUrl = await driver.getCurrentUrl();
     if (!currentUrl.includes('/bejelentkezes')) {
-      await driver.get('http://localhost:5173/bejelentkezes');
+      await driver.get(buildUrl('/bejelentkezes'));
     }
     
     await driver.sleep(300);
@@ -80,7 +81,7 @@ describe('Warehouse (Raktár) E2E Tests', function () {
 
     // Wait for redirect
     await driver.wait(
-      until.urlIs('http://localhost:5173/kezdolap'),
+      until.urlIs(buildUrl('/kezdolap')),
       10000
     );
     
