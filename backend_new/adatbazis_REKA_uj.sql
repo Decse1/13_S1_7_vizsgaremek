@@ -123,7 +123,6 @@ ALTER TABLE `Ceg_alkalmazott` ADD FOREIGN KEY (`cegId`) REFERENCES `Ceg` (`id`);
 
 ALTER TABLE `Ceg_alkalmazott` ADD FOREIGN KEY (`felhasznaloId`) REFERENCES `Felhasznalo` (`id`);
 
-ALTER TABLE `Rendeles` ADD FOREIGN KEY (`id`) REFERENCES `Szamla` (`rendeles_id`);
 ALTER TABLE `Szamla` ADD FOREIGN KEY (`rendeles_id`) REFERENCES `Rendeles` (`id`);
 
 ALTER TABLE `Szamla` ADD FOREIGN KEY (`kiallito`) REFERENCES `Ceg` (`id`);
