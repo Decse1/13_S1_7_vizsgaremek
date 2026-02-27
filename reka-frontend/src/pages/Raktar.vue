@@ -112,6 +112,12 @@
     afa_kulcs: 27
   })
 
+  // Store original values to prevent modification
+  const originalProductValues = ref({
+    name: '',
+    cikkszam: ''
+  })
+
   const edit = (item) => {
     if (!hasSubscription.value) {
       alert('A termékek szerkesztése csak aktív RÉKA előfizetéssel érhető el!')
@@ -128,6 +134,11 @@
       leiras: item.leiras,
       ar: item.ar,
       afa_kulcs: item.afa_kulcs
+    }
+    // Store original values for validation
+    originalProductValues.value = {
+      name: item.nev,
+      cikkszam: item.cikkszam
     }
     formError.value = ''
     showEditModal.value = true
@@ -276,6 +287,17 @@
   const saveEditProduct = async () => {
     // Validate form fields
     formError.value = ''
+
+    // Prevent modification of name and cikkszam
+    if (editProduct.value.name !== originalProductValues.value.name) {
+      formError.value = 'A terméknév nem módosítható!'
+      return
+    }
+
+    if (editProduct.value.cikkszam !== originalProductValues.value.cikkszam) {
+      formError.value = 'A cikkszám nem módosítható!'
+      return
+    }
 
     if (!editProduct.value.name || editProduct.value.name.trim() === '') {
       formError.value = 'A terméknév megadása kötelező!'
@@ -602,6 +624,7 @@
                     class="form-control custom-input"
                     maxlength="100"
                     required
+                    disabled
                     data-test="edit-product-name-input"
                   />
                 </div>
@@ -624,6 +647,7 @@
                     class="form-control custom-input"
                     maxlength="100"
                     required
+                    disabled
                     data-test="edit-product-cikkszam-input"
                   />
                 </div>
