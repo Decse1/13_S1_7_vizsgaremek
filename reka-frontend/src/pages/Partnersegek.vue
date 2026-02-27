@@ -307,7 +307,7 @@
     <!-- Eladói partnerségek section -->
     <div class="d-flex align-items-center justify-content-between flex-wrap mb-3">
       <div class="d-flex align-items-center flex-grow-1 mb-2 mb-md-0">
-        <h2 class="me-3 mb-0">Eladói partnerségek</h2>
+        <h2 class="me-3 mb-0" data-test="seller-partnerships-title">Eladói partnerségek</h2>
 
         <div class="input-group" style="width: clamp(100px, 40vw, 300px);">
           <input
@@ -315,6 +315,7 @@
             type="text"
             class="form-control custom-search rounded-5"
             placeholder="Keresés"
+            data-test="seller-search-input"
           />
         </div>
       </div>
@@ -323,6 +324,7 @@
         v-if="hasSubscription && hasPermission('szamla_keszit')"
         class="btn btn-success btn-teal add-btn rounded-5 d-flex align-items-center"
         @click="openAddModal"
+        data-test="add-seller-partnership-btn"
       >
         <Icons name="plus" size="1.5rem"/>
         <span class="d-none d-sm-none d-md-none d-lg-inline ms-2">Új eladói partnerség felvétele</span>
@@ -330,17 +332,17 @@
     </div>
 
     <!-- Eladói partnerségek table -->
-    <div v-if="sellerLoading" class="text-center my-4">
+    <div v-if="sellerLoading" class="text-center my-4" data-test="seller-loading">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Betöltés...</span>
       </div>
     </div>
 
-    <div v-else-if="sellerError" class="alert alert-warning" role="alert">
+    <div v-else-if="sellerError" class="alert alert-warning" role="alert" data-test="seller-error">
       {{ sellerError }}
     </div>
 
-    <table v-else class="table custom-table" style="border-bottom: 1px solid black;">
+    <table v-else class="table custom-table" style="border-bottom: 1px solid black;" data-test="seller-partnerships-table">
       <thead>
         <tr>
           <th style="width: 45%;">Partner neve</th>
@@ -351,15 +353,15 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-if="filteredSellerItems.length === 0">
+        <tr v-if="filteredSellerItems.length === 0" data-test="seller-no-items">
           <td colspan="5" class="text-center">Nincs megjeleníthető eladói partner</td>
         </tr>
-        <tr v-for="(item, index) in filteredSellerItems" :key="item.id || index">
-          <td>{{ item.nev }}</td>
-          <td>{{ item.kiszereles }}</td>
-          <td class="text-end">{{ item.mennyiseg === 0 ? 'Azonnali' : `${item.mennyiseg} nap` }}</td>
-          <td><i class="bi bi-pencil" @click="edit(item)"/></td>
-          <td><i class="bi bi-trash" @click="remove(item)"/></td>
+        <tr v-for="(item, index) in filteredSellerItems" :key="item.id || index" :data-test="`seller-item-${index}`">
+          <td data-test="seller-item-name">{{ item.nev }}</td>
+          <td data-test="seller-item-payment-method">{{ item.kiszereles }}</td>
+          <td class="text-end" data-test="seller-item-payment-time">{{ item.mennyiseg === 0 ? 'Azonnali' : `${item.mennyiseg} nap` }}</td>
+          <td><i class="bi bi-pencil" @click="edit(item)" :data-test="`seller-edit-btn-${index}`"/></td>
+          <td><i class="bi bi-trash" @click="remove(item)" :data-test="`seller-delete-btn-${index}`"/></td>
         </tr>
       </tbody>
     </table>
@@ -372,15 +374,16 @@
         tabindex="-1"
         role="dialog"
         @click="closeAddModal"
+        data-test="add-partnership-modal"
       >
         <div class="modal-dialog modal-dialog-centered modal-dialog-custom" role="document" @click.stop>
           <div class="modal-content custom-modal-content">
             <div class="modal-header">
-              <h5 class="modal-title">Új eladói partnerség felvétele</h5>
-              <button type="button" class="btn-close" @click="closeAddModal"></button>
+              <h5 class="modal-title" data-test="modal-title">Új eladói partnerség felvétele</h5>
+              <button type="button" class="btn-close" @click="closeAddModal" data-test="modal-close-btn"></button>
             </div>
             <div class="modal-body">
-              <div v-if="addModalError" class="alert alert-danger" role="alert">
+              <div v-if="addModalError" class="alert alert-danger" role="alert" data-test="modal-error">
                 {{ addModalError }}
               </div>
               
@@ -396,16 +399,17 @@
                     maxlength="11"
                     :disabled="addModalLoading"
                     @input="handleVatNumberInput"
+                    data-test="vat-number-input"
                   />
-                  <small v-if="searchingCompany" class="form-text text-muted">
+                  <small v-if="searchingCompany" class="form-text text-muted" data-test="company-searching">
                     <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
                     Cég keresése...
                   </small>
-                  <small v-else-if="foundCompanyName" class="form-text text-success">
+                  <small v-else-if="foundCompanyName" class="form-text text-success" data-test="company-found">
                     <i class="bi bi-check-circle-fill me-1"></i>
                     {{ foundCompanyName }}
                   </small>
-                  <small v-else-if="newPartnership.vatNumber.length === 11 && !foundCompanyName" class="form-text text-danger">
+                  <small v-else-if="newPartnership.vatNumber.length === 11 && !foundCompanyName" class="form-text text-danger" data-test="company-not-found">
                     <i class="bi bi-x-circle-fill me-1"></i>
                     A megadott adószámú cég nem található
                   </small>
@@ -421,6 +425,7 @@
                     required
                     :disabled="addModalLoading"
                     @change="handlePaymentMethodChange"
+                    data-test="payment-method-select"
                   >
                     <option v-for="method in paymentMethods" :key="method" :value="method">
                       {{ method }}
@@ -437,6 +442,7 @@
                     required
                     :disabled="addModalLoading || newPartnership.paymentMethod === 'Készpénz'"
                     :readonly="newPartnership.paymentMethod === 'Készpénz'"
+                    data-test="payment-time-input"
                   />
                   <small class="form-text text-muted">
                     {{ newPartnership.paymentMethod === 'Készpénz' 
@@ -453,6 +459,7 @@
                 class="btn btn-secondary rounded-pill" 
                 @click="closeAddModal"
                 :disabled="addModalLoading"
+                data-test="modal-cancel-btn"
               >
                 Mégse
               </button>
@@ -461,6 +468,7 @@
                 class="btn btn-primary btn-teal rounded-pill" 
                 @click="saveNewPartnership"
                 :disabled="addModalLoading"
+                data-test="modal-save-btn"
               >
                 <span v-if="addModalLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                 {{ addModalLoading ? 'Mentés...' : 'Mentés' }}
@@ -475,7 +483,7 @@
     <!-- Vevői partnerségek section -->
     <div class="d-flex align-items-center justify-content-between flex-wrap mb-3">
       <div class="d-flex align-items-center flex-grow-1 mb-2 mb-md-0">
-        <h2 class="me-3 mb-0">Vevői partnerségek</h2>
+        <h2 class="me-3 mb-0" data-test="buyer-partnerships-title">Vevői partnerségek</h2>
 
         <div class="input-group" style="width: clamp(100px, 40vw, 300px);">
           <input
@@ -483,23 +491,24 @@
             type="text"
             class="form-control custom-search rounded-5"
             placeholder="Keresés"
+            data-test="buyer-search-input"
           />
         </div>
       </div>
     </div>
 
     <!-- Vevői partnerségek table -->
-    <div v-if="buyerLoading" class="text-center my-4">
+    <div v-if="buyerLoading" class="text-center my-4" data-test="buyer-loading">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Betöltés...</span>
       </div>
     </div>
 
-    <div v-else-if="buyerError" class="alert alert-warning" role="alert">
+    <div v-else-if="buyerError" class="alert alert-warning" role="alert" data-test="buyer-error">
       {{ buyerError }}
     </div>
 
-    <table v-else class="table custom-table" style="border-bottom: 1px solid black;">
+    <table v-else class="table custom-table" style="border-bottom: 1px solid black;" data-test="buyer-partnerships-table">
       <thead>
         <tr>
           <th style="width: 45%;">Partner neve</th>
@@ -510,15 +519,15 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-if="filteredBuyerItems.length === 0">
+        <tr v-if="filteredBuyerItems.length === 0" data-test="buyer-no-items">
           <td colspan="5" class="text-center">Nincs megjeleníthető vevői partner</td>
         </tr>
-        <tr v-for="(item, index) in filteredBuyerItems" :key="item.id || index">
-          <td>{{ item.nev }}</td>
-          <td>{{ item.kiszereles }}</td>
-          <td class="text-end">{{ item.mennyiseg === 0 ? 'Azonnali' : `${item.mennyiseg} nap` }}</td>
-          <td><i class="bi bi-pencil" @click="edit(item)"/></td>
-          <td><i class="bi bi-trash" @click="remove(item)"/></td>
+        <tr v-for="(item, index) in filteredBuyerItems" :key="item.id || index" :data-test="`buyer-item-${index}`">
+          <td data-test="buyer-item-name">{{ item.nev }}</td>
+          <td data-test="buyer-item-payment-method">{{ item.kiszereles }}</td>
+          <td class="text-end" data-test="buyer-item-payment-time">{{ item.mennyiseg === 0 ? 'Azonnali' : `${item.mennyiseg} nap` }}</td>
+          <td><i class="bi bi-pencil" @click="edit(item)" :data-test="`buyer-edit-btn-${index}`"/></td>
+          <td><i class="bi bi-trash" @click="remove(item)" :data-test="`buyer-delete-btn-${index}`"/></td>
         </tr>
       </tbody>
     </table>
