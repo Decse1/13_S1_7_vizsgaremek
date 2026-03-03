@@ -177,6 +177,11 @@
     if (isPartner) {
       fetchProducts()
       fetchCategories()
+      
+      // Update page title with partner company name
+      if (partnerCompany.value && partnerCompany.value.nev) {
+        document.title = `${partnerCompany.value.nev} készlete | RÉKA`
+      }
     }
   })
 
@@ -329,7 +334,7 @@
           <td>
             <div class="d-flex align-items-center gap-2">
               <button 
-                class="btn btn-sm btn-outline-secondary"
+                class="btn btn-sm btn-outline-secondary rounded-pill"
                 @click="decreaseQuantity(item)"
                 :disabled="quantities[item.id] <= (item.min_vas_menny || 1)"
               >
@@ -344,7 +349,7 @@
                 style="width: 70px;"
               />
               <button 
-                class="btn btn-sm btn-outline-secondary"
+                class="btn btn-sm btn-outline-secondary rounded-pill"
                 @click="increaseQuantity(item)"
               >
                 <i class="bi bi-plus"></i>
@@ -352,7 +357,7 @@
             </div>
           </td>
           <td>
-            <button class="btn btn-sm btn-teal text-white" @click="addToCart(item)">
+            <button class="btn btn-sm btn-teal text-white rounded-pill" @click="addToCart(item)">
               Kosárba
             </button>
           </td>

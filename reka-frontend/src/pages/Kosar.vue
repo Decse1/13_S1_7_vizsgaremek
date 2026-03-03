@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router';
 import axios from '../axios.js';
 import authStore, { setAuthState, hasPermission, isAdmin } from '../stores/auth.js';
 import cartStore, { removeFromCart, updateQuantity, getTotalPrice, getTotalPriceWithVAT, clearCart, updateItemPrice } from '../stores/cart.js';
+import Icons from '../components/Icons.vue';
 
 const router = useRouter();
 
@@ -325,9 +326,9 @@ onMounted(() => {
           <th style="width: 15%;">Cikkszám</th>
           <th style="width: 15%;">Egységár (nettó)</th>
           <th style="width: 10%;">Mennyiség</th>
-          <th style="width: 15%;">Összesen (nettó)</th>
-          <th style="width: 5%;"></th>
-          <th style="width: 5%;"></th>
+          <th style="width: 20%;">Összesen (nettó)</th>
+          <th style="width: 2.5%;"></th>
+          <th style="width: 2.5%;"></th>
         </tr>
       </thead>
       <tbody>
@@ -345,10 +346,14 @@ onMounted(() => {
           <td>{{ item.quantity }} {{ item.kiszereles }}</td>
           <td>{{ formatPrice(item.ar * item.quantity) }} Ft</td>
           <td>
-            <i class="bi bi-pencil action-icon" @click="openEditModal(item)" title="Szerkesztés"></i>
+            <span class="action-icon" @click="openEditModal(item)" title="Szerkesztés">
+              <Icons name="pencil" size="1.25rem" />
+            </span>
           </td>
           <td>
-            <i class="bi bi-trash action-icon" @click="removeItem(item)" title="Törlés"></i>
+            <span class="action-icon trash-icon" @click="removeItem(item)" title="Törlés">
+              <Icons name="trash" size="1.25rem" />
+            </span>
           </td>
         </tr>
         <tr v-if="cartItems.length > 0" class="total-row">
@@ -539,16 +544,23 @@ onMounted(() => {
 
   .action-icon {
     cursor: pointer;
-    font-size: 1.1rem;
-    transition: color 0.2s ease;
+    transition: opacity 0.2s;
+    color: #000;
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
   }
 
   .action-icon:hover {
-    color: #00948B;
+    opacity: 0.6;
   }
 
-  .bi-trash:hover {
-    color: #dc3545 !important;
+  .trash-icon {
+    color: #c00;
+  }
+
+  .trash-icon:hover {
+    opacity: 0.6;
   }
 
   .product-name-link {
