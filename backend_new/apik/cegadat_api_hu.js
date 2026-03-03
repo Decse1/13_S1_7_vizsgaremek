@@ -1,7 +1,17 @@
 const { exec } = require('child_process');
-const CEG_API_KEY= "213.6ace6e05f1c1097d79e445d8dad7ba44";
+let CEG_API_KEY= "";
 const API_BASE_URL = "https://api.cegadatapi.hu";
 
+const readline = require('readline').createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+readline.question(``,api => {
+    CEG_API_KEY = api;
+    console.log(`Az API kulcs beállítva`);
+    readline.close(); // Fontos lezárni, különben nem áll le a program
+});
 /**
  * A fő funkció, ami elvégzi a CURL hívást.
  * @param {string} endpoint - Az API végpontja (pl. /v1/search)
@@ -27,8 +37,8 @@ function runCurlProxy(endpoint, params) {
             }
             
             try {
-                // A CURL kimenetét JSON-ként küldjük vissza, feltételezve, hogy az API JSON-t ad
-                //console.log(`[CURL KIMENET]: ${stdout}`);
+                //A CURL kimenetét JSON-ként küldjük vissza, feltételezve, hogy az API JSON-t ad
+                console.log(`[CURL KIMENET]: ${stdout}`);
                 const data = JSON.parse(stdout);
                 resolve({ status: 200, data: data.response.results }); 
             } catch (parseError) {

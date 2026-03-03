@@ -24,8 +24,8 @@ module.exports = (app) => {
                     elado.cim as elado_cim, elado.szamlaszam as elado_bankszamla, elado.szamla_minta,
                     vevo.nev as vevo_nev, vevo.adoszam as vevo_adoszam, 
                     vevo.cim as vevo_cim, vevo.szamlaszam as vevo_bankszamla,
-                    t.nev as termek_nev, t.kiszereles, t.afa_kulcs,
-                    rt.mennyiseg, t.ar as egyseg_ar,
+                    rt.nev as termek_nev, t.kiszereles, rt.afa_kulcs,
+                    rt.mennyiseg, rt.ar as egyseg_ar,
                     sz_norm.szamla_sz as eredeti_szamlaszam,
                     sz_storno.szamla_sz as storno_szamlaszam,
                     sz_storno.kiallitas_datum as storno_kiallitas_datum

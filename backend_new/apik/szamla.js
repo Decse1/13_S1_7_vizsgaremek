@@ -23,8 +23,8 @@ module.exports = (app, /*authenticateToken*/) => {
                     elado.cim as elado_cim, elado.szamlaszam as elado_bankszamla, elado.szamla_minta,
                     vevo.nev as vevo_nev, vevo.adoszam as vevo_adoszam, 
                     vevo.cim as vevo_cim, vevo.szamlaszam as vevo_bankszamla,
-                    t.nev as termek_nev, t.kiszereles, t.afa_kulcs,
-                    rt.mennyiseg, t.ar as egyseg_ar,
+                    rt.nev as termek_nev, t.kiszereles, rt.afa_kulcs,
+                    rt.mennyiseg, rt.ar as egyseg_ar,
                     sz.szamla_sz, sz.kiallitas_datum, sz.fizetesi_ido as szamla_fizetesi_ido, sz.szamla_tipus
                 FROM Rendeles r
                 JOIN Partnerseg p ON r.partnerseg = p.id

@@ -61,8 +61,8 @@ module.exports = (app, authenticateToken, url) => {
             // Tételek beszúrása
             for (const t of termekek) {
                 await db.query(
-                    `INSERT INTO RendelesTetel (rendeles_id, termek_id, mennyiseg) VALUES (?, ?, ?)`,
-                    [ujRendelesId, t.termekId, t.mennyiseg]
+                    `INSERT INTO RendelesTetel (rendeles_id, termek_id, mennyiseg, nev, ar, afa_kulcs) VALUES (?, ?, ?, ?, ?, ?)`,
+                    [ujRendelesId, t.termekId, t.mennyiseg, t.nev, t.ar, t.afa_kulcs]
                 );
             }
 

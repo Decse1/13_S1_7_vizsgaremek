@@ -66,6 +66,9 @@ CREATE TABLE `RendelesTetel` (
   `rendeles_id` INT NOT NULL,
   `termek_id` INT NOT NULL,
   `mennyiseg` INT NOT NULL,
+  `nev` VARCHAR(100) NOT NULL,
+  `ar` INT NOT NULL,
+  `afa_kulcs` INT NOT NULL,
   PRIMARY KEY (`rendeles_id`, `termek_id`)
 );
 
