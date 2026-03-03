@@ -125,7 +125,7 @@ const routes = [
   },
   {
     path: "/aszf",
-    name: "Általános Szerződési Feltételek",
+    name: "ÁSZF",
     component: Aszf,
     meta: { requiresAuth: false }
   },
@@ -146,6 +146,9 @@ const router = createRouter({
 // Navigation guards
 router.beforeEach((to, from, next) => {
   const isAuthenticated = authStore.isAuthenticated;
+  
+  // Set page title based on route name
+  document.title = to.name ? `${to.name} | RÉKA` : 'RÉKA';
   
   // If route requires authentication and user is not logged in
   if (to.meta.requiresAuth && !isAuthenticated) {

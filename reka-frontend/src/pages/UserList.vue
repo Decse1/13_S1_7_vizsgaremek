@@ -110,9 +110,14 @@ const saveNewUser = async () => {
     return;
   }
 
+  // If telephely_cim is empty, use company's address
   if (!newUser.value.telephely_cim || newUser.value.telephely_cim.trim() === '') {
-    formError.value = 'A telephely cím megadása kötelező!';
-    return;
+    if (authStore.ceg && authStore.ceg.cim) {
+      newUser.value.telephely_cim = authStore.ceg.cim;
+    } else {
+      formError.value = 'A telephely cím megadása kötelező!';
+      return;
+    }
   }
 
   if (!newUser.value.telefon || newUser.value.telefon.trim() === '') {
@@ -461,7 +466,7 @@ const saveEditUser = async () => {
                     type="text"
                     class="form-control custom-input"
                     maxlength="255"
-                    required
+                    placeholder="Ha üresen hagyja, a cég címe lesz használva"
                   />
                 </div>
                 <div class="mb-3">
