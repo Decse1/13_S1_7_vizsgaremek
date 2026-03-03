@@ -1,0 +1,5 @@
+Frontend:
+
+-Cél: modern, felhasználóbarát felület létrehozása
+-Vue.js segítségével készült
+-Könnyen elérhető funkciók az oldalsávon

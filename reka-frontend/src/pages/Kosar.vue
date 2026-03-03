@@ -1,9 +1,9 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from '../axios.js';
 import authStore, { setAuthState, hasPermission, isAdmin } from '../stores/auth.js';
-import cartStore, { removeFromCart, updateQuantity, getTotalPrice, getTotalPriceWithVAT, clearCart } from '../stores/cart.js';
+import cartStore, { removeFromCart, updateQuantity, getTotalPrice, getTotalPriceWithVAT, clearCart, updateItemPrice } from '../stores/cart.js';
 
 const router = useRouter();
 
@@ -18,6 +18,9 @@ const selectedProduct = ref(null);
 
 // Categories from database
 const categories = ref([]);
+
+// Price update notifications
+const priceUpdates = ref([]);
 
 // Computed properties
 const cartItems = computed(() => cartStore.items);
@@ -220,19 +223,95 @@ const getCategoryName = (categoryId) => {
   const category = categories.value.find(cat => cat.id === categoryId);
   return category ? category.nev : 'N/A';
 };
+
+// Check and update prices
+const checkAndUpdatePrices = async () => {
+  if (cartItems.value.length === 0 || !cartStore.companyId) {
+    return;
+  }
+
+  try {
+    const response = await axios.post('/Raktar', {
+      id: cartStore.companyId
+    });
+
+    if (response.data.ok && response.data.termekek) {
+      const currentProducts = response.data.termekek;
+      const updates = [];
+
+      cartItems.value.forEach(cartItem => {
+        const currentProduct = currentProducts.find(p => p.id === cartItem.id);
+        
+        if (currentProduct) {
+          // Check if price or VAT rate has changed
+          if (currentProduct.ar !== cartItem.ar || currentProduct.afa_kulcs !== cartItem.afa_kulcs) {
+            updates.push({
+              nev: cartItem.nev,
+              oldPrice: cartItem.ar,
+              newPrice: currentProduct.ar,
+              oldVat: cartItem.afa_kulcs,
+              newVat: currentProduct.afa_kulcs
+            });
+            
+            // Update the cart item
+            updateItemPrice(cartItem.id, currentProduct.ar, currentProduct.afa_kulcs);
+          }
+        }
+      });
+
+      // Show notification if there were updates
+      if (updates.length > 0) {
+        priceUpdates.value = updates;
+        
+        // Create notification message
+        let message = 'Az alábbi termékek ára megváltozott:\n\n';
+        updates.forEach(update => {
+          message += `${update.nev}:\n`;
+          message += `  Régi ár: ${formatPrice(update.oldPrice)} Ft (${update.oldVat}% ÁFA)\n`;
+          message += `  Új ár: ${formatPrice(update.newPrice)} Ft (${update.newVat}% ÁFA)\n\n`;
+        });
+      }
+    }
+  } catch (err) {
+    console.error('Error checking prices:', err);
+  }
+};
+
+// On component mount, check prices
+onMounted(() => {
+  checkAndUpdatePrices();
+});
 </script>
 
 <template>
   <div class="content">
     <div class="d-flex align-items-center justify-content-between flex-wrap mb-3">
       <h2 class="mb-0">Kosár</h2>
-      <button 
-        v-if="cartItems.length > 0" 
-        class="btn btn-outline-danger"
+      <button
+        v-if="cartItems.length > 0"
+        class="btn btn-danger add-btn rounded-5 d-flex align-items-center"
         @click="handleClearCart"
+        data-test="empty-cart-btn"
       >
-        Kosár ürítése
+        <Icons name="trash" size="1.35rem"/>
+        <span class="d-none d-sm-inline ms-2">Kosár ürítése</span>
       </button>
+    </div>
+
+    <!-- Price Update Alert -->
+    <div v-if="priceUpdates.length > 0" class="alert alert-warning alert-dismissible fade show" role="alert">
+      <strong><i class="bi bi-exclamation-triangle-fill me-2"></i>Árak frissítve!</strong>
+      <p class="mb-2">Az alábbi termékek ára megváltozott:</p>
+      <ul class="mb-0">
+        <li v-for="(update, index) in priceUpdates" :key="index">
+          <strong>{{ update.nev }}:</strong><br>
+          <small>
+            Régi ár: {{ formatPrice(update.oldPrice) }} Ft ({{ update.oldVat }}% ÁFA) → 
+            Új ár: {{ formatPrice(update.newPrice) }} Ft ({{ update.newVat }}% ÁFA)
+          </small>
+        </li>
+      </ul>
+      <button type="button" class="btn-close" @click="priceUpdates = []" aria-label="Close"></button>
     </div>
     
     <p v-if="cartItems.length > 0" class="mb-3">
@@ -284,7 +363,7 @@ const getCategoryName = (categoryId) => {
     </table>
 
     <div v-if="cartItems.length > 0" class="mt-3">
-      <button class="btn btn-teal text-white btn-lg" @click="placeOrder">
+      <button class="btn btn-teal text-white btn-lg rounded-pill" @click="placeOrder">
         Rendelés leadása
       </button>
     </div>
@@ -310,7 +389,7 @@ const getCategoryName = (categoryId) => {
                 <label class="form-label">Mennyiség ({{ editingItem.kiszereles }})</label>
                 <div class="d-flex align-items-center gap-2">
                   <button 
-                    class="btn btn-sm btn-outline-secondary"
+                    class="btn btn-sm btn-outline-secondary rounded-pill"
                     @click="decreaseEditQuantity"
                     :disabled="editingQuantity <= (editingItem.min_vas_menny || 1)"
                   >
@@ -324,7 +403,7 @@ const getCategoryName = (categoryId) => {
                     style="width: 100px;"
                   />
                   <button 
-                    class="btn btn-sm btn-outline-secondary"
+                    class="btn btn-sm btn-outline-secondary rounded-pill"
                     @click="increaseEditQuantity"
                   >
                     <i class="bi bi-plus"></i>
@@ -336,10 +415,10 @@ const getCategoryName = (categoryId) => {
               </div>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" @click="closeEditModal">
+              <button type="button" class="btn btn-secondary rounded-pill" @click="closeEditModal">
                 Mégse
               </button>
-              <button type="button" class="btn btn-teal text-white" @click="saveQuantity">
+              <button type="button" class="btn btn-teal rounded-pill text-white" @click="saveQuantity">
                 Mentés
               </button>
             </div>
@@ -592,5 +671,17 @@ const getCategoryName = (categoryId) => {
   .custom-modal-content .btn-close:active {
     outline: none;
     box-shadow: none;
+  }
+
+  .alert {
+    border-radius: 0.5rem;
+  }
+
+  .alert ul {
+    padding-left: 1.5rem;
+  }
+
+  .alert ul li {
+    margin-bottom: 0.5rem;
   }
 </style>
