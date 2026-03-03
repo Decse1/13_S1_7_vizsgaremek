@@ -47,7 +47,7 @@ module.exports = (app, authenticateToken) => {
             const { eladoId, vevoId, fiz_ido, fiz_forma } = req.body;
 
             // Validáció: kötelező mezők
-            if (!eladoId || !vevoId || !fiz_ido || !fiz_forma || fiz_forma.toString().trim() === '') {
+            if (!eladoId || !vevoId || !fiz_forma || fiz_forma.toString().trim() == '') {
                 return res.status(422).json({
                     ok: false,
                     uzenet: "Hiányzó mező(k): eladó, vevő, fizetési idő vagy forma"

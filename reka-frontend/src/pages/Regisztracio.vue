@@ -27,10 +27,15 @@ const successMessage = ref('');
 const isSubmitting = ref(false);
 const registeredCegId = ref(null);
 
-// Autocomplete functionality
+// Autocomplete functionality for company name
 const showSuggestions = ref(false);
 const filteredCompanies = ref([]);
 const isLoadingCompanies = ref(false);
+
+// Autocomplete functionality for VAT number
+const showVatSuggestions = ref(false);
+const filteredVatCompanies = ref([]);
+const isLoadingVatCompanies = ref(false);
 
 // Search companies by name - using API
 const handleCegNeveInput = async () => {
@@ -134,6 +139,110 @@ const closeSuggestions = () => {
   setTimeout(() => {
     showSuggestions.value = false;
   }, 200);
+};
+
+// Search companies by VAT number - using API
+const handleAdoszamInput = async () => {
+  const searchTerm = formData.value.adoszamMagyar;
+  
+  if (searchTerm.length >= 6) {
+    isLoadingVatCompanies.value = true;
+    try {
+      // Search companies by VAT number using /v1/search endpoint
+      const response = await axios.post('/search/vat', {
+        vatNumber: searchTerm
+      });
+      
+      if (response.data && Array.isArray(response.data)) {
+        // Log the raw response to see the structure
+        console.log('VAT Search API response:', response.data);
+        
+        // Limit to first 4 companies and store basic info
+        filteredVatCompanies.value = response.data.slice(0, 4).map(company => {
+          console.log('VAT Company data:', company);
+          return {
+            shortName: company.shortName || company.fullName || 'N/A',
+            taxNumber: company.taxNumber || company.vatNumber,
+            companyId: company.id || company.taxNumber || company.vatNumber,
+            id: company.taxNumber || company.vatNumber // Use taxNumber as unique identifier
+          };
+        });
+        showVatSuggestions.value = filteredVatCompanies.value.length > 0;
+      } else {
+        filteredVatCompanies.value = [];
+        showVatSuggestions.value = false;
+      }
+    } catch (error) {
+      console.error('Error searching companies by VAT:', error);
+      filteredVatCompanies.value = [];
+      showVatSuggestions.value = false;
+    } finally {
+      isLoadingVatCompanies.value = false;
+    }
+  } else {
+    showVatSuggestions.value = false;
+    filteredVatCompanies.value = [];
+  }
+};
+
+// Close VAT suggestions when clicking outside
+const closeVatSuggestions = () => {
+  setTimeout(() => {
+    showVatSuggestions.value = false;
+  }, 200);
+};
+
+// Select a company from VAT suggestions and fetch detailed information
+const selectVatCompany = async (company) => {
+  // Close suggestions immediately and show loading
+  showVatSuggestions.value = false;
+  isLoadingVatCompanies.value = true;
+  
+  console.log('Selected company from VAT:', company);
+  
+  try {
+    // Fetch detailed information using /v1/detail endpoint
+    // Try with the companyId first, then taxNumber
+    const identifier = company.companyId || company.taxNumber || company.id;
+    console.log('Fetching details for identifier:', identifier);
+    
+    const detailResponse = await axios.post('/detail', {
+      adoszam: identifier
+    });
+    
+    console.log('Detail API response:', detailResponse.data);
+    
+    // Check if response is an object (not an array)
+    const detail = Array.isArray(detailResponse.data) 
+      ? detailResponse.data[0] 
+      : detailResponse.data;
+    
+    if (detail && (detail.shortName || detail.fullName)) {
+      console.log('Detail data:', detail);
+      
+      // Fill in the form with detailed data
+      formData.value.cegNeve = detail.shortName || detail.fullName || company.shortName;
+      formData.value.cegCime = detail.fullAddress || '';
+      formData.value.adoszamMagyar = detail.vatNumber || company.taxNumber;
+      formData.value.cegTelszam = detail.phoneNumber || '';
+      formData.value.cegEmail = detail.emailAddress || '';
+    } else {
+      console.log('No detail data received, using fallback');
+      // Fallback to basic info if detail fetch fails
+      formData.value.cegNeve = company.shortName;
+      formData.value.adoszamMagyar = company.taxNumber;
+    }
+  } catch (error) {
+    console.error('Error fetching company details:', error);
+    console.error('Error response:', error.response?.data);
+    // Fallback to basic info
+    formData.value.cegNeve = company.shortName;
+    formData.value.adoszamMagyar = company.taxNumber;
+    errorMessage.value = 'Nem sikerült betölteni a cég részletes adatait. Kérjük, töltse ki kézzel!';
+    showError.value = true;
+  } finally {
+    isLoadingVatCompanies.value = false;
+  }
 };
 
 const handleSubmit = async () => {
@@ -306,15 +415,36 @@ const handleSubmit = async () => {
 
         <div class="mb-3">
           <label for="adoszamMagyar" class="form-label">Adószám (magyar)<sup class="red">*</sup></label>
-          <input 
-            type="text" 
-            class="form-control custom-input" 
-            id="adoszamMagyar" 
-            v-model="formData.adoszamMagyar"
-            required
-            maxlength="11"
-            data-test="tax-number-hu-input"
-          />
+          <div class="autocomplete-wrapper">
+            <input 
+              type="text" 
+              class="form-control custom-input" 
+              id="adoszamMagyar" 
+              v-model="formData.adoszamMagyar"
+              @input="handleAdoszamInput"
+              @blur="closeVatSuggestions"
+              autocomplete="off"
+              required
+              maxlength="11"
+              data-test="tax-number-hu-input"
+            />
+            <div v-if="isLoadingVatCompanies" class="autocomplete-loading" data-test="vat-autocomplete-loading">
+              <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              Keresés...
+            </div>
+            <div v-else-if="showVatSuggestions" class="autocomplete-dropdown" data-test="vat-autocomplete-dropdown">
+              <div 
+                v-for="(company, index) in filteredVatCompanies" 
+                :key="index"
+                class="autocomplete-item"
+                :data-test="`vat-autocomplete-item-${index}`"
+                @click="selectVatCompany(company)"
+              >
+                <div class="company-name">{{ company.shortName }}</div>
+                <div class="company-details">{{ company.taxNumber }}</div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="mb-3">

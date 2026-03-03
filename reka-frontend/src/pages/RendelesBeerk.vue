@@ -380,7 +380,7 @@ onMounted(() => {
   <div class="content">
     <div class="d-flex align-items-center justify-content-between flex-wrap mb-3">
       <h2 class="mb-0">Beérkezett rendelések</h2>
-      <button class="btn btn-teal text-white" @click="fetchOrders" :disabled="loading">
+      <button class="btn btn-teal rounded-pill text-white" @click="fetchOrders" :disabled="loading">
         <i class="bi bi-arrow-clockwise me-1"></i>
         Frissítés
       </button>

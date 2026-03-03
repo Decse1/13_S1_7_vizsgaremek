@@ -177,6 +177,20 @@ export const getTotalPriceWithVAT = () => {
   }, 0);
 };
 
+// Update cart item price
+export const updateItemPrice = (itemId, newPrice, newVatRate) => {
+  const item = cartStore.items.find(i => i.id === itemId);
+  if (item) {
+    item.ar = newPrice;
+    if (newVatRate !== undefined) {
+      item.afa_kulcs = newVatRate;
+    }
+    saveCart();
+    return true;
+  }
+  return false;
+};
+
 // Initialize cart when the module is loaded
 loadCart();
 

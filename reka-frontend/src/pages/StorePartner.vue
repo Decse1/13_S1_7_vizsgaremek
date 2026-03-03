@@ -4,6 +4,7 @@
   import axios from '../axios.js'
   import authStore, { setAuthState, hasPermission, isAdmin } from '../stores/auth.js';
   import cartStore, { addToCart as addItemToCart, addToCartWithClear } from '../stores/cart'
+  import Icons from '../components/Icons.vue'
 
   const route = useRoute()
   const router = useRouter()
@@ -263,17 +264,25 @@
   <div class="content">
     <!-- Header -->
     <div class="d-flex align-items-center justify-content-between flex-wrap mb-3">
-      <div class="d-flex align-items-center flex-grow-1 mb-2 mb-md-0">
-        <h2 class="me-3 mb-0">
+      <div class="d-flex align-items-center flex-grow-1 mb-2 mb-md-0 header-container">
+        <button 
+          class="btn btn-secondary text-white me-3 back-button"
+          @click="router.back()"
+          title="Vissza"
+        >
+          <Icons name="chevronleft" size="1.25rem" />
+        </button>
+        
+        <h2 class="me-3 mb-0 title-text">
           <template v-if="partnerCompany">
-            {{ partnerCompany.nev }} készlete ({{ partnerCompany.adoszamm }})
+            {{ partnerCompany.nev }} készlete ({{ partnerCompany.adoszam }})
           </template>
           <template v-else>
             Partner készlete
           </template>
         </h2>
 
-        <div class="input-group" style="width: clamp(100px, 40vw, 300px);">
+        <div class="input-group search-input" style="width: clamp(100px, 40vw, 300px);">
           <input
             v-model="search"
             type="text"
@@ -631,5 +640,48 @@
   .custom-modal-content .btn-close:active {
     outline: none;
     box-shadow: none;
+  }
+
+  .back-button {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border-radius: 50%;
+  }
+
+  /* Mobile: Stack back button above title */
+  @media (max-width: 767.98px) {
+    .header-container {
+      flex-direction: column;
+      align-items: flex-start !important;
+      width: 100%;
+    }
+
+    .back-button {
+      margin-bottom: 0.75rem;
+      margin-right: 0 !important;
+    }
+
+    .title-text {
+      margin-bottom: 0.75rem;
+      margin-right: 0 !important;
+    }
+
+    .search-input {
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+  }
+
+  /* Desktop: Keep back button inline with title */
+  @media (min-width: 768px) {
+    .header-container {
+      flex-direction: row;
+      align-items: center;
+    }
   }
 </style>
