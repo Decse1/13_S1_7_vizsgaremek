@@ -1,5 +1,20 @@
 Frontend:
 
--Cél: modern, felhasználóbarát felület létrehozása
--Vue.js segítségével készült
--Könnyen elérhető funkciók az oldalsávon
+-Javascript-keretrendszer: Vue.js
+-UI: Bootstrap
+-Backend kapcsolat: Axios
+
+Frontend tesztelés:
+
+-Automatizált tesztelés Seleniummal
+-Firefoxban futó tesztesetek
+-Funkciók és felület tesztelése
+-Pl.: bejelentkezés, regisztráció, menüpontok
+
+-Reszponzív alkalmazás
+-Okostelefonról és tabletről is használható
+
+Csapatmunka
+
+-Github
+-Frontend, design, logo Tamás, Backend, adatbázis, dokumentációk Décse
