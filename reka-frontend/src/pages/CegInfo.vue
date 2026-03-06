@@ -27,6 +27,22 @@ const closeError = () => {
   showError.value = false;
 };
 
+const formatSzamlaszam = (event) => {
+  // Remove all non-numeric characters (except hyphens, which will be removed anyway)
+  let value = event.target.value.replace(/[^0-9]/g, '');
+  let formatted = '';
+  
+  // Build formatted string with automatic hyphens
+  for (let i = 0; i < value.length && i < 24; i++) {
+    if (i === 8 || i === 16) {
+      formatted += '-';
+    }
+    formatted += value[i];
+  }
+  
+  editForm.value.szamlaszam = formatted;
+};
+
 const showAddModal = ref(false)
 const formError = ref('')
 const szamla_minta = ref('')
@@ -410,6 +426,7 @@ const deactivateReka = async () => {
                     v-model="editForm.szamlaszam"
                     type="text"
                     class="form-control custom-input"
+                    @input="formatSzamlaszam"
                     required
                     maxlength="26"
                     placeholder="pl. 11700002-20000001-00000001"

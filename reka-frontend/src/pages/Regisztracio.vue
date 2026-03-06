@@ -27,6 +27,54 @@ const successMessage = ref('');
 const isSubmitting = ref(false);
 const registeredCegId = ref(null);
 
+// Format bank account number with hyphens
+const formatSzamlaszam = (event) => {
+  // Remove all non-numeric characters (except hyphens, which will be removed anyway)
+  let value = event.target.value.replace(/[^0-9]/g, '');
+  let formatted = '';
+  
+  // Build formatted string with automatic hyphens
+  for (let i = 0; i < value.length && i < 24; i++) {
+    if (i === 8 || i === 16) {
+      formatted += '-';
+    }
+    formatted += value[i];
+  }
+  
+  formData.value.szamlaszam = formatted;
+};
+
+// Format VAT number (adószám) with hyphens
+const formatAdoszam = (event) => {
+  // Remove all non-numeric characters
+  let value = event.target.value.replace(/[^0-9]/g, '');
+  let formatted = '';
+  
+  // Build formatted string with automatic hyphens after 8th and 9th digits
+  for (let i = 0; i < value.length && i < 11; i++) {
+    if (i === 8 || i === 9) {
+      formatted += '-';
+    }
+    formatted += value[i];
+  }
+  
+  formData.value.adoszamMagyar = formatted;
+};
+
+// Format phone number (only numbers and + allowed)
+const formatPhoneNumber = (event, field) => {
+  // Remove all characters except numbers and +
+  let value = event.target.value.replace(/[^0-9+]/g, '');
+  
+  // Ensure + is only at the beginning
+  if (value.includes('+')) {
+    const parts = value.split('+');
+    value = '+' + parts.join('').replace(/\+/g, '');
+  }
+  
+  formData.value[field] = value;
+};
+
 // Autocomplete functionality for company name
 const showSuggestions = ref(false);
 const filteredCompanies = ref([]);
@@ -143,7 +191,8 @@ const closeSuggestions = () => {
 
 // Search companies by VAT number - using API
 const handleAdoszamInput = async () => {
-  const searchTerm = formData.value.adoszamMagyar;
+  // Remove hyphens for search
+  const searchTerm = formData.value.adoszamMagyar.replace(/-/g, '');
   
   if (searchTerm.length >= 6) {
     isLoadingVatCompanies.value = true;
@@ -255,11 +304,11 @@ const handleSubmit = async () => {
     // Prepare data according to backend API expectations
     const cegData = {
       nev: formData.value.cegNeve,
-      adoszam: formData.value.adoszamMagyar,
+      adoszam: formData.value.adoszamMagyar.replace(/-/g, ''), // Remove hyphens before sending
       euAdoszam: formData.value.adoszamEuropai,
       cim: formData.value.cegCime,
       email: formData.value.cegEmail,
-      telefon: formData.value.cegTelszam,
+      telefon: formData.value.cegTelszam.replace(/\s/g, ''), // Remove spaces before sending
       elofiz: false, // Default to false for new registrations
       szamla_minta: "-", // Default value for new registrations
       szamlaszam: formData.value.szamlaszam
@@ -288,6 +337,9 @@ const handleSubmit = async () => {
         cegId: registeredCegId.value
       };
 
+      // Remove spaces from phone number before sending
+      felhasznaloData.telefon = felhasznaloData.telefon.replace(/\s/g, '');
+      
       console.log('Creating user with data:', felhasznaloData);
       const userResponse = await axios.post('/Regisz/Felhasznalo_ad', felhasznaloData);
 
@@ -421,11 +473,12 @@ const handleSubmit = async () => {
               class="form-control custom-input" 
               id="adoszamMagyar" 
               v-model="formData.adoszamMagyar"
-              @input="handleAdoszamInput"
+              @input="(e) => { formatAdoszam(e); handleAdoszamInput(); }"
               @blur="closeVatSuggestions"
               autocomplete="off"
               required
-              maxlength="11"
+              maxlength="13"
+              placeholder="pl. 12345678-1-23"
               data-test="tax-number-hu-input"
             />
             <div v-if="isLoadingVatCompanies" class="autocomplete-loading" data-test="vat-autocomplete-loading">
@@ -466,8 +519,10 @@ const handleSubmit = async () => {
             class="form-control custom-input" 
             id="cegTelszam" 
             v-model="formData.cegTelszam"
+            @input="(e) => formatPhoneNumber(e, 'cegTelszam')"
             required
             maxlength="15"
+            placeholder="pl. +36301234567"
             data-test="company-phone-input"
           />
         </div>
@@ -492,6 +547,7 @@ const handleSubmit = async () => {
             class="form-control custom-input" 
             id="szamlaszam" 
             v-model="formData.szamlaszam"
+            @input="formatSzamlaszam"
             required
             maxlength="26"
             placeholder="pl. 11700002-20000001-00000001"
@@ -544,12 +600,14 @@ const handleSubmit = async () => {
         <div class="mb-3">
           <label for="" class="form-label">Telefonszám<sup class="red">*</sup></label>
           <input 
-            type="felhszTel" 
+            type="tel" 
             class="form-control custom-input" 
             id="felhszTel" 
             v-model="formData.felhszTel"
+            @input="(e) => formatPhoneNumber(e, 'felhszTel')"
             required
             maxlength="15"
+            placeholder="pl. +36301234567"
             data-test="user-phone-input"
           />
         </div>

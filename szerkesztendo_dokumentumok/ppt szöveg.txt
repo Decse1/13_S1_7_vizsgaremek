@@ -8,7 +8,7 @@ Frontend tesztelés:
 
 -Automatizált tesztelés Seleniummal
 -Firefoxban futó tesztesetek
--Funkciók és felület tesztelése
+-Cél: funkciók és felület tesztelése
 -Pl.: bejelentkezés, regisztráció, menüpontok
 
 -Reszponzív alkalmazás
@@ -17,4 +17,7 @@ Frontend tesztelés:
 Csapatmunka
 
 -Github
--Frontend, design, logo Tamás, Backend, adatbázis, dokumentációk Décse
+-Személyes és online kapcsolattartás
+
+-Frontend, design, logo Tamás
+-Backend, adatbázis, dokumentációk Décse
