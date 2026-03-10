@@ -2,20 +2,12 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
+import NavBarGuest from '@/components/NavBarGuest.vue';
 
 const router = useRouter();
 </script>
 <template>
-  <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top px-2">
-    <div class="container-fluid d-flex justify-content-between align-items-center">      
-      <div class="d-flex align-items-center">
-        <router-link class="navbar-brand d-flex align-items-center m-0" to="/">
-          <img src="/src/reka_logo_alt.png" alt="Logo" class="logo-img me-2" />
-        </router-link>
-      </div>
-    </div>
-  </nav>
-
+  <NavBarGuest />
   <div class="content">
     <h2>Figyelmeztetés: Ezen oldalon található dokumentumok nem érvényesek, kizárólag tesztelési és tájékoztatási céllal készültek.</h2>
     <h2 class="mt-4">Általános szerződési feltételek</h2>
@@ -34,12 +26,6 @@ const router = useRouter();
   </div>
 </template>
 <style scoped>
-.logo-img {
-  height: 40px;
-  object-fit: cover;
-}
-
-
 @media (min-width: 992px) {
   .content {
     margin-left: 0px;

@@ -121,7 +121,7 @@ module.exports = (app) => {
                 requiredFields = ['adoszam', 'nev', 'cim', 'szamla_minta', 'rendeles_minta', 'szamlaszam'];
             }
             else{
-                requiredFields = ['adoszam', 'nev', 'cim', 'szamlaszam'];
+                requiredFields = ['adoszam', 'nev', 'cim', 'szamlaszam', 'rendeles_minta'];
             }
 
             for (const field of requiredFields) {

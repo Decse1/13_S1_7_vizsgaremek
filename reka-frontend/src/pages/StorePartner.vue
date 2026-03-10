@@ -455,8 +455,57 @@
 </template>
 
 <style scoped>
-  body {
-    background-color: lightgray;
+  /* Page-specific styles only - common styles moved to global.css */
+
+  .cursor-pointer {
+    cursor: pointer;
+  }
+
+  .cursor-pointer:hover {
+    opacity: 0.8;
+  }
+
+  .table-container {
+    margin: 40px auto;
+    background-color: #f5f5f5;
+    border-radius: 6px;
+    padding: 10px;
+  }
+
+  .product-name-link {
+    color: #0066cc;
+    cursor: pointer;
+    text-decoration: underline;
+    transition: color 0.2s ease;
+  }
+
+  .product-name-link:hover {
+    color: #004499;
+  }
+
+  .quantity-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .quantity-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid #007bff;
+    border-radius: 0.5rem;
+    background-color: white;
+    color: #007bff;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+  }
+
+  .quantity-btn:hover {
+    background-color: #007bff;
+    color: white;
   }
 
   /* Desktop margin */
@@ -509,82 +558,8 @@
     margin: 0;
   }
 
-  .product-name-link {
-    color: #0066cc;
-    cursor: pointer;
-    text-decoration: underline;
-    transition: color 0.2s ease;
-  }
-
-  .product-name-link:hover {
-    color: #004499;
-  }
-
-  .table-container {
-    margin: 40px auto;
-    background-color: #f5f5f5;
-    border-radius: 6px;
-    padding: 10px;
-  }
-
-  .custom-table {
-    --bs-table-bg: lightgray;
-  }
-
-  .custom-input {
-    border: 2px solid #ccc;
-    background-color: white;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-
-  .custom-input:focus {
-    border-color: #00948B;
-    background-color: white;
-    box-shadow: none;
-  }
-
   .modal-backdrop {
     display: none;
-  }
-
-  .btn-teal {
-    background-color: #00948B !important;
-    border-color: #00948B !important;
-  }
-
-  .btn-teal:hover,
-  .btn-teal:focus {
-    background-color: #007a72 !important; /* a bit darker on hover */
-    border-color: #007a72 !important;
-  }
-
-  .modal-backdrop-custom {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1050;
-  }
-
-  .modal-dialog-custom {
-    max-width: 500px;
-    width: 90%;
-    max-height: 90vh;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .custom-modal-content {
-    background-color: #ffffff;
-    border-radius: 1rem;
-    overflow: hidden;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    max-height: 90vh;
   }
 
   .custom-modal-content .modal-header,

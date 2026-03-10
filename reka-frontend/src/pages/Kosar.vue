@@ -128,7 +128,10 @@ const placeOrder = async () => {
     // Transform cart items to the expected format
     const termekek = cartItems.value.map(item => ({
       termekId: item.id,
-      mennyiseg: item.quantity
+      mennyiseg: item.quantity,
+      nev: item.nev,
+      ar: item.ar,
+      afa_kulcs: item.afa_kulcs
     }));
 
     // Prepare order data
@@ -142,7 +145,7 @@ const placeOrder = async () => {
     const response = await axios.post('/Rendeles_ad', orderData);
 
     if (response.data.ok) {
-      alert(`Rendelés sikeresen leadva! Rendelés azonosító: ${response.data.rendelesId}`);
+      alert(`Rendelés sikeresen leadva! Rendelésszám: ${response.data.rendelesSzam}`);
       clearCart();
       router.push('/rendelesek/leadott'); // Redirect to orders page
     } else {
@@ -490,48 +493,7 @@ onMounted(() => {
 </template>
 
 <style scoped>
-  /* Desktop margin */
-  @media (min-width: 992px) {
-    .content {
-      margin-left: 250px;
-      padding: 2rem;
-      margin-top: 56px;
-    }
-  }
-
-  /* Mobile margin */
-  @media (max-width: 991.98px) {
-    .content {
-      margin-left: 0;
-      padding: 2rem;
-      margin-top: 56px;
-    }
-  }
-
-  body {
-    background-color: lightgray(--bs-body-bg);
-  }
-
-  table {
-    background-color: white;
-    border-collapse: collapse;
-  }
-
-  thead th {
-    background-color: #d3d3d3;
-    font-weight: 600;
-    border-bottom: 1px solid #000000;
-  }
-
-  tbody tr {
-    border-bottom: 1px solid #000000;
-  }
-
-  tbody td {
-    padding-top: 0.6rem;
-    padding-bottom: 0.6rem;
-    vertical-align: middle;
-  }
+  /* Page-specific styles only - common styles moved to global.css */
 
   .total-row {
     background-color: #f8f9fa;
@@ -583,106 +545,6 @@ onMounted(() => {
   .quantity-input::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
-  }
-
-  .custom-table {
-    --bs-table-bg: lightgray;
-  }
-
-  .btn-teal {
-    background-color: #00948B !important;
-    border-color: #00948B !important;
-  }
-
-  .btn-teal:hover,
-  .btn-teal:focus {
-    background-color: #007a72 !important;
-    border-color: #007a72 !important;
-  }
-
-  .modal-backdrop-custom {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1050;
-  }
-
-  .modal-dialog-custom {
-    max-width: 500px;
-    width: 90%;
-    max-height: 90vh;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .custom-modal-content {
-    background-color: #ffffff;
-    border-radius: 1rem;
-    overflow: hidden;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    max-height: 90vh;
-  }
-
-  .custom-modal-content .modal-header,
-  .custom-modal-content .modal-footer {
-    padding: 0.75rem 1rem;
-    flex-shrink: 0;
-  }
-
-  .custom-modal-content .modal-body {
-    padding: 0.75rem 1rem;
-    overflow-y: auto;
-    flex: 1 1 auto;
-  }
-
-  .modal-fade-enter-active,
-  .modal-fade-leave-active {
-    transition: opacity 0.15s ease;
-  }
-
-  .modal-fade-enter-from,
-  .modal-fade-leave-to {
-    opacity: 0;
-  }
-
-  .modal-fade-enter-to,
-  .modal-fade-leave-from {
-    opacity: 1;
-  }
-
-  .custom-modal-content .modal-footer .btn + .btn {
-    margin-left: 0.5rem;
-  }
-
-  .custom-modal-content .btn-close {
-    width: 2.5rem;
-    height: 2.5rem;
-    background-color: #e0e0e0;
-    border-radius: 50%;
-    border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-  }
-
-  .custom-modal-content .btn-close:hover {
-    background-color: #d0d0d0;
-  }
-
-  .custom-modal-content .btn-close:focus {
-    outline: none;
-    box-shadow: none;
-  }
-
-  .custom-modal-content .btn-close:active {
-    outline: none;
-    box-shadow: none;
   }
 
   .alert {

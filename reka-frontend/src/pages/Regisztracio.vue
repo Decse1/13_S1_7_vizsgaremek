@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from '../axios.js';
+import NavBarGuest from '@/components/NavBarGuest.vue';
 
 const router = useRouter();
 
@@ -13,6 +14,7 @@ const formData = ref({
   cegTelszam: '',
   cegEmail: '',
   szamlaszam: '',
+  rendelesminta: '',
   felhasznalonev: '',
   jelszo: '',
   telephelyCime: '',
@@ -311,8 +313,12 @@ const handleSubmit = async () => {
       telefon: formData.value.cegTelszam.replace(/\s/g, ''), // Remove spaces before sending
       elofiz: false, // Default to false for new registrations
       szamla_minta: "-", // Default value for new registrations
+      rendeles_minta: formData.value.rendelesminta || "-", // Ensure it's not empty
       szamlaszam: formData.value.szamlaszam
     };
+
+    // Log the data being sent for debugging
+    console.log('Sending company data:', cegData);
 
     // Make API call to backend using axios
     const response = await axios.post('/Regisz/Ceg_ad', cegData);
@@ -400,15 +406,7 @@ const handleSubmit = async () => {
 };
 </script>
 <template>
-  <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top px-2">
-    <div class="container-fluid d-flex justify-content-between align-items-center">      
-      <div class="d-flex align-items-center">
-        <router-link class="navbar-brand d-flex align-items-center m-0" to="/">
-          <img src="/src/reka_logo_alt.png" alt="Logo" class="logo-img me-2" />
-        </router-link>
-      </div>
-    </div>
-  </nav>
+  <NavBarGuest />
 
   <div class="content">
     <h2 class="mb-4">Regisztráció</h2>
@@ -554,6 +552,20 @@ const handleSubmit = async () => {
             data-test="bank-account-input"
           />
         </div>
+
+        <div class="mb-3">
+          <label for="rendelesminta" class="form-label">Rendelési számok mintája<sup class="red">*</sup></label>
+          <input 
+            type="text" 
+            class="form-control custom-input" 
+            id="szamlaszam" 
+            v-model="formData.rendelesminta"
+            required
+            maxlength="15"
+            placeholder="pl. CGR-000"
+            data-test="rendeles-minta-input"
+          />
+        </div>
       </section>
 
       <section class="mb-4">
@@ -673,11 +685,6 @@ const handleSubmit = async () => {
 <style scoped>
 .red {
   color: red;
-}
-
-.logo-img {
-  height: 40px;
-  object-fit: cover;
 }
 
 .btn-primary {

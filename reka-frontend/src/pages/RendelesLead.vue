@@ -241,27 +241,7 @@ onMounted(() => {
 </template>
 
 <style scoped>
-  /* Desktop margin */
-  @media (min-width: 992px) {
-    .content {
-      margin-left: 250px;
-      padding: 2rem;
-      margin-top: 56px;
-    }
-  }
-
-  /* Mobile margin */
-  @media (max-width: 991.98px) {
-    .content {
-      margin-left: 0;
-      padding: 2rem;
-      margin-top: 56px;
-    }
-  }
-
-  body {
-    background-color: var(--bs-body-bg);
-  }
+  /* Page-specific styles only - common styles moved to global.css */
 
   .card {
     border: 1px solid #dee2e6;
@@ -274,126 +254,16 @@ onMounted(() => {
     padding: 1rem;
   }
 
-  table {
-    background-color: white;
-    border-collapse: collapse;
-  }
-
-  thead th {
-    background-color: #d3d3d3;
-    font-weight: 600;
-    border-bottom: 1px solid #000000;
-    padding: 0.75rem;
-  }
-
-  tbody tr {
-    border-bottom: 1px solid #dee2e6;
-  }
-
   tbody tr:last-child {
     border-bottom: none;
   }
 
   tbody td {
     padding: 0.75rem;
-    vertical-align: middle;
   }
 
-  .custom-table {
-    --bs-table-bg: white;
-    margin-bottom: 0 !important;
-  }
-
-  .btn-teal {
-    background-color: #00948B !important;
-    border-color: #00948B !important;
-  }
-
-  .btn-teal:hover,
-  .btn-teal:focus {
-    background-color: #007a72 !important;
-    border-color: #007a72 !important;
-  }
-
-  .btn-teal:disabled {
-    background-color: #6c757d !important;
-    border-color: #6c757d !important;
-  }
-
-  .modal-backdrop-custom {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1050;
-  }
-
-  .modal-dialog-custom {
-    max-width: 600px;
-    width: 90%;
-    max-height: 90vh;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .custom-modal-content {
-    background-color: #ffffff;
-    border-radius: 1rem;
-    overflow: hidden;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    max-height: 90vh;
-  }
-
-  .custom-modal-content .modal-header,
-  .custom-modal-content .modal-footer {
-    padding: 0.75rem 1rem;
-    flex-shrink: 0;
-  }
-
-  .custom-modal-content .modal-body {
-    padding: 0.75rem 1rem;
-    overflow-y: auto;
-    flex: 1 1 auto;
-  }
-
-  .modal-fade-enter-active,
-  .modal-fade-leave-active {
-    transition: opacity 0.15s ease;
-  }
-
-  .modal-fade-enter-from,
-  .modal-fade-leave-to {
-    opacity: 0;
-  }
-
-  .modal-fade-enter-to,
-  .modal-fade-leave-from {
-    opacity: 1;
-  }
-
-  .custom-modal-content .btn-close {
-    width: 2.5rem;
-    height: 2.5rem;
-    background-color: #e0e0e0;
-    border-radius: 50%;
-    border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-  }
-
-  .custom-modal-content .btn-close:hover {
-    background-color: #d0d0d0;
-  }
-
-  .custom-modal-content .btn-close:focus {
-    outline: none;
-    box-shadow: none;
+  thead th {
+    padding: 0.75rem;
   }
 
   .spinner-border {

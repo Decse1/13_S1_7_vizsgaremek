@@ -2,6 +2,7 @@
   import { ref, computed, onMounted } from 'vue'
   import axios from '../axios.js'
   import authStore, { setAuthState, hasPermission, isAdmin } from '../stores/auth.js';
+  import Icons from '../components/Icons.vue';
 
   //Teljesen megadott adószám esetén megjeleníteni a cég nevét a mező alatt
   //Partnerség felvételéhez majd integrálni a CégadatAPI-t
@@ -360,8 +361,16 @@
           <td data-test="seller-item-name">{{ item.nev }}</td>
           <td data-test="seller-item-payment-method">{{ item.kiszereles }}</td>
           <td class="text-end" data-test="seller-item-payment-time">{{ item.mennyiseg === 0 ? 'Azonnali' : `${item.mennyiseg} nap` }}</td>
-          <td><i class="bi bi-pencil" @click="edit(item)" :data-test="`seller-edit-btn-${index}`"/></td>
-          <td><i class="bi bi-trash" @click="remove(item)" :data-test="`seller-delete-btn-${index}`"/></td>
+          <td>
+            <span class="action-icon" title="Szerkesztés">
+              <Icons name="pencil" size="1.25rem" />
+            </span>
+          </td>
+          <td>
+            <span class="action-icon trash-icon" title="Törlés">
+              <Icons name="trash" size="1.25rem" />
+            </span>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -526,8 +535,16 @@
           <td data-test="buyer-item-name">{{ item.nev }}</td>
           <td data-test="buyer-item-payment-method">{{ item.kiszereles }}</td>
           <td class="text-end" data-test="buyer-item-payment-time">{{ item.mennyiseg === 0 ? 'Azonnali' : `${item.mennyiseg} nap` }}</td>
-          <td><i class="bi bi-pencil" @click="edit(item)" :data-test="`buyer-edit-btn-${index}`"/></td>
-          <td><i class="bi bi-trash" @click="remove(item)" :data-test="`buyer-delete-btn-${index}`"/></td>
+          <td>
+            <span class="action-icon" title="Szerkesztés">
+              <Icons name="pencil" size="1.25rem" />
+            </span>
+          </td>
+          <td>
+            <span class="action-icon trash-icon" title="Törlés">
+              <Icons name="trash" size="1.25rem" />
+            </span>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -535,57 +552,27 @@
 </template>
 
 <style scoped>
-  body {
-    background-color: lightgray;
-  }
+  /* Page-specific styles only - common styles moved to global.css */
 
-  /* Desktop margin */
-  @media (min-width: 992px) {
-    .content {
-      margin-left: 250px;
-      padding: 2rem;
-      margin-top: 56px;
-    }
-  }
-
-  /* Mobile margin */
-  @media (max-width: 991.98px) {
-    .content {
-      margin-left: 0;
-      padding: 2rem;
-      margin-top: 56px;
-    }
-  }
-
-  table {
-    background-color: white;
-    border-collapse: collapse;
-  }
-
-  thead th {
-    background-color: #d3d3d3;
-    font-weight: 600;
-    border-bottom: 1px solid #000000;
-  }
-
-  tbody tr {
-    border-bottom: 1px solid #000000;
-  }
-
-  tbody td {
-    padding-top: 0.6rem;
-    padding-bottom: 0.6rem;
+  .action-icon {
+    cursor: pointer;
+    transition: opacity 0.2s;
+    color: #000;
+    display: inline-flex;
+    align-items: center;
     vertical-align: middle;
   }
 
-  .bi-pencil {
-    color: #000;
-    cursor: pointer;
+  .action-icon:hover {
+    opacity: 0.6;
   }
 
-  .bi-trash {
+  .trash-icon {
     color: #c00;
-    cursor: pointer;
+  }
+
+  .trash-icon:hover {
+    opacity: 0.6;
   }
 
   .table-container {
@@ -595,130 +582,7 @@
     padding: 10px;
   }
 
-  .custom-table {
-    --bs-table-bg: lightgray;
-  }
-
-  .custom-search {
-    border: 2px solid #ccc;
-    background-color: white;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-
-  .custom-search:focus {
-    border-color: #00948B;
-    background-color: white;
-    box-shadow: none;
-  }
-
   .modal-backdrop {
     display: none;
-  }
-
-  .btn-teal {
-    background-color: #00948B !important;
-    border-color: #00948B !important;
-  }
-
-  .btn-teal:hover,
-  .btn-teal:focus {
-    background-color: #007a72 !important; /* a bit darker on hover */
-    border-color: #007a72 !important;
-  }
-
-  .btn-teal:disabled {
-    background-color: #a0a0a0 !important;
-    border-color: #a0a0a0 !important;
-    cursor: not-allowed !important;
-    opacity: 0.6;
-  }
-
-  .modal-backdrop-custom {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1050;
-  }
-
-  .modal-dialog-custom {
-    max-width: 500px;
-    width: 90%;
-    max-height: 90vh;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .custom-modal-content {
-    background-color: #ffffff;
-    border-radius: 1rem;
-    overflow: hidden;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    max-height: 90vh;
-  }
-
-  .custom-modal-content .modal-header,
-  .custom-modal-content .modal-footer {
-    padding: 0.75rem 1rem;
-    flex-shrink: 0;
-  }
-
-  .custom-modal-content .modal-body {
-    padding: 0.75rem 1rem;
-    overflow-y: auto;
-    flex: 1 1 auto;
-  }
-
-  /* Modal open/close animation */
-  .modal-fade-enter-active,
-  .modal-fade-leave-active {
-    transition: opacity 0.15s ease;
-  }
-
-  .modal-fade-enter-from,
-  .modal-fade-leave-to {
-    opacity: 0;
-  }
-
-  .modal-fade-enter-to,
-  .modal-fade-leave-from {
-    opacity: 1;
-  }
-
-  /* Space between footer buttons */
-  .custom-modal-content .modal-footer .btn + .btn {
-    margin-left: 0.5rem;
-  }
-
-  /* Style for close button with gray shadow */
-  .custom-modal-content .btn-close {
-    width: 2.5rem;
-    height: 2.5rem;
-    background-color: #e0e0e0;
-    border-radius: 50%;
-    border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-  }
-
-  .custom-modal-content .btn-close:hover {
-    background-color: #d0d0d0;
-  }
-
-  .custom-modal-content .btn-close:focus {
-    outline: none;
-    box-shadow: none;
-  }
-
-  .custom-modal-content .btn-close:active {
-    outline: none;
-    box-shadow: none;
   }
 </style>
