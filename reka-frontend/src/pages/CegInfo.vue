@@ -179,6 +179,13 @@ const activateReka = async () => {
     return;
   }
 
+  // Check if szamla_minta is the same as rendeles_minta
+  if (szamla_minta.value.trim() === authStore.ceg.rendeles_minta) {
+    errorMessage.value = 'A számla minta nem lehet azonos a rendelési szám mintájával!';
+    showError.value = true;
+    return;
+  }
+
   isUpdating.value = true;
   showError.value = false;
 
@@ -286,9 +293,10 @@ const deactivateReka = async () => {
     <p>Email: {{ authStore.ceg.email }}</p>
     <p>Telefonszám: {{ authStore.ceg.telefon }}</p>
     <p>Számlaszám: {{ authStore.ceg.szamlaszam }}</p>
+    <p>Rendelési szám mintája: {{ authStore.ceg.rendeles_minta }}</p>
     <button
         v-if="isAdmin()"
-        class="btn btn-success btn-teal add-btn rounded-5 d-flex align-items-center"
+        class="btn btn-success btn-teal add-btn rounded-5 d-flex align-items-center mt-3 mb-3"
         @click="goToUsers"
       >
         <span class="d-none d-sm-inline">Felhasználók</span>
@@ -322,7 +330,7 @@ const deactivateReka = async () => {
     </div>
 
     <button v-if="authStore.ceg.elofiz == 0 && isAdmin()"
-        class="btn btn-success btn-teal add-btn rounded-5 d-flex align-items-center"
+        class="btn btn-success btn-teal add-btn rounded-5 d-flex align-items-center mb-3"
         @click="activateReka"
         :disabled="isUpdating"
       >
@@ -332,7 +340,7 @@ const deactivateReka = async () => {
         </span>
     </button>
     <button v-if="authStore.ceg.elofiz == 1 && isAdmin()"
-        class="btn btn-danger add-btn rounded-5 d-flex align-items-center"
+        class="btn btn-danger add-btn rounded-5 d-flex align-items-center mb-3"
         @click="deactivateReka"
         :disabled="isUpdating"
       >
@@ -341,7 +349,6 @@ const deactivateReka = async () => {
           {{ isUpdating ? 'Frissítés...' : 'RÉKA-előfizetés kikapcsolása' }}
         </span>
     </button>
-    <br v-if="authStore.ceg.elofiz == 1 && isAdmin()">
     <p v-if="authStore.ceg.elofiz == 1 && isAdmin()">Számla minta: {{ authStore.ceg.szamla_minta }}</p>
 
     <transition name="modal-fade">
@@ -463,137 +470,5 @@ const deactivateReka = async () => {
 </template>
 
 <style scoped>
-  /* Desktop margin */
-  @media (min-width: 992px) {
-    .content {
-      margin-left: 250px;
-      padding: 2rem;
-      margin-top: 56px;
-    }
-  }
-
-  /* Mobile margin */
-  @media (max-width: 991.98px) {
-    .content {
-      margin-left: 0;
-      padding: 2rem;
-      margin-top: 56px;
-    }
-  }
-
-  body {
-    background-color: lightgray(--bs-body-bg);;
-  }
-
-  .btn-teal {
-    background-color: #00948B !important;
-    border-color: #00948B !important;
-  }
-
-  .btn-teal:hover,
-  .btn-teal:focus {
-    background-color: #007a72 !important; /* a bit darker on hover */
-    border-color: #007a72 !important;
-  }
-
-  .custom-input {
-    border: 2px solid #ccc;
-    background-color: white;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-
-  .custom-input:focus {
-    border-color: #00948B;
-    background-color: white;
-    box-shadow: none;
-  }
-
-  .modal-backdrop-custom {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1050;
-  }
-
-  .modal-dialog-custom {
-    max-width: 500px;
-    width: 90%;
-    max-height: 90vh;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .custom-modal-content {
-    background-color: #ffffff;
-    border-radius: 1rem;
-    overflow: hidden;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    max-height: 90vh;
-  }
-
-  .custom-modal-content .modal-header,
-  .custom-modal-content .modal-footer {
-    padding: 0.75rem 1rem;
-    flex-shrink: 0;
-  }
-
-  .custom-modal-content .modal-body {
-    padding: 0.75rem 1rem;
-    overflow-y: auto;
-    flex: 1 1 auto;
-  }
-
-  /* Modal open/close animation */
-  .modal-fade-enter-active,
-  .modal-fade-leave-active {
-    transition: opacity 0.15s ease;
-  }
-
-  .modal-fade-enter-from,
-  .modal-fade-leave-to {
-    opacity: 0;
-  }
-
-  .modal-fade-enter-to,
-  .modal-fade-leave-from {
-    opacity: 1;
-  }
-
-  /* Space between footer buttons */
-  .custom-modal-content .modal-footer .btn + .btn {
-    margin-left: 0.5rem;
-  }
-
-  /* Style for close button with gray shadow */
-  .custom-modal-content .btn-close {
-    width: 2.5rem;
-    height: 2.5rem;
-    background-color: #e0e0e0;
-    border-radius: 50%;
-    border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-  }
-
-  .custom-modal-content .btn-close:hover {
-    background-color: #d0d0d0;
-  }
-
-  .custom-modal-content .btn-close:focus {
-    outline: none;
-    box-shadow: none;
-  }
-
-  .custom-modal-content .btn-close:active {
-    outline: none;
-    box-shadow: none;
-  }
+  /* Page-specific styles only - common styles moved to global.css */
 </style>

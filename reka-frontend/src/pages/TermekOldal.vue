@@ -73,38 +73,7 @@ const updateQuantity = (event) => {
 </template>
 
 <style scoped>
-  /* Desktop margin */
-  @media (min-width: 992px) {
-    .content {
-      margin-left: 250px;
-      padding: 2rem;
-      margin-top: 56px;
-    }
-  }
-
-  /* Mobile margin */
-  @media (max-width: 991.98px) {
-    .content {
-      margin-left: 0;
-      padding: 2rem;
-      margin-top: 56px;
-    }
-  }
-
-  body {
-    background-color: lightgray(--bs-body-bg);;
-  }
-
-  .btn-teal {
-    background-color: #00948B !important;
-    border-color: #00948B !important;
-  }
-
-  .btn-teal:hover,
-  .btn-teal:focus {
-    background-color: #007a72 !important; /* a bit darker on hover */
-    border-color: #007a72 !important;
-  }
+  /* Page-specific styles only - common styles moved to global.css */
 
   .quantity-selector {
     min-width: 200px;

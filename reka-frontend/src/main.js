@@ -7,6 +7,7 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue-next/dist/bootstrap-vue-next.css";
 import 'bootstrap-icons/font/bootstrap-icons.css'
 import './assets/fonts.css' // Import after Bootstrap to override fonts
+import './assets/global.css' // Global styles for all pages
 
 // Import Icons component for global registration
 import Icons from './components/Icons.vue'
