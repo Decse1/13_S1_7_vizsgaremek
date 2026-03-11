@@ -150,6 +150,8 @@ const saveCompanyData = async () => {
       email: editForm.value.email,
       telefon: editForm.value.telefon,
       elofiz: authStore.ceg.elofiz,
+      szamla_minta: authStore.ceg.szamla_minta, // Preserve szamla_minta
+      rendeles_minta: authStore.ceg.rendeles_minta, // Preserve rendeles_minta
       szamlaszam: editForm.value.szamlaszam
     }
 
@@ -200,6 +202,7 @@ const activateReka = async () => {
       telefon: authStore.ceg.telefon,
       elofiz: 1, // Send boolean true instead of 1
       szamla_minta: szamla_minta.value,
+      rendeles_minta: authStore.ceg.rendeles_minta, // Preserve rendeles_minta
       szamlaszam: authStore.ceg.szamlaszam
     };
 
@@ -243,6 +246,7 @@ const deactivateReka = async () => {
       telefon: authStore.ceg.telefon,
       elofiz: 0, // Send boolean false instead of 0
       szamla_minta: "-",
+      rendeles_minta: authStore.ceg.rendeles_minta, // Preserve rendeles_minta
       szamlaszam: authStore.ceg.szamlaszam
     };
 

@@ -33,7 +33,7 @@ module.exports = (app, /*authenticateToken*/) => {
                 JOIN RendelesTetel rt ON r.id = rt.rendeles_id
                 JOIN Termek t ON rt.termek_id = t.id
                 LEFT JOIN Szamla sz ON r.id = sz.rendeles_id
-                WHERE r.id = ?
+                WHERE (sz.rendeles_id IS NULL OR sz.szamla_tipus NOT LIKE 'STORNO') AND r.id = ?
             `;
             
             const [rows] = await db.query(sql, [rendelesId]);

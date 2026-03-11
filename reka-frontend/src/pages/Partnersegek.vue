@@ -135,6 +135,26 @@
   const foundCompanyName = ref('')
   const searchingCompany = ref(false)
 
+  // Format VAT number with hyphens for display (12345678-1-23)
+  const formatVatNumber = (value) => {
+    // Remove all non-digit characters
+    const digits = value.replace(/\D/g, '')
+    
+    // Add hyphens after 8th and 9th digits
+    if (digits.length <= 8) {
+      return digits
+    } else if (digits.length <= 9) {
+      return `${digits.slice(0, 8)}-${digits.slice(8)}`
+    } else {
+      return `${digits.slice(0, 8)}-${digits.slice(8, 9)}-${digits.slice(9, 11)}`
+    }
+  }
+
+  // Remove hyphens from VAT number for backend submission
+  const removeVatNumberHyphens = (value) => {
+    return value.replace(/\D/g, '')
+  }
+
   // Payment method options
   const paymentMethods = ref([
     'Átutalás',
@@ -163,11 +183,19 @@
   }
 
   // Search for company by VAT number when 11 characters are entered
-  const handleVatNumberInput = async () => {
+  const handleVatNumberInput = async (event) => {
+    // Format the input with hyphens
+    const rawValue = event.target.value
+    const formattedValue = formatVatNumber(rawValue)
+    newPartnership.value.vatNumber = formattedValue
+    
     foundCompanyName.value = ''
     
-    // Only search if exactly 11 characters
-    if (newPartnership.value.vatNumber.length !== 11) {
+    // Get digits only for length check
+    const digitsOnly = removeVatNumberHyphens(formattedValue)
+    
+    // Only search if exactly 11 digits
+    if (digitsOnly.length !== 11) {
       return
     }
 
@@ -178,7 +206,7 @@
       
       if (companiesResponse.data.ok) {
         const company = companiesResponse.data.cegek.find(
-          ceg => ceg.adoszam === newPartnership.value.vatNumber
+          ceg => ceg.adoszam === digitsOnly
         )
 
         if (company) {
@@ -222,8 +250,11 @@
       return
     }
 
+    // Remove hyphens from VAT number for backend operations
+    const vatNumberDigitsOnly = removeVatNumberHyphens(newPartnership.value.vatNumber)
+
     // Step 1: Check if vat number is the same as logged in user's company
-    if (newPartnership.value.vatNumber === currentCompany.adoszam) {
+    if (vatNumberDigitsOnly === currentCompany.adoszam) {
       addModalError.value = 'Nem lehet saját magával partnerséget létrehozni'
       addModalLoading.value = false
       return
@@ -239,7 +270,7 @@
       }
 
       const otherCompany = companiesResponse.data.cegek.find(
-        ceg => ceg.adoszam === newPartnership.value.vatNumber
+        ceg => ceg.adoszam === vatNumberDigitsOnly
       )
 
       if (!otherCompany) {
@@ -405,7 +436,7 @@
                     class="form-control"
                     placeholder="Pl.: 12345678-1-23"
                     required
-                    maxlength="11"
+                    maxlength="13"
                     :disabled="addModalLoading"
                     @input="handleVatNumberInput"
                     data-test="vat-number-input"
@@ -418,12 +449,12 @@
                     <i class="bi bi-check-circle-fill me-1"></i>
                     {{ foundCompanyName }}
                   </small>
-                  <small v-else-if="newPartnership.vatNumber.length === 11 && !foundCompanyName" class="form-text text-danger" data-test="company-not-found">
+                  <small v-else-if="newPartnership.vatNumber.replace(/\D/g, '').length === 11 && !foundCompanyName" class="form-text text-danger" data-test="company-not-found">
                     <i class="bi bi-x-circle-fill me-1"></i>
                     A megadott adószámú cég nem található
                   </small>
                   <small v-else class="form-text text-muted">
-                    Adja meg a partner cég adószámát
+                    Adja meg a partner cég adószámát (formátum: 12345678-1-23)
                   </small>
                 </div>
                 <div class="mb-3">

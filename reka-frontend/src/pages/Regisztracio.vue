@@ -313,9 +313,12 @@ const handleSubmit = async () => {
       telefon: formData.value.cegTelszam.replace(/\s/g, ''), // Remove spaces before sending
       elofiz: false, // Default to false for new registrations
       szamla_minta: "-", // Default value for new registrations
-      rendeles_minta: formData.value.rendelesminta || "-", // Ensure it's not empty
+      rendeles_minta: formData.value.rendelesminta || "-", // Map rendelesminta to rendeles_minta
       szamlaszam: formData.value.szamlaszam
     };
+
+    // Add console log to verify the data being sent
+    console.log('rendeles_minta value:', cegData.rendeles_minta);
 
     // Log the data being sent for debugging
     console.log('Sending company data:', cegData);
@@ -363,6 +366,7 @@ const handleSubmit = async () => {
           cegTelszam: '',
           cegEmail: '',
           szamlaszam: '',
+          rendelesminta: '',
           felhasznalonev: '',
           jelszo: '',
           telephelyCime: '',
@@ -558,7 +562,7 @@ const handleSubmit = async () => {
           <input 
             type="text" 
             class="form-control custom-input" 
-            id="szamlaszam" 
+            id="rendelesminta" 
             v-model="formData.rendelesminta"
             required
             maxlength="15"
