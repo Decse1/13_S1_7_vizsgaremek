@@ -94,7 +94,7 @@ module.exports = (app) => {
 
                 szamlaSorszam = prefix + String(nextNum).padStart(numLength, '0');
                 
-                const formattedKiallitas = kiallitasDatum.toISOString().split('T')[0];
+                const formattedKiallitas = kiallitasDatum.toLocaleDateString('sv-SE');
                 const szamlaTipus = 'STORNO'; 
 
                 // Sztornó számla mentése
@@ -110,7 +110,7 @@ module.exports = (app) => {
                 );
             }
 
-            const kiallitasDateStr = kiallitasDatum.toISOString().split('T')[0];
+            const kiallitasDateStr = kiallitasDatum.toLocaleDateString('sv-SE');
 
             // --- 2. ADAT ELŐKÉSZÍTÉS (NEGATÍV ÉRTÉKEK) ---
             let vegosszegNetto = 0;

@@ -90,9 +90,9 @@ module.exports = (app, /*authenticateToken*/) => {
 
                 szamlaSorszam = prefix + String(nextNum).padStart(numLength, '0');
                 
-                const formattedKiallitas = kiallitasDatum.toISOString().split('T')[0];
-                const formattedFizHat = fizHatDate.toISOString().split('T')[0];
-                const szamlaTipus = 'NORMAL'; 
+                const formattedKiallitas = kiallitasDatum.toLocaleDateString('sv-SE');
+                const formattedFizHat = fizHatDate.toLocaleDateString('sv-SE');
+                const szamlaTipus = 'NORMAL';
 
                 // BESZÚRÁS BŐVÍTVE: bekerült a kiallito oszlop és a headerData.elado_id
                 await db.query(
@@ -107,8 +107,8 @@ module.exports = (app, /*authenticateToken*/) => {
                 );
             }
 
-            const kiallitasDateStr = kiallitasDatum.toISOString().split('T')[0];
-            const fizHatDateStr = fizHatDate.toISOString().split('T')[0];
+            const kiallitasDateStr = kiallitasDatum.toLocaleDateString('sv-SE');
+            const fizHatDateStr = fizHatDate.toLocaleDateString('sv-SE');
 
             // --- 2. ADAT ELŐKÉSZÍTÉS ---
             let vegosszegNetto = 0;
@@ -197,7 +197,7 @@ module.exports = (app, /*authenticateToken*/) => {
 
                 doc.font('CustomFont');
                 doc.text(kiallitasDateStr, 50, vY);
-                doc.text(headerData.rendeles_datum.toISOString().split('T')[0], 160, vY); 
+                doc.text(headerData.rendeles_datum.toLocaleDateString('sv-SE'), 160, vY); 
                 doc.text(fizHatDateStr, 270, vY);
                 doc.text(headerData.fizetesi_forma, 400, vY);
 
