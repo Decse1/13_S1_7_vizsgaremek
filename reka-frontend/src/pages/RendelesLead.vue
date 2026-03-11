@@ -28,11 +28,14 @@ const groupedOrders = computed(() => {
       
       if (!orderMap.has(key)) {
         orderMap.set(key, {
+          rendeles_id: termek.rendeles_id,
           rendeles_szam: termek.rendeles_szam,
           elado_neve: rendeles.elado.elado_neve,
           elado_id: rendeles.elado.elado_id,
           datum: termek.datum,
           status: termek.status,
+          szamla_kesz: termek.szamla_kesz,
+          sztorno: termek.sztorno,
           termekek: []
         });
       }
@@ -49,8 +52,11 @@ const groupedOrders = computed(() => {
     });
   });
   
-  // Convert map to array and sort by date (newest first)
-  return Array.from(orderMap.values()).sort((a, b) => new Date(b.datum) - new Date(a.datum));
+  // Convert map to array and sort by rendeles_szam (descending order)
+  return Array.from(orderMap.values()).sort((a, b) => {
+    // Sort by rendeles_szam in descending order (e.g., KPK-003, KPK-002, KPK-001)
+    return b.rendeles_szam.localeCompare(a.rendeles_szam, undefined, { numeric: true });
+  });
 });
 
 // Format date
@@ -69,6 +75,14 @@ const formatDateTime = (dateString) => {
     month: 'short', 
     day: 'numeric' 
   });
+};
+
+// Get order status display text
+const getOrderStatus = (order) => {
+  if (order.sztorno === 1 || order.sztorno === true) {
+    return 'Sztornózva';
+  }
+  return order.status;
 };
 
 // Fetch orders
@@ -108,6 +122,83 @@ const openDetailsModal = (order) => {
 const closeDetailsModal = () => {
   showDetailsModal.value = false;
   selectedOrderDetails.value = null;
+};
+
+// Handle invoice download
+const downloadInvoice = async () => {
+  if (!selectedOrderDetails.value) return;
+
+  try {
+    loading.value = true;
+    error.value = null;
+
+    // Call the invoice generation/download API
+    const response = await axios.post('/Szamla_create', {
+      id: selectedOrderDetails.value.rendeles_id
+    }, {
+      responseType: 'blob'
+    });
+
+    // Create a blob URL and trigger download
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Szamla_${selectedOrderDetails.value.rendeles_szam}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    
+    // Cleanup
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    alert('Számla sikeresen letöltve!');
+    
+  } catch (err) {
+    console.error('Error downloading invoice:', err);
+    error.value = 'Hiba történt a számla letöltése során';
+    alert('Hiba történt a számla letöltése során. Kérjük, próbálja újra.');
+  } finally {
+    loading.value = false;
+  }
+};
+
+// Handle storno invoice download
+const downloadStornoInvoice = async () => {
+  if (!selectedOrderDetails.value) return;
+
+  try {
+    loading.value = true;
+    error.value = null;
+
+    // Call the storno invoice API
+    const response = await axios.post('/Szamla_storno', {
+      id: selectedOrderDetails.value.rendeles_id
+    }, {
+      responseType: 'blob'
+    });
+
+    // Download the storno invoice
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Sztorno_Szamla_${selectedOrderDetails.value.rendeles_szam}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    
+    // Cleanup
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    alert('Sztornó számla sikeresen letöltve!');
+  } catch (err) {
+    console.error('Error downloading storno invoice:', err);
+    error.value = 'Hiba történt a sztornó számla letöltése során';
+    alert('Hiba történt a sztornó számla letöltése során. Kérjük, próbálja újra.');
+  } finally {
+    loading.value = false;
+  }
 };
 
 // On mounted
@@ -156,10 +247,10 @@ onMounted(() => {
             <td>{{ order.rendeles_szam }}</td>
             <td>{{ order.elado_neve }}</td>
             <td>{{ formatDateTime(order.datum) }}</td>
-            <td>{{ order.status }}</td>
+            <td>{{ getOrderStatus(order) }}</td>
             <td>
               <button 
-                class="btn btn-teal text-white btn-sm"
+                class="btn btn-teal text-white btn-sm rounded-pill"
                 @click="openDetailsModal(order)"
               >
                 Megnyitás
@@ -205,7 +296,7 @@ onMounted(() => {
                 </div>
                 <div class="col-md-6">
                   <label class="form-label fw-bold">Állapot:</label>
-                  <p class="mb-0">{{ selectedOrderDetails.status }}</p>
+                  <p class="mb-0">{{ getOrderStatus(selectedOrderDetails) }}</p>
                 </div>
               </div>
               
@@ -228,8 +319,26 @@ onMounted(() => {
                 </div>
               </div>
             </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" @click="closeDetailsModal">
+            <div class="modal-footer d-flex justify-content-between">
+              <div class="d-flex gap-1">
+                <button 
+                  v-if="selectedOrderDetails && selectedOrderDetails.szamla_kesz === 1"
+                  type="button" 
+                  class="btn btn-teal text-white rounded-pill"
+                  @click="downloadInvoice"
+                >
+                  Számla letöltése
+                </button>
+                <button
+                  v-if="selectedOrderDetails && (selectedOrderDetails.sztorno === 1 || selectedOrderDetails.sztorno === true)"
+                  type="button" 
+                  class="btn btn-danger text-white rounded-pill"
+                  @click="downloadStornoInvoice"
+                >
+                  Sztornó számla letöltése
+                </button>
+              </div>
+              <button type="button" class="btn btn-secondary rounded-pill" @click="closeDetailsModal">
                 Bezárás
               </button>
             </div>

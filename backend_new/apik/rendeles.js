@@ -143,7 +143,8 @@ module.exports = (app, authenticateToken, url) => {
                 `SELECT 
                     C.id AS elado_id, C.nev AS elado_neve, 
                     T.nev AS termek_neve, 
-                    RT.mennyiseg AS rendelt_mennyiseg,  
+                    RT.mennyiseg AS rendelt_mennyiseg,
+                    R.id AS rendeles_id,  
                     R.rendeles_szam, R.status, R.datum, R.szamla_kesz, R.sztorno
                 FROM Rendeles R 
                 JOIN Partnerseg P ON R.partnerseg = P.id 
@@ -164,6 +165,7 @@ module.exports = (app, authenticateToken, url) => {
                     });
                 }
                 rendelesekMap.get(row.elado_id).termekek.push({
+                    rendeles_id: row.rendeles_id,
                     termek_neve: row.termek_neve,
                     rendelt_mennyiseg: row.rendelt_mennyiseg,
                     rendeles_szam: row.rendeles_szam,
