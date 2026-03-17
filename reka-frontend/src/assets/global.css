@@ -71,7 +71,8 @@ tbody td {
 }
 
 .modal-dialog-custom {
-  max-width: 500px;
+  /* Was 500px; make modals a bit wider on desktop while staying responsive */
+  max-width: 600px;
   width: 90%;
   max-height: 90vh;
   display: flex;

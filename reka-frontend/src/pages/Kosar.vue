@@ -340,20 +340,34 @@ onMounted(() => {
         </tr>
         <tr v-for="item in cartItems" :key="item.id">
           <td>
-            <span class="product-name-link" @click="openProductModal(item)">
-              {{ item.nev }}
-            </span>
+            <div class="product-cell">
+              <span class="product-name-link" @click="openProductModal(item)">
+                {{ item.nev }}
+              </span>
+
+              <!-- Mobile-only actions under the product name -->
+              <div class="product-actions-mobile">
+                <span class="action-icon" @click="openEditModal(item)" title="Szerkesztés">
+                  <Icons name="pencil" size="1.5rem" />
+                </span>
+                <span class="action-icon trash-icon" @click="removeItem(item)" title="Törlés">
+                  <Icons name="trash" size="1.5rem" />
+                </span>
+              </div>
+            </div>
           </td>
           <td>{{ item.cikkszam }}</td>
           <td>{{ formatPrice(item.ar) }} Ft</td>
           <td>{{ item.quantity }} {{ item.kiszereles }}</td>
           <td>{{ formatPrice(item.ar * item.quantity) }} Ft</td>
-          <td>
+
+          <!-- Desktop/tablet actions in their own columns -->
+          <td class="product-actions-desktop">
             <span class="action-icon" @click="openEditModal(item)" title="Szerkesztés">
               <Icons name="pencil" size="1.25rem" />
             </span>
           </td>
-          <td>
+          <td class="product-actions-desktop">
             <span class="action-icon trash-icon" @click="removeItem(item)" title="Törlés">
               <Icons name="trash" size="1.25rem" />
             </span>
@@ -557,5 +571,41 @@ onMounted(() => {
 
   .alert ul li {
     margin-bottom: 0.5rem;
+  }
+
+  .product-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  /* Hidden on desktop by default */
+  .product-actions-mobile {
+    display: none;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  /* Visible on desktop by default */
+  .product-actions-desktop {
+    white-space: nowrap;
+  }
+
+  @media (max-width: 575.98px) {
+    /* Show actions under product name on mobile */
+    .product-actions-mobile {
+      display: inline-flex;
+    }
+
+    /* Hide the separate action columns on mobile */
+    .product-actions-desktop {
+      display: none;
+    }
+
+    /* Hide the header columns that belong to desktop action cells to avoid blank space */
+    table.custom-table thead th:nth-last-child(1),
+    table.custom-table thead th:nth-last-child(2) {
+      display: none;
+    }
   }
 </style>

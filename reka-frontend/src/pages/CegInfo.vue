@@ -286,6 +286,7 @@ const deactivateReka = async () => {
         @click="openAddModal"
       >
         <i class="bi bi-pencil"></i>
+        <!-- Only hide on extra-small screens -->
         <span class="d-none d-sm-inline ms-2">Cégadatok módosítása</span>
       </button>
     </div>
@@ -303,7 +304,8 @@ const deactivateReka = async () => {
         class="btn btn-success btn-teal add-btn rounded-5 d-flex align-items-center mt-3 mb-3"
         @click="goToUsers"
       >
-        <span class="d-none d-sm-inline">Felhasználók</span>
+        <!-- Keep visible on mobile -->
+        <span>Felhasználók</span>
     </button>
 
     <h2>Előfizetés állapota</h2>
@@ -339,7 +341,8 @@ const deactivateReka = async () => {
         :disabled="isUpdating"
       >
         <span v-if="isUpdating" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-        <span class="d-none d-sm-none d-md-none d-lg-inline">
+        <!-- Keep visible on mobile -->
+        <span>
           {{ isUpdating ? 'Frissítés...' : 'RÉKA-előfizetés bekapcsolása' }}
         </span>
     </button>
@@ -349,7 +352,8 @@ const deactivateReka = async () => {
         :disabled="isUpdating"
       >
         <span v-if="isUpdating" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-        <span class="d-none d-sm-none d-md-none d-lg-inline">
+        <!-- Keep visible on mobile -->
+        <span>
           {{ isUpdating ? 'Frissítés...' : 'RÉKA-előfizetés kikapcsolása' }}
         </span>
     </button>
@@ -449,7 +453,7 @@ const deactivateReka = async () => {
                 </div>
               </form>
             </div>            
-            <div class="modal-footer">
+            <div class="modal-footer d-flex flex-wrap row-gap-2">
               <button 
                 type="button" 
                 class="btn btn-secondary rounded-pill" 
