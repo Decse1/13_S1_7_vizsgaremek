@@ -166,10 +166,6 @@ button.btn-teal {
   }
 }
 
-.custom-input {
-  font-size: 1.1rem;
-}
-
 a {
   color: #00948B;
   text-decoration: none;
@@ -191,6 +187,7 @@ a:hover {
 }
 
 .custom-input {
+    font-size: 1.1rem;
     border: 2px solid #ccc;
     background-color: white;
     outline: none;

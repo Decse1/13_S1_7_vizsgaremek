@@ -342,7 +342,7 @@
               </button>
               <input 
                 type="number" 
-                class="form-control form-control-sm text-center quantity-input"
+                class="form-control form-control-sm text-center quantity-input custom-input"
                 :value="quantities[item.id]"
                 @input="updateQuantity(item, $event.target.value)"
                 :min="item.min_vas_menny || 1"
@@ -411,7 +411,7 @@
               </div>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" @click="closeProductModal">
+              <button type="button" class="btn btn-secondary rounded-pill" @click="closeProductModal">
                 Bezárás
               </button>
             </div>
@@ -663,5 +663,18 @@
       flex-direction: row;
       align-items: center;
     }
+  }
+
+  .custom-input {
+    border: 2px solid #ccc;
+    background-color: white;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+.custom-input:focus {
+    border-color: #00948B;
+    background-color: white;
+    box-shadow: none;
   }
 </style>

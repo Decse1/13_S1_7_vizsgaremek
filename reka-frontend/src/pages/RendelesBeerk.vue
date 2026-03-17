@@ -419,7 +419,7 @@ onMounted(() => {
             <td>{{ getOrderStatus(order) }}</td>
             <td>
               <button 
-                class="btn btn-teal text-white btn-sm"
+                class="btn btn-teal text-white btn-sm rounded-pill"
                 @click="openDetailsModal(order)"
               >
                 Megnyitás
@@ -503,12 +503,12 @@ onMounted(() => {
                 </div>
               </div>
             </div>
-            <div class="modal-footer d-flex justify-content-between">
-              <div class="d-flex gap-2">
+            <div class="modal-footer d-flex justify-content-between flex-wrap row-gap-2">
+              <div class="d-flex flex-wrap row-gap-2">
                 <button 
                   v-if="hasPermission('rendeles_osszkesz') && !isOrderFulfilled && !(selectedOrderDetails.sztorno === 1 || selectedOrderDetails.sztorno === true)"
                   type="button" 
-                  class="btn btn-teal text-white"
+                  class="btn btn-teal text-white rounded-pill"
                   @click="fulfillOrder"
                   :disabled="!allProductsChecked"
                 >
@@ -517,7 +517,7 @@ onMounted(() => {
                 <button 
                   v-if="hasPermission('szamla_keszit') && isOrderFulfilled"
                   type="button" 
-                  class="btn btn-teal text-white"
+                  class="btn btn-teal text-white rounded-pill"
                   @click="generateInvoice"
                 >
                   Számla generálása
@@ -525,7 +525,7 @@ onMounted(() => {
                 <button
                   v-if="hasPermission('szamla_keszit') && (selectedOrderDetails.sztorno === 1 || selectedOrderDetails.sztorno === true)"
                   type="button" 
-                  class="btn btn-danger text-white"
+                  class="btn btn-danger text-white rounded-pill"
                   @click="downloadStornoInvoice"
                 >
                   Sztornó számla letöltése
@@ -533,13 +533,13 @@ onMounted(() => {
                 <button
                   v-if="isAdmin() && !(selectedOrderDetails.sztorno === 1 || selectedOrderDetails.sztorno === true)"
                   type="button" 
-                  class="btn btn-danger text-white"
+                  class="btn btn-danger text-white rounded-pill"
                   @click="deleteOrder"
                 >
                   Törlés
                 </button>
               </div>
-              <button type="button" class="btn btn-secondary" @click="closeDetailsModal">
+              <button type="button" class="btn btn-secondary rounded-pill" @click="closeDetailsModal">
                 Bezárás
               </button>
             </div>

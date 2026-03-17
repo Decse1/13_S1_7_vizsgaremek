@@ -37,7 +37,7 @@ module.exports = (app) => {
                 JOIN Termek t ON rt.termek_id = t.id
                 LEFT JOIN Szamla sz_norm ON r.id = sz_norm.rendeles_id AND sz_norm.szamla_tipus = 'NORMAL'
                 LEFT JOIN Szamla sz_storno ON r.id = sz_storno.rendeles_id AND sz_storno.szamla_tipus = 'STORNO'
-                WHERE (r.sztorno = 0 OR sz.szamla_tipus LIKE 'STORNO') AND r.id = ?
+                WHERE r.id = ?
             `;
 
             const [rows] = await db.query(sql, [rendelesId]);
@@ -154,6 +154,9 @@ module.exports = (app) => {
                 doc.registerFont('CustomFontBold', 'Helvetica-Bold');
             }
 
+            const logoPath = path.join(__dirname, '../images/reka_logo_new.png');
+            const hasLogo = fs.existsSync(logoPath);
+            
             const drawHeader = () => {
                 const startY = 30; 
                 doc.fillColor('red').fontSize(24).font('CustomFontBold').text(`SZTORNÓ SZÁMLA`, 40, startY);

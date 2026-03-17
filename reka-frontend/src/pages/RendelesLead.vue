@@ -319,8 +319,8 @@ onMounted(() => {
                 </div>
               </div>
             </div>
-            <div class="modal-footer d-flex justify-content-between">
-              <div class="d-flex gap-1">
+            <div class="modal-footer d-flex justify-content-between flex-wrap row-gap-2">
+              <div class="d-flex flex-wrap row-gap-2">
                 <button 
                   v-if="selectedOrderDetails && selectedOrderDetails.szamla_kesz === 1"
                   type="button" 
