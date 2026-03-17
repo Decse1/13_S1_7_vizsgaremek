@@ -37,7 +37,7 @@ module.exports = (app) => {
                 JOIN Termek t ON rt.termek_id = t.id
                 LEFT JOIN Szamla sz_norm ON r.id = sz_norm.rendeles_id AND sz_norm.szamla_tipus = 'NORMAL'
                 LEFT JOIN Szamla sz_storno ON r.id = sz_storno.rendeles_id AND sz_storno.szamla_tipus = 'STORNO'
-                WHERE r.id = ?
+                WHERE (r.sztorno = 0 OR sz.szamla_tipus LIKE 'STORNO') AND r.id = ?
             `;
 
             const [rows] = await db.query(sql, [rendelesId]);
@@ -182,8 +182,29 @@ module.exports = (app) => {
             };
 
             const drawFooter = () => {
-                const footerY = doc.page.height - 50;
-                doc.fontSize(8).font('CustomFont').text("A sztornó számla az eredeti bizonylattal együtt érvényes.", 40, footerY, { align: 'center' });
+                const oldBottomMargin = doc.page.margins.bottom;
+                doc.page.margins.bottom = 0;
+                const footerHeight = 40;
+                const footerY = doc.page.height - footerHeight; 
+                
+                const textPart1 = "A storno számla a ";
+                const textPart2 = " rendszerrel lett kiállítva";
+                doc.fontSize(10).font('CustomFont');
+                
+                const w1 = doc.widthOfString(textPart1);
+                const w2 = doc.widthOfString(textPart2);
+                const imgW = 96; 
+                const imgH = 28; 
+                const totalW = w1 + imgW + w2;
+                const startX = doc.page.width - 40 - totalW; 
+                const textYOffset = (imgH - 10) / 2 + 2; 
+
+                doc.text(textPart1, startX, footerY + textYOffset, { lineBreak: false });
+                if (hasLogo) {
+                    doc.image(logoPath, startX + w1, footerY, { width: imgW, height: imgH });
+                }
+                doc.text(textPart2, startX + w1 + imgW, footerY + textYOffset, { lineBreak: false });
+                doc.page.margins.bottom = oldBottomMargin;
             };
 
             res.setHeader('Content-Type', 'application/pdf');
