@@ -639,4 +639,25 @@ const saveEditUser = async () => {
   .modal-backdrop {
     display: none;
   }
+
+  /* Hide permission columns on screens under 750px */
+  @media (max-width: 749px) {
+    th:nth-child(2),
+    th:nth-child(3),
+    th:nth-child(4),
+    th:nth-child(5),
+    td:nth-child(2),
+    td:nth-child(3),
+    td:nth-child(4),
+    td:nth-child(5) {
+      display: none;
+    }
+  }
+
+  /* Ensure spacing between title and button when button is below title */
+  @media (max-width: 768px) {
+    h2 {
+      margin-bottom: 1rem;
+    }
+  }
 </style>
