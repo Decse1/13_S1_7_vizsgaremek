@@ -91,6 +91,24 @@ module.exports = (app, authenticateToken) => {
         }
     });
 
+    app.post('/api/Kategoriak_add', async (req, res) => {
+        try {
+            const nev = req.body.nev;
+
+            if (!nev) return res.status(422).json({ ok: false, uzenet: "Hiányzó név!" });
+
+            const result = await db.query(
+                `INSERT INTO Termek_kategoria (nev) VALUES (?)`,
+                [nev]
+            );
+
+            return res.status(200).json({ ok: true, uzenet: "Sikeres kategória hozzáadás", id: result.insertId });
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ ok: false, uzenet: "Adatbázis hiba!" });
+        }
+    });
+
     // 3. Szűrt termékek lekérése (Védett)
     app.post('/api/Szurt_termek', authenticateToken, async (req, res) => {
         try {
