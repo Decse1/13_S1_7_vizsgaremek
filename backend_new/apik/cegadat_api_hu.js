@@ -53,9 +53,9 @@ function runCurlProxy(endpoint, params) {
 module.exports =  (app) => {
     app.post('/api/detail', async (req, res) => {
         try {
-            console.log(req.body);
+            //console.log(req.body);
             const params = `id=${req.body.adoszam}`;
-            console.log(params);
+            //console.log(params);
             const result = await runCurlProxy('/v1/detail', params);
             res.status(result.status).json(result.data);
         } catch (error) {
@@ -76,7 +76,7 @@ module.exports =  (app) => {
             // A paraméterek string formájú összeállítása a CURL --data-urlencode kapcsolójához
             const params = `name=${nev}" --data-urlencode "businessType=all`;
             const result = await runCurlProxy('/v1/search', params);
-            console.log(result.data);
+            //console.log(result.data);
             res.status(result.status).json(result.data);
         } catch (error) {
             res.status(error.status || 500).json(error.data || { error: 'Hiba a keresésnél.' });
@@ -94,7 +94,7 @@ module.exports =  (app) => {
             // A paraméterek string formájú összeállítása a CURL --data-urlencode kapcsolójához
             const params = `vatNumber=${adoszam}" --data-urlencode "businessType=all`;
             const result = await runCurlProxy('/v1/search', params);
-            console.log(result.data);
+            //console.log(result.data);
             res.status(result.status).json(result.data);
         } catch (error) {
             res.status(error.status || 500).json(error.data || { error: 'Hiba a keresésnél.' });

@@ -87,6 +87,14 @@
   const showDetailsModal = ref(false)
   const formError = ref('')
   const selectedProduct = ref(null)
+
+  // Category autocomplete state for add modal
+  const showAddCategorySuggestions = ref(false)
+  const filteredAddCategories = ref([])
+
+  // Category autocomplete state for edit modal
+  const showEditCategorySuggestions = ref(false)
+  const filteredEditCategories = ref([])
   const newProduct = ref({
     name: '',
     stock: 0,
@@ -128,7 +136,7 @@
       name: item.nev,
       stock: item.mennyiseg,
       kiszereles: item.kiszereles,
-      category: item.kategoria,
+      category: getCategoryName(item.kategoria),
       cikkszam: item.cikkszam,
       min_vas_menny: item.min_vas_menny,
       leiras: item.leiras,
@@ -158,6 +166,55 @@
   const getCategoryName = (categoryId) => {
     const category = categories.value.find(cat => cat.id === categoryId)
     return category ? category.nev : 'N/A'
+  }
+
+  // Resolve or create category by name
+  const resolveCategoryId = async (categoryName) => {
+    if (!categoryName || categoryName.trim() === '') {
+      return null
+    }
+
+    // Check if category already exists
+    const existingCategory = categories.value.find(cat => cat.nev.toLowerCase() === categoryName.trim().toLowerCase())
+    if (existingCategory) {
+      console.log('Category already exists:', existingCategory)
+      return existingCategory.id
+    }
+
+    // Create new category if it doesn't exist
+    try {
+      const response = await axios.post('/Kategoriak_add', {
+        nev: categoryName.trim()
+      })
+
+      console.log('Category creation response:', response.data)
+
+      if (response.data.ok) {
+        const categoryId = response.data.id
+        
+        if (categoryId === undefined || categoryId === null) {
+          formError.value = 'Hiba: A kategória azonosító nem érkezett meg a szervertől'
+          console.error('No category ID in response:', response.data)
+          return null
+        }
+
+        // Add to local categories list
+        categories.value.push({
+          id: categoryId,
+          nev: categoryName.trim()
+        })
+        console.log('Category created successfully with ID:', categoryId)
+        return categoryId
+      } else {
+        formError.value = 'Hiba a kategória létrehozása közben: ' + (response.data.uzenet || 'Ismeretlen hiba')
+        console.error('Category creation failed:', response.data)
+        return null
+      }
+    } catch (err) {
+      console.error('Error creating category:', err)
+      formError.value = 'Hiba a kategória létrehozása közben: ' + (err.response?.data?.uzenet || err.message)
+      return null
+    }
   }
 
   // Format price
@@ -202,6 +259,66 @@
     formError.value = ''
   }
 
+  // Handle category input for add modal
+  const handleAddCategoryInput = () => {
+    const searchTerm = newProduct.value.category.trim()
+
+    if (searchTerm.length >= 3) {
+      // Filter categories based on input - limit to first 4 results
+      filteredAddCategories.value = categories.value.filter(cat =>
+        cat.nev.toLowerCase().includes(searchTerm.toLowerCase())
+      ).slice(0, 4)
+      showAddCategorySuggestions.value = filteredAddCategories.value.length > 0
+    } else {
+      showAddCategorySuggestions.value = false
+      filteredAddCategories.value = []
+    }
+  }
+
+  // Handle category input for edit modal
+  const handleEditCategoryInput = () => {
+    const searchTerm = editProduct.value.category.trim()
+
+    if (searchTerm.length >= 3) {
+      // Filter categories based on input - limit to first 4 results
+      filteredEditCategories.value = categories.value.filter(cat =>
+        cat.nev.toLowerCase().includes(searchTerm.toLowerCase())
+      ).slice(0, 4)
+      showEditCategorySuggestions.value = filteredEditCategories.value.length > 0
+    } else {
+      showEditCategorySuggestions.value = false
+      filteredEditCategories.value = []
+    }
+  }
+
+  // Select category from add modal suggestions
+  const selectAddCategory = (category) => {
+    newProduct.value.category = category.nev
+    showAddCategorySuggestions.value = false
+    filteredAddCategories.value = []
+  }
+
+  // Select category from edit modal suggestions
+  const selectEditCategory = (category) => {
+    editProduct.value.category = category.nev
+    showEditCategorySuggestions.value = false
+    filteredEditCategories.value = []
+  }
+
+  // Close add category suggestions when clicking outside
+  const closeAddCategorySuggestions = () => {
+    setTimeout(() => {
+      showAddCategorySuggestions.value = false
+    }, 200)
+  }
+
+  // Close edit category suggestions when clicking outside
+  const closeEditCategorySuggestions = () => {
+    setTimeout(() => {
+      showEditCategorySuggestions.value = false
+    }, 200)
+  }
+
   const saveNewProduct = async () => {
     // Validate form fields
     formError.value = ''
@@ -226,8 +343,8 @@
       return
     }
 
-    if (!newProduct.value.category) {
-      formError.value = 'A kategória kiválasztása kötelező!'
+    if (!newProduct.value.category || newProduct.value.category.trim() === '') {
+      formError.value = 'A kategória megadása kötelező!'
       return
     }
 
@@ -257,6 +374,13 @@
       return
     }
 
+    // Resolve category name to ID
+    const categoryId = await resolveCategoryId(newProduct.value.category)
+    if (!categoryId) {
+      formError.value = 'A kategória nem sikerült feloldani!'
+      return
+    }
+
     // If all validations pass, send to backend
     try {
       const response = await axios.post('/Termek_ad', {
@@ -268,7 +392,7 @@
         min_vas_menny: newProduct.value.min_vas_menny,
         leiras: newProduct.value.leiras,
         ar: newProduct.value.ar,
-        kategoria: newProduct.value.category,
+        kategoria: categoryId,
         afa_kulcs: newProduct.value.afa_kulcs
       })
 
@@ -319,8 +443,8 @@
       return
     }
 
-    if (!editProduct.value.category) {
-      formError.value = 'A kategória kiválasztása kötelező!'
+    if (!editProduct.value.category || editProduct.value.category.trim() === '') {
+      formError.value = 'A kategória megadása kötelező!'
       return
     }
 
@@ -350,6 +474,13 @@
       return
     }
 
+    // Resolve category name to ID
+    const categoryId = await resolveCategoryId(editProduct.value.category)
+    if (!categoryId) {
+      formError.value = 'A kategória nem sikerült feloldani!'
+      return
+    }
+
     // If all validations pass, send to backend
     try {
       const response = await axios.post('/Termek_update', {
@@ -362,7 +493,7 @@
         min_vas_menny: editProduct.value.min_vas_menny,
         leiras: editProduct.value.leiras,
         ar: editProduct.value.ar,
-        kategoria: editProduct.value.category,
+        kategoria: categoryId,
         afa_kulcs: editProduct.value.afa_kulcs
       })
 
@@ -551,22 +682,30 @@
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Termék kategóriája</label>
-                  <select
-                    v-model="newProduct.category"
-                    class="form-select custom-input"
-                    required
-                    data-test="add-product-category-select"
-                  >
-                    <option value="" disabled>Válasszon kategóriát...</option>
-                    <option 
-                      v-for="category in categories" 
-                      :key="category.id" 
-                      :value="category.id"
-                      :data-test="`add-product-category-${category.id}`"
-                    >
-                      {{ category.nev }}
-                    </option>
-                  </select>
+                  <div class="autocomplete-wrapper">
+                    <input
+                      v-model="newProduct.category"
+                      type="text"
+                      class="form-control custom-input"
+                      placeholder="Pl.: Nyomtatópapír, Irodaszer"
+                      @input="handleAddCategoryInput"
+                      @blur="closeAddCategorySuggestions"
+                      required
+                      autocomplete="off"
+                      data-test="add-product-category-input"
+                    />
+                    <div v-if="showAddCategorySuggestions" class="autocomplete-dropdown" data-test="add-category-autocomplete-dropdown">
+                      <div
+                        v-for="category in filteredAddCategories"
+                        :key="category.id"
+                        class="autocomplete-item"
+                        :data-test="`add-category-suggestion-${category.id}`"
+                        @click="selectAddCategory(category)"
+                      >
+                        {{ category.nev }}
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Áfakulcs</label>
@@ -696,21 +835,30 @@
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Termék kategóriája</label>
-                  <select
-                    v-model="editProduct.category"
-                    class="form-select custom-input"
-                    required
-                    data-test="edit-product-category-select"
-                  >
-                    <option value="" disabled>Válasszon kategóriát...</option>
-                    <option 
-                      v-for="category in categories" 
-                      :key="category.id" 
-                      :value="category.id"
-                    >
-                      {{ category.nev }}
-                    </option>
-                  </select>
+                  <div class="autocomplete-wrapper">
+                    <input
+                      v-model="editProduct.category"
+                      type="text"
+                      class="form-control custom-input"
+                      placeholder="Pl.: Nyomtatópapír, Irodaszer"
+                      @input="handleEditCategoryInput"
+                      @blur="closeEditCategorySuggestions"
+                      required
+                      autocomplete="off"
+                      data-test="edit-product-category-input"
+                    />
+                    <div v-if="showEditCategorySuggestions" class="autocomplete-dropdown" data-test="edit-category-autocomplete-dropdown">
+                      <div
+                        v-for="category in filteredEditCategories"
+                        :key="category.id"
+                        class="autocomplete-item"
+                        :data-test="`edit-category-suggestion-${category.id}`"
+                        @click="selectEditCategory(category)"
+                      >
+                        {{ category.nev }}
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Áfakulcs</label>
@@ -839,5 +987,63 @@
 
   .product-name-link:hover {
     opacity: 0.7;
+  }
+
+  /* Autocomplete styles */
+  .autocomplete-wrapper {
+    position: relative;
+  }
+
+  .autocomplete-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: white;
+    border: 2px solid #00948B;
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 148, 139, 0.15);
+  }
+
+  .autocomplete-item {
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid #e8e8e8;
+    color: #333;
+    font-size: 14px;
+  }
+
+  .autocomplete-item:last-child {
+    border-bottom: none;
+  }
+
+  .autocomplete-item:hover {
+    background-color: #e6f7f6;
+    color: #00948B;
+    padding-left: 20px;
+  }
+
+  /* Scrollbar styling for autocomplete dropdown */
+  .autocomplete-dropdown::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .autocomplete-dropdown::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+
+  .autocomplete-dropdown::-webkit-scrollbar-thumb {
+    background: #00948B;
+    border-radius: 10px;
+  }
+
+  .autocomplete-dropdown::-webkit-scrollbar-thumb:hover {
+    background: #007a72;
   }
 </style>
