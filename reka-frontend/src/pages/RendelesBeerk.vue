@@ -617,4 +617,13 @@ onMounted(() => {
   .modal-footer {
     border-top: 1px solid #dee2e6;
   }
+
+  @media (max-width: 570px) {
+    .custom-table thead th:nth-child(3),
+    .custom-table thead th:nth-child(4),
+    .custom-table tbody td:nth-child(3),
+    .custom-table tbody td:nth-child(4) {
+      display: none;
+    }
+  }
 </style>

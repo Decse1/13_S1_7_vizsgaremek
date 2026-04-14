@@ -309,70 +309,56 @@
       {{ error }}
     </div>
 
-    <table v-else class="table custom-table" style="border-bottom: 1px solid black;">
-      <thead>
-        <tr>
-          <th style="width: 40%;">Terméknév</th>
-          <!-- th style="width: 20%;">Kategória</th -->
-          <th style="width: 20%;">Ár (nettó)</th>
-          <th style="width: 25%;">Mennyiség</th>
-          <th style="width: 15%;" class="hidden-mobile"></th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-if="filteredItems.length === 0">
-          <td colspan="4" class="text-center">Nincs megjeleníthető termék</td>
-        </tr>
-        <template v-for="(item, index) in filteredItems" :key="item.id || index">
-          <tr class="product-row">
-            <td>
-              <span class="product-name-link" @click="openProductModal(item)">
-                {{ item.nev }}
-              </span>
-            </td>
-            <!-- td>asd</td -->
-            <td>{{ item.ar }} Ft</td>
-            <td>
-              <div class="d-flex align-items-center gap-2">
-                <button 
-                  class="btn btn-sm btn-outline-secondary rounded-pill"
-                  @click="decreaseQuantity(item)"
-                  :disabled="quantities[item.id] <= (item.min_vas_menny || 1)"
-                >
-                  <i class="bi bi-dash"></i>
-                </button>
-                <input 
-                  type="number" 
-                  class="form-control form-control-sm text-center quantity-input custom-input"
-                  :value="quantities[item.id]"
-                  @input="updateQuantity(item, $event.target.value)"
-                  :min="item.min_vas_menny || 1"
-                  style="width: 70px;"
-                />
-                <button 
-                  class="btn btn-sm btn-outline-secondary rounded-pill"
-                  @click="increaseQuantity(item)"
-                >
-                  <i class="bi bi-plus"></i>
-                </button>
-              </div>
-            </td>
-            <td class="hidden-mobile">
-              <button class="btn btn-sm btn-teal text-white rounded-pill" @click="addToCart(item)">
-                Kosárba
-              </button>
-            </td>
-          </tr>
-          <tr class="product-button-row">
-            <td colspan="4" style="padding-top: 0; padding-bottom: 0.6rem;">
-              <button class="btn btn-sm btn-teal text-white rounded-pill w-100" @click="addToCart(item)">
-                Kosárba
-              </button>
-            </td>
-          </tr>
-        </template>
-      </tbody>
-    </table>
+    <div v-else>
+      <div v-if="filteredItems.length === 0" class="text-center mt-4">
+        Nincs megjeleníthető termék
+      </div>
+
+      <div v-else class="product-grid mt-3">
+        <div
+          v-for="(item, index) in filteredItems"
+          :key="item.id || index"
+          class="product-bubble"
+          @click="openProductModal(item)"
+        >
+          <div class="product-name">{{ item.nev }}</div>
+          <div class="product-price">{{ item.ar }} Ft/db</div>
+
+          <button
+            class="btn btn-sm btn-teal text-white rounded-pill w-100"
+            @click.stop="addToCart(item)"
+          >
+            <i class="bi bi-cart me-1"></i>Kosárba
+          </button>
+
+          <div class="quantity-row" @click.stop>
+            <button
+              class="btn btn-sm btn-outline-secondary rounded-pill qty-btn"
+              @click.stop="decreaseQuantity(item)"
+              :disabled="quantities[item.id] <= (item.min_vas_menny || 1)"
+            >
+              <i class="bi bi-dash"></i>
+            </button>
+
+            <input
+              type="number"
+              class="form-control form-control-sm text-center quantity-input custom-input"
+              :value="quantities[item.id]"
+              @click.stop
+              @input="updateQuantity(item, $event.target.value)"
+              :min="item.min_vas_menny || 1"
+            />
+
+            <button
+              class="btn btn-sm btn-outline-secondary rounded-pill qty-btn"
+              @click.stop="increaseQuantity(item)"
+            >
+              <i class="bi bi-plus"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Product Details Modal -->
     <transition name="modal-fade">
@@ -449,10 +435,10 @@
               <p class="mb-0"><strong>Folytatod?</strong></p>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" @click="closeConfirmModal">
+              <button type="button" class="btn btn-secondary rounded-pill" @click="closeConfirmModal">
                 Mégse
               </button>
-              <button type="button" class="btn btn-teal text-white" @click="confirmAddToCart">
+              <button type="button" class="btn btn-danger text-white rounded-pill" @click="confirmAddToCart">
                 Igen, törlöm a kosarat
               </button>
             </div>
@@ -484,7 +470,6 @@
   .product-name-link {
     color: #0066cc;
     cursor: pointer;
-    text-decoration: underline;
     transition: color 0.2s ease;
   }
 
@@ -540,31 +525,62 @@
     border-collapse: collapse;
   }
 
-  thead th {
-    background-color: #d3d3d3;
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .product-bubble {
+    background-color: #f0f0f0;
+    border-radius: 1.1rem;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    min-height: 185px;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: background-color 0.18s ease;
+  }
+
+  .product-bubble:hover {
+    background-color: #e5e5e5;
+  }
+
+  .product-name {
+    font-weight: 700;
+    text-align: center;
+    line-height: 1.2;
+    min-height: 2.4em;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .product-price {
     font-weight: 600;
-    border-bottom: 1px solid #000000;
+    text-align: center;
   }
 
-  tbody tr {
-    border-bottom: 1px solid #000000;
-  }
-
-  tbody td {
-    padding-top: 0.6rem;
-    padding-bottom: 0.6rem;
-    vertical-align: middle;
+  .quantity-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
   }
 
   .quantity-input {
-    -moz-appearance: textfield;
-    appearance: textfield;
+    width: 50%;
   }
 
-  .quantity-input::-webkit-outer-spin-button,
-  .quantity-input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
+  .qty-btn {
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .modal-backdrop {
@@ -688,32 +704,23 @@
     box-shadow: none;
   }
 
-  /* Responsive button layout for mobile */
-  .hidden-mobile {
-    display: table-cell;
-  }
-
-  .product-button-row {
-    display: none;
-  }
-
-  @media (max-width: 479px) {
-    .hidden-mobile {
-      display: none;
+  @media (max-width: 575.98px) {
+    .product-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.65rem;
     }
 
-    .product-button-row {
-      display: table-row;
+    .product-bubble {
+      padding: 0.8rem;
+      min-height: 170px;
     }
 
-    .product-button-row td {
-      padding-top: 0;
-      padding-bottom: 0.6rem;
-      border-bottom: 1px solid #000000;
+    .product-name {
+      font-size: 0.98rem;
     }
 
-    .product-button-row .btn {
-      font-size: 0.875rem;
+    .product-price {
+      font-size: 0.95rem;
     }
   }
 </style>
