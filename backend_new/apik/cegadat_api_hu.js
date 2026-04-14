@@ -1,17 +1,9 @@
+const dotenv = require('dotenv');
+dotenv.config();
 const { exec } = require('child_process');
-let CEG_API_KEY= "";
+let CEG_API_KEY= process.env.CEG_API_KEY_TEST;
 const API_BASE_URL = "https://api.cegadatapi.hu";
 
-const readline = require('readline').createInterface({
-  input: process.stdin,
-  output: process.stdout
-});
-
-readline.question(``,api => {
-    CEG_API_KEY = api;
-    console.log(`Az API kulcs beállítva`);
-    readline.close(); // Fontos lezárni, különben nem áll le a program
-});
 /**
  * A fő funkció, ami elvégzi a CURL hívást.
  * @param {string} endpoint - Az API végpontja (pl. /v1/search)
