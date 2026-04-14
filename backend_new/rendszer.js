@@ -26,7 +26,7 @@ async function startServer() {
         // B. VÉDETT API-k (Ahol szükség lehet a tokenre)
         // Átadjuk az 'app'-ot ÉS az 'authenticateToken'-t paraméterként,
         // így ezekben a fájlokban használhatod a védelmet.
-        
+        require('dotenv').config();
         require("./apik/raktar.js")(app, authenticateToken);
         require("./apik/felhasznalo.js")(app, authenticateToken);
         require("./apik/ceg.js")(app, authenticateToken);
