@@ -142,7 +142,7 @@ export default {
 }
 
 .login-card {
-  width: 100%;
+  width: calc(100% - 2rem);
   max-width: 800px; /* wider on large screens */
 }
 
@@ -161,8 +161,15 @@ button.btn-teal {
   }
 
   .login-card {
-    padding: 1.5rem !important;
-    margin: 0 1rem; /* keep side margin on mobile */
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+}
+
+@media (max-width: 799px) {
+  .login-card {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
   }
 }
 

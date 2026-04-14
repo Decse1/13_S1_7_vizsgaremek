@@ -316,52 +316,61 @@
           <!-- th style="width: 20%;">Kategória</th -->
           <th style="width: 20%;">Ár (nettó)</th>
           <th style="width: 25%;">Mennyiség</th>
-          <th style="width: 15%;"></th>
+          <th style="width: 15%;" class="hidden-mobile"></th>
         </tr>
       </thead>
       <tbody>
         <tr v-if="filteredItems.length === 0">
           <td colspan="4" class="text-center">Nincs megjeleníthető termék</td>
         </tr>
-        <tr v-for="(item, index) in filteredItems" :key="item.id || index">
-          <td>
-            <span class="product-name-link" @click="openProductModal(item)">
-              {{ item.nev }}
-            </span>
-          </td>
-          <!-- td>asd</td -->
-          <td>{{ item.ar }} Ft</td>
-          <td>
-            <div class="d-flex align-items-center gap-2">
-              <button 
-                class="btn btn-sm btn-outline-secondary rounded-pill"
-                @click="decreaseQuantity(item)"
-                :disabled="quantities[item.id] <= (item.min_vas_menny || 1)"
-              >
-                <i class="bi bi-dash"></i>
+        <template v-for="(item, index) in filteredItems" :key="item.id || index">
+          <tr class="product-row">
+            <td>
+              <span class="product-name-link" @click="openProductModal(item)">
+                {{ item.nev }}
+              </span>
+            </td>
+            <!-- td>asd</td -->
+            <td>{{ item.ar }} Ft</td>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <button 
+                  class="btn btn-sm btn-outline-secondary rounded-pill"
+                  @click="decreaseQuantity(item)"
+                  :disabled="quantities[item.id] <= (item.min_vas_menny || 1)"
+                >
+                  <i class="bi bi-dash"></i>
+                </button>
+                <input 
+                  type="number" 
+                  class="form-control form-control-sm text-center quantity-input custom-input"
+                  :value="quantities[item.id]"
+                  @input="updateQuantity(item, $event.target.value)"
+                  :min="item.min_vas_menny || 1"
+                  style="width: 70px;"
+                />
+                <button 
+                  class="btn btn-sm btn-outline-secondary rounded-pill"
+                  @click="increaseQuantity(item)"
+                >
+                  <i class="bi bi-plus"></i>
+                </button>
+              </div>
+            </td>
+            <td class="hidden-mobile">
+              <button class="btn btn-sm btn-teal text-white rounded-pill" @click="addToCart(item)">
+                Kosárba
               </button>
-              <input 
-                type="number" 
-                class="form-control form-control-sm text-center quantity-input custom-input"
-                :value="quantities[item.id]"
-                @input="updateQuantity(item, $event.target.value)"
-                :min="item.min_vas_menny || 1"
-                style="width: 70px;"
-              />
-              <button 
-                class="btn btn-sm btn-outline-secondary rounded-pill"
-                @click="increaseQuantity(item)"
-              >
-                <i class="bi bi-plus"></i>
+            </td>
+          </tr>
+          <tr class="product-button-row">
+            <td colspan="4" style="padding-top: 0; padding-bottom: 0.6rem;">
+              <button class="btn btn-sm btn-teal text-white rounded-pill w-100" @click="addToCart(item)">
+                Kosárba
               </button>
-            </div>
-          </td>
-          <td>
-            <button class="btn btn-sm btn-teal text-white rounded-pill" @click="addToCart(item)">
-              Kosárba
-            </button>
-          </td>
-        </tr>
+            </td>
+          </tr>
+        </template>
       </tbody>
     </table>
 
@@ -537,10 +546,6 @@
     border-bottom: 1px solid #000000;
   }
 
-  tbody tr {
-    border-bottom: 1px solid #000000;
-  }
-
   tbody td {
     padding-top: 0.6rem;
     padding-bottom: 0.6rem;
@@ -654,6 +659,7 @@
     .search-input {
       width: 100% !important;
       max-width: 100% !important;
+      margin-top: 0.5rem;
     }
   }
 
@@ -676,5 +682,34 @@
     border-color: #00948B;
     background-color: white;
     box-shadow: none;
+  }
+
+  /* Responsive button layout for mobile */
+  .hidden-mobile {
+    display: table-cell;
+  }
+
+  .product-button-row {
+    display: none;
+  }
+
+  @media (max-width: 479px) {
+    .hidden-mobile {
+      display: none;
+    }
+
+    .product-button-row {
+      display: table-row;
+    }
+
+    .product-button-row td {
+      padding-top: 0;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid #000000;
+    }
+
+    .product-button-row .btn {
+      font-size: 0.875rem;
+    }
   }
 </style>
