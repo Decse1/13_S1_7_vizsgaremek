@@ -546,6 +546,10 @@
     border-bottom: 1px solid #000000;
   }
 
+  tbody tr {
+    border-bottom: 1px solid #000000;
+  }
+
   tbody td {
     padding-top: 0.6rem;
     padding-bottom: 0.6rem;

@@ -654,6 +654,14 @@ const saveEditUser = async () => {
     }
   }
 
+  /* Hide telefon column on screens under 440px */
+  @media (max-width: 439px) {
+    th:nth-child(7),
+    td:nth-child(7) {
+      display: none;
+    }
+  }
+
   /* Ensure spacing between title and button when button is below title */
   @media (max-width: 768px) {
     h2 {

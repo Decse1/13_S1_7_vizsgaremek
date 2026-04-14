@@ -433,7 +433,7 @@
                   <input
                     v-model="newPartnership.vatNumber"
                     type="text"
-                    class="form-control"
+                    class="form-control custom-input"
                     placeholder="Pl.: 12345678-1-23"
                     required
                     maxlength="13"
@@ -461,7 +461,7 @@
                   <label class="form-label">Fizetési mód *</label>
                   <select
                     v-model="newPartnership.paymentMethod"
-                    class="form-select"
+                    class="form-select custom-input"
                     required
                     :disabled="addModalLoading"
                     @change="handlePaymentMethodChange"
@@ -478,7 +478,7 @@
                     v-model.number="newPartnership.paymentTime"
                     type="number"
                     min="0"
-                    class="form-control"
+                    class="form-control custom-input"
                     required
                     :disabled="addModalLoading || newPartnership.paymentMethod === 'Készpénz'"
                     :readonly="newPartnership.paymentMethod === 'Készpénz'"
