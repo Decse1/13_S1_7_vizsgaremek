@@ -52,9 +52,15 @@ const groupedOrders = computed(() => {
     });
   });
   
-  // Convert map to array and sort by rendeles_szam (descending order)
+  // Convert map to array and sort by date (desc), then by order number (desc)
   return Array.from(orderMap.values()).sort((a, b) => {
-    // Sort by rendeles_szam in descending order (e.g., KPK-003, KPK-002, KPK-001)
+    const dateA = new Date(a.datum || 0).getTime();
+    const dateB = new Date(b.datum || 0).getTime();
+
+    if (dateA !== dateB) {
+      return dateB - dateA;
+    }
+
     return b.rendeles_szam.localeCompare(a.rendeles_szam, undefined, { numeric: true });
   });
 });
@@ -391,6 +397,22 @@ onMounted(() => {
 
   .modal-footer {
     border-top: 1px solid #dee2e6;
+  }
+
+  @media (max-width: 650px) {
+    .modal-footer {
+      justify-content: flex-end !important;
+      gap: 0.5rem;
+    }
+
+    .modal-footer > div {
+      justify-content: flex-end;
+      gap: 0.5rem;
+    }
+
+    .custom-modal-content .modal-footer .btn + .btn {
+      margin-left: 0 !important;
+    }
   }
 
   @media (max-width: 570px) {

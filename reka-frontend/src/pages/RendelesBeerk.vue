@@ -68,12 +68,18 @@ const groupedOrders = computed(() => {
     });
   });
   
-  // Convert Map to array, remove productSet, and sort by rendeles_szam (descending)
+  // Convert Map to array, remove productSet, and sort by date (desc), then order number (desc)
   return Array.from(orderMap.values()).map(order => {
     const { productSet, ...orderWithoutSet } = order;
     return orderWithoutSet;
   }).sort((a, b) => {
-    // Sort by rendeles_szam in descending order (e.g., AB0000006, AB0000005, AB0000004)
+    const dateA = new Date(a.datum || 0).getTime();
+    const dateB = new Date(b.datum || 0).getTime();
+
+    if (dateA !== dateB) {
+      return dateB - dateA;
+    }
+
     return b.rendeles_szam.localeCompare(a.rendeles_szam, undefined, { numeric: true });
   });
 });
@@ -490,7 +496,7 @@ onMounted(() => {
                     <div class="d-flex align-items-center gap-2">
                       <input 
                         type="number" 
-                        class="form-control form-control-sm quantity-input" 
+                        class="form-control form-control-sm quantity-input custom-input" 
                         v-model.number="product.editedQuantity"
                         min="0"
                         style="width: 100px;"
@@ -616,6 +622,22 @@ onMounted(() => {
 
   .modal-footer {
     border-top: 1px solid #dee2e6;
+  }
+
+  @media (max-width: 650px) {
+    .modal-footer {
+      justify-content: flex-end !important;
+      gap: 0.5rem;
+    }
+
+    .modal-footer > div {
+      justify-content: flex-end;
+      gap: 0.5rem;
+    }
+
+    .custom-modal-content .modal-footer .btn + .btn {
+      margin-left: 0 !important;
+    }
   }
 
   @media (max-width: 570px) {

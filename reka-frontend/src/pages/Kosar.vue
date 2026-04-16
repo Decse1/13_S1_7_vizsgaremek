@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from '../axios.js';
 import authStore, { setAuthState, hasPermission, isAdmin } from '../stores/auth.js';
@@ -22,12 +22,20 @@ const categories = ref([]);
 
 // Price update notifications
 const priceUpdates = ref([]);
+const isUnder510 = ref(false);
+
+const updateResponsiveState = () => {
+  isUnder510.value = window.innerWidth < 510;
+};
 
 // Computed properties
 const cartItems = computed(() => cartStore.items);
 const companyName = computed(() => cartStore.companyName || 'N/A');
 const totalPrice = computed(() => getTotalPrice());
 const totalPriceWithVAT = computed(() => getTotalPriceWithVAT());
+const emptyCartColspan = computed(() => (isUnder510.value ? 3 : 7));
+const totalLabelColspan = computed(() => (isUnder510.value ? 2 : 4));
+const totalValueColspan = computed(() => (isUnder510.value ? 1 : 3));
 
 // Format price
 const formatPrice = (price) => {
@@ -283,7 +291,13 @@ const checkAndUpdatePrices = async () => {
 
 // On component mount, check prices
 onMounted(() => {
+  updateResponsiveState();
+  window.addEventListener('resize', updateResponsiveState);
   checkAndUpdatePrices();
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updateResponsiveState);
 });
 </script>
 
@@ -325,21 +339,21 @@ onMounted(() => {
     <table class="table custom-table" style="border-bottom: 1px solid black;">
       <thead>
         <tr>
-          <th style="width: 35%;">Termék neve</th>
-          <th style="width: 15%;">Cikkszám</th>
-          <th style="width: 15%;">Egységár (nettó)</th>
-          <th style="width: 10%;">Mennyiség</th>
-          <th style="width: 20%;">Összesen (nettó)</th>
-          <th style="width: 2.5%;"></th>
-          <th style="width: 2.5%;"></th>
+          <th class="col-name" style="width: 35%;">Termék neve</th>
+          <th class="col-cikkszam hide-under-510" style="width: 15%;">Cikkszám</th>
+          <th class="col-unit-price hide-under-510" style="width: 15%;">Egységár (nettó)</th>
+          <th class="col-qty" style="width: 10%;">Mennyiség</th>
+          <th class="col-total" style="width: 20%;">Összesen (nettó)</th>
+          <th class="col-action" style="width: 2.5%;"></th>
+          <th class="col-action" style="width: 2.5%;"></th>
         </tr>
       </thead>
       <tbody>
         <tr v-if="cartItems.length === 0">
-          <td colspan="7" class="text-center">A kosár tartalma jelenleg üres!</td>
+          <td :colspan="emptyCartColspan" class="text-center">A kosár tartalma jelenleg üres!</td>
         </tr>
         <tr v-for="item in cartItems" :key="item.id">
-          <td>
+          <td class="col-name">
             <div class="product-cell">
               <span class="product-name-link" @click="openProductModal(item)">
                 {{ item.nev }}
@@ -347,45 +361,45 @@ onMounted(() => {
 
               <!-- Mobile-only actions under the product name -->
               <div class="product-actions-mobile">
-                <span class="action-icon" @click="openEditModal(item)" title="Szerkesztés">
-                  <Icons name="pencil" size="1.5rem" />
-                </span>
-                <span class="action-icon trash-icon" @click="removeItem(item)" title="Törlés">
-                  <Icons name="trash" size="1.5rem" />
-                </span>
+                <button type="button" class="action-button action-edit-button" @click="openEditModal(item)" title="Szerkesztés">
+                  <Icons name="pencil" size="1.1rem" />
+                </button>
+                <button type="button" class="action-button action-delete-button" @click="removeItem(item)" title="Törlés">
+                  <Icons name="trash" size="1.1rem" />
+                </button>
               </div>
             </div>
           </td>
-          <td>{{ item.cikkszam }}</td>
-          <td>{{ formatPrice(item.ar) }} Ft</td>
-          <td>{{ item.quantity }} {{ item.kiszereles }}</td>
-          <td>{{ formatPrice(item.ar * item.quantity) }} Ft</td>
+          <td class="col-cikkszam hide-under-510">{{ item.cikkszam }}</td>
+          <td class="col-unit-price hide-under-510">{{ formatPrice(item.ar) }} Ft</td>
+          <td class="col-qty">{{ item.quantity }} {{ item.kiszereles }}</td>
+          <td class="col-total">{{ formatPrice(item.ar * item.quantity) }} Ft</td>
 
           <!-- Desktop/tablet actions in their own columns -->
-          <td class="product-actions-desktop">
-            <span class="action-icon" @click="openEditModal(item)" title="Szerkesztés">
+          <td class="product-actions-desktop col-action">
+            <button type="button" class="action-button action-edit-button" @click="openEditModal(item)" title="Szerkesztés">
               <Icons name="pencil" size="1.25rem" />
-            </span>
+            </button>
           </td>
-          <td class="product-actions-desktop">
-            <span class="action-icon trash-icon" @click="removeItem(item)" title="Törlés">
+          <td class="product-actions-desktop col-action">
+            <button type="button" class="action-button action-delete-button" @click="removeItem(item)" title="Törlés">
               <Icons name="trash" size="1.25rem" />
-            </span>
+            </button>
           </td>
         </tr>
         <tr v-if="cartItems.length > 0" class="total-row">
-          <td colspan="4" class="text-end"><strong>Végösszeg (nettó):</strong></td>
-          <td colspan="3"><strong>{{ formatPrice(totalPrice) }} Ft</strong></td>
+          <td :colspan="totalLabelColspan" class="text-end"><strong>Végösszeg (nettó):</strong></td>
+          <td :colspan="totalValueColspan"><strong>{{ formatPrice(totalPrice) }} Ft</strong></td>
         </tr>
         <tr v-if="cartItems.length > 0" class="total-row">
-          <td colspan="4" class="text-end"><strong>Végösszeg (bruttó):</strong></td>
-          <td colspan="3"><strong>{{ formatPrice(totalPriceWithVAT) }} Ft</strong></td>
+          <td :colspan="totalLabelColspan" class="text-end"><strong>Végösszeg (bruttó):</strong></td>
+          <td :colspan="totalValueColspan"><strong>{{ formatPrice(totalPriceWithVAT) }} Ft</strong></td>
         </tr>
       </tbody>
     </table>
 
-    <div v-if="cartItems.length > 0" class="mt-3">
-      <button class="btn btn-teal text-white btn-lg rounded-pill" @click="placeOrder">
+    <div v-if="cartItems.length > 0" class="mt-3 place-order-wrapper">
+      <button class="btn btn-teal text-white btn-lg rounded-pill place-order-btn" @click="placeOrder">
         Rendelés leadása
       </button>
     </div>
@@ -419,7 +433,7 @@ onMounted(() => {
                   </button>
                   <input 
                     type="number" 
-                    class="form-control form-control-sm text-center quantity-input"
+                    class="form-control form-control-sm text-center quantity-input custom-input"
                     v-model.number="editingQuantity"
                     :min="editingItem.min_vas_menny || 1"
                     style="width: 100px;"
@@ -531,6 +545,32 @@ onMounted(() => {
     opacity: 0.6;
   }
 
+  .action-button {
+    border: 0;
+    background: transparent;
+    color: #000;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 0.25rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: opacity 0.2s, background-color 0.2s, border-color 0.2s, color 0.2s;
+  }
+
+  .action-button :deep(svg) {
+    display: block;
+  }
+
+  .action-button:hover {
+    opacity: 0.7;
+  }
+
+  .product-actions-desktop .action-delete-button {
+    color: #dc3545;
+  }
+
   .trash-icon {
     color: #c00;
   }
@@ -540,14 +580,15 @@ onMounted(() => {
   }
 
   .product-name-link {
-    color: #0066cc;
+    color: #00948b;
     cursor: pointer;
-    text-decoration: underline;
+    text-decoration: none;
     transition: color 0.2s ease;
   }
 
   .product-name-link:hover {
-    color: #004499;
+    color: #007a72;
+    text-decoration: none;
   }
 
   .quantity-input {
@@ -591,10 +632,53 @@ onMounted(() => {
     white-space: nowrap;
   }
 
+  .place-order-wrapper {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  @media (max-width: 564.98px) {
+    .place-order-wrapper {
+      justify-content: stretch;
+    }
+
+    .place-order-btn {
+      width: 100%;
+    }
+  }
+
   @media (max-width: 575.98px) {
     /* Show actions under product name on mobile */
     .product-actions-mobile {
-      display: inline-flex;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .action-button {
+      border: 1px solid transparent;
+      border-radius: 999px;
+      padding: 0;
+      width: 2.15rem;
+      height: 2.15rem;
+      flex: 0 0 2.15rem;
+    }
+
+    .action-edit-button {
+      background-color: #00948B;
+      border-color: #00948B;
+      color: #fff;
+    }
+
+    .action-delete-button {
+      background-color: #dc3545;
+      border-color: #dc3545;
+      color: #fff;
+    }
+
+    .action-edit-button:hover,
+    .action-delete-button:hover {
+      opacity: 0.9;
     }
 
     /* Hide the separate action columns on mobile */
@@ -606,6 +690,40 @@ onMounted(() => {
     table.custom-table thead th:nth-last-child(1),
     table.custom-table thead th:nth-last-child(2) {
       display: none;
+    }
+  }
+
+  @media (max-width: 509.98px) {
+    .hide-under-510 {
+      display: none;
+    }
+
+    .col-name {
+      width: 52% !important;
+    }
+
+    .col-qty {
+      width: 20% !important;
+      white-space: nowrap;
+    }
+
+    .col-total {
+      width: 28% !important;
+      white-space: nowrap;
+    }
+
+    .col-action {
+      display: none !important;
+    }
+
+    .product-cell {
+      gap: 0.5rem;
+    }
+
+    .product-actions-mobile {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 0.35rem;
     }
   }
 </style>

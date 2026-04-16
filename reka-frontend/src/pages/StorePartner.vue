@@ -286,15 +286,15 @@
             Partner készlete
           </template>
         </h2>
+      </div>
 
-        <div class="input-group search-input" style="width: clamp(100px, 40vw, 300px);">
-          <input
-            v-model="search"
-            type="text"
-            class="form-control custom-input rounded-5"
-            placeholder="Keresés"
-          />
-        </div>
+      <div class="input-group search-input ms-md-auto" style="width: clamp(100px, 40vw, 300px);">
+        <input
+          v-model="search"
+          type="text"
+          class="form-control custom-input rounded-5"
+          placeholder="Keresés"
+        />
       </div>
     </div>
 
@@ -555,6 +555,7 @@
     min-height: 2.4em;
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
@@ -680,6 +681,7 @@
       width: 100% !important;
       max-width: 100% !important;
       margin-top: 0.5rem;
+      margin-left: 0 !important;
     }
   }
 

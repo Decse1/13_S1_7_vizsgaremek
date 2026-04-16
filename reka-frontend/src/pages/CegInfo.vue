@@ -56,7 +56,8 @@ const editForm = ref({
   cim: '',
   email: '',
   telefon: '',
-  szamlaszam: ''
+  szamlaszam: '',
+  rendeles_minta: ''
 })
 
 const openAddModal = () => {
@@ -68,7 +69,8 @@ const openAddModal = () => {
     cim: authStore.ceg.cim,
     email: authStore.ceg.email,
     telefon: authStore.ceg.telefon,
-    szamlaszam: authStore.ceg.szamlaszam
+    szamlaszam: authStore.ceg.szamlaszam,
+    rendeles_minta: authStore.ceg.rendeles_minta || ''
   }
   formError.value = ''
   showAddModal.value = true
@@ -151,7 +153,7 @@ const saveCompanyData = async () => {
       telefon: editForm.value.telefon,
       elofiz: authStore.ceg.elofiz,
       szamla_minta: authStore.ceg.szamla_minta, // Preserve szamla_minta
-      rendeles_minta: authStore.ceg.rendeles_minta, // Preserve rendeles_minta
+      rendeles_minta: editForm.value.rendeles_minta,
       szamlaszam: editForm.value.szamlaszam
     }
 
@@ -445,6 +447,17 @@ const deactivateReka = async () => {
                     required
                     maxlength="26"
                     placeholder="pl. 11700002-20000001-00000001"
+                  />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Rendelési szám mintája</label>
+                  <input
+                    v-model="editForm.rendeles_minta"
+                    type="text"
+                    class="form-control custom-input"
+                    required
+                    maxlength="15"
+                    placeholder="pl. R-NP-0000"
                   />
                 </div>
                 <!-- Error message display -->

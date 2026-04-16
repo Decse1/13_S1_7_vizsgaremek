@@ -77,7 +77,7 @@ describe('Sidebar and Navigation Menu E2E Tests', function () {
     const passwordInput = await driver.findElement(By.css('[data-test="password-input"]'));
     const loginButton = await driver.findElement(By.css('[data-test="login-button"]'));
 
-    await usernameInput.sendKeys('Kovács Péter');
+    await usernameInput.sendKeys('Juhász Levente');
     await passwordInput.sendKeys('pwd123');
     await loginButton.click();
 
@@ -245,7 +245,7 @@ describe('Sidebar and Navigation Menu E2E Tests', function () {
     const passwordInput = await driver.findElement(By.css('[data-test="password-input"]'));
     const loginButton = await driver.findElement(By.css('[data-test="login-button"]'));
 
-    await usernameInput.sendKeys('Kovács Péter');
+    await usernameInput.sendKeys('Juhász Levente');
     await passwordInput.sendKeys('pwd123');
     await loginButton.click();
 

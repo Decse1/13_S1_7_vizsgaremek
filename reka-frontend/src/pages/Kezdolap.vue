@@ -1,7 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import authStore from '../stores/auth.js';
 
 const route = useRoute();
 const showError = ref(false);
@@ -48,15 +47,29 @@ const closeError = () => {
       <button type="button" class="btn-close" aria-label="Bezárás" @click="closeError"></button>
     </div>
 
-    <h2>Kezdőlap</h2>
-    <p>Üdv a kezdőlapon!</p>
-    <p v-if="authStore.ceg">
-      {{ authStore.ceg.nev }}, ID: {{ authStore.ceg.id }}
-    </p>
-    <p v-else>Nincs bejelentkezve</p>
+    <h1 class="home-title" data-test="homepage-title">Üdvözlünk a RÉKA-rendszerében! <br><br>Válassza ki a keresett menüpontot a menüben vagy az oldalsávról</h1>
   </div>
 </template>
 
 <style scoped>
-  /* No additional styles needed - using global.css */
+.content {
+  min-height: calc(100vh - 80px);
+  display: grid;
+  place-items: center;
+  position: relative;
+  padding: 1rem;
+}
+
+.alert {
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(900px, calc(100% - 2rem));
+}
+
+.home-title {
+  margin: 0;
+  text-align: center;
+}
 </style>

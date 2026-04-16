@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import authStore, { clearAuthState, getToken, onTokenUpdate, hasPermission, isAdmin } from '../stores/auth.js';
+import cartStore, { getItemCount } from '../stores/cart.js';
 
 const router = useRouter();
 const sidebarOpen = ref(false);
@@ -14,6 +15,12 @@ let unsubscribeTokenUpdate = null;
 
 const userName = computed(() => {
   return authStore.user?.nev || 'Felhasználó';
+});
+
+const cartItemCount = computed(() => {
+  // Accessing cartStore.items keeps this computed reactive to cart changes.
+  cartStore.items;
+  return getItemCount();
 });
 
 // Decode JWT token to get expiration time
@@ -135,7 +142,7 @@ onUnmounted(() => {
           <span class="navbar-toggler-icon"></span>
         </button>
 
-        <router-link class="navbar-brand d-flex align-items-center m-0" data-test="logo-home" to="/">
+        <router-link class="navbar-brand d-flex align-items-center m-0" data-test="logo-home" to="">
           <img src="/src/reka_logo_alt.png" alt="Logo" class="logo-img me-2" />
         </router-link>
       </div>
@@ -160,6 +167,7 @@ onUnmounted(() => {
         <div class="profile-dropdown" :class="{ show: dropdownOpen }">
           <router-link to="/userinfo" class="dropdown-item" data-test="pf-menu-pfinfo" @click="closeDropdown">Profiladatok</router-link>
           <a href="#" class="dropdown-item logout" data-test="pf-menu-logout" @click.prevent="handleLogout">Kijelentkezés</a>
+          <router-link to="/aszf" class="dropdown-item" data-test="pf-menu-terms" @click="closeDropdown">Felhasználási feltételek</router-link>
         </div>
       </div>
 
@@ -168,14 +176,17 @@ onUnmounted(() => {
 
   <!-- Sidebar -->
   <div class="sidebar bg-light" :class="{ show: sidebarOpen } " data-test="sb-menu">
-    <router-link to="/kezdolap" @click="closeSidebar" class="sidebar-item" data-test="sb-menu-home">Kezdőlap</router-link>
+    <!-- router-link to="/kezdolap" @click="closeSidebar" class="sidebar-item" data-test="sb-menu-home">Kezdőlap</router-link -->
     <router-link v-if="hasPermission('rendeles_lead')" to="/store" @click="closeSidebar" class="sidebar-item" data-test="sb-menu-store">Áruház</router-link>
     <router-link v-if="hasPermission('raktar_kezel') || hasPermission('rendeles_osszkesz')" to="/raktar" @click="closeSidebar" class="sidebar-item" data-test="sb-menu-warehouse">Raktárkezelés</router-link>
     <router-link to="/partnersegek" @click="closeSidebar" class="sidebar-item" data-test="sb-menu-partnerships">Partnerségek</router-link>
     <router-link v-if="hasPermission('rendeles_osszkesz') || hasPermission('szamla_keszit')" to="/rendelesek/beerkezett" @click="closeSidebar" class="sidebar-item" data-test="sb-menu-receivedorders">Beérkezett rendelések</router-link>
     <router-link v-if="hasPermission('rendeles_lead')" to="/rendelesek/leadott" @click="closeSidebar" class="sidebar-item" data-test="sb-menu-sentorders">Leadott rendelések</router-link>
     <router-link to="/ceginfo" @click="closeSidebar" class="sidebar-item" data-test="sb-menu-companyinfo">Cégem</router-link>
-    <router-link v-if="hasPermission('rendeles_lead')" to="/kosar" @click="closeSidebar" class="sidebar-item" data-test="sb-menu-cart">Kosár</router-link>
+    <router-link v-if="hasPermission('rendeles_lead')" to="/kosar" @click="closeSidebar" class="sidebar-item cart-link" data-test="sb-menu-cart">
+      <span>Kosár</span>
+      <span v-if="cartItemCount > 0" class="cart-badge">{{ cartItemCount }}</span>
+    </router-link>
     <!-- <router-link to="/" @click="closeSidebar" class="sidebar-item" data-test="sb-menu-settings">Beállítások</router-link> -->
   </div>
 
@@ -234,7 +245,7 @@ onUnmounted(() => {
   }
 }
 
-.sidebar-item {
+.sidebar a.sidebar-item {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -245,16 +256,41 @@ onUnmounted(() => {
   transition: background-color 0.2s;
 }
 
+.cart-link {
+  justify-content: space-between;
+}
+
+.cart-badge {
+  min-width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: #0d9c93;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0 8px;
+  flex-shrink: 0;
+}
+
 .sidebar-item:hover {
   background-color: #e9ecef;
 }
 
 
 /* ACTIVE (exact match) */
-.router-link-exact-active.sidebar-item {
+.sidebar a.router-link-exact-active.sidebar-item {
   background-color: #048c85; /* your teal color */
   color: #fff;
   font-weight: 600;
+}
+
+.sidebar a.router-link-exact-active.sidebar-item .cart-badge {
+  background-color: #fff;
+  color: #000;
 }
 
 /* Overlay */
