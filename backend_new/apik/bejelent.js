@@ -5,7 +5,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 // Titkos kulcs a token aláírásához (ezt élesben .env fájlból olvasd be!)
-const SECRET_KEY = process.env.JWT_SECRET || 'titkos_kulcs_fejleszteshez_123';
+const SECRET_KEY = process.env.JWT_SECRET
 
 // --- ADATBÁZIS SEGÉDFÜGGVÉNYEK ---
 
@@ -110,12 +110,3 @@ router.post('/Bejelent', async (req, res) => {
 });
 
 module.exports = router;
-/*app.listen(3000, () =>
-  console.log("Szerver fut: http://localhost:3000")
-);*/
-
-
-
-
-//const hashedPassword = await bcrypt.hash(password, 10); // A 10-es szám a "salt rounds"
-// Ezt a hashedPassword-et mentsd el az adatbázis 'jelszo' mezőjébe.

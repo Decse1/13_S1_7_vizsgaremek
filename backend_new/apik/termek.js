@@ -102,7 +102,6 @@ module.exports = (app, authenticateToken) => {
             [nev]
         );
 
-        // For INSERT, mysql2/promise returns [result, fields] where result has insertId
         const insertId = result[0].insertId;
 
         return res.status(200).json({ ok: true, uzenet: "Sikeres kategória hozzáadás", id: insertId });

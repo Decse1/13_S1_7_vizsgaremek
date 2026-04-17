@@ -16,16 +16,8 @@ async function startServer() {
         // Adatbázis inicializálása
         await initDatabase();
 
-        // --- API-k betöltése ---
-
-        // A. BEJELENTKEZÉS (Publikus, nem kell token)
-        // Mivel a bejelent.js-t átírtuk 'router'-re az előző lépésben, 
-        // így kell betölteni (app.use):
         app.use('/api', require("./apik/bejelent.js")); 
 
-        // B. VÉDETT API-k (Ahol szükség lehet a tokenre)
-        // Átadjuk az 'app'-ot ÉS az 'authenticateToken'-t paraméterként,
-        // így ezekben a fájlokban használhatod a védelmet.
         require('dotenv').config();
         require("./apik/raktar.js")(app, authenticateToken);
         require("./apik/felhasznalo.js")(app, authenticateToken);
@@ -35,12 +27,12 @@ async function startServer() {
         require("./apik/cegadat_api_hu.js")(app); // Ez valószínűleg publikus marad
         require("./apik/rendeles.js")(app, authenticateToken);
         require("./apik/regisztral.js")(app);
-        require("./apik/szamla.js")(app/*, authenticateToken*/);
-        require("./apik/sztorno.js")(app/*, authenticateToken*/);
+        require("./apik/szamla.js")(app, authenticateToken);
+        require("./apik/sztorno.js")(app, authenticateToken);
 
         // Szerver indítása
         app.listen(3000, () => {
-            console.log(`Szerver fut: ${url}\nAPI-k:`
+            /*console.log(`Szerver fut: ${url}\nAPI-k:`
                 +`\n\t${url}/api/Raktar`
                 +`\n\t${url}/api/Bejelent`
                 +`\n\t${url}/api/Felhasznalo_ad`
@@ -69,7 +61,7 @@ async function startServer() {
                 +`\n\t${url}/api/Rendeles_statusz_frissit`
                 +`\n\t${url}/api/detail`
                 +`\n\t${url}/api/search/name`
-                +`\n\t${url}/api/search/vat`);
+                +`\n\t${url}/api/search/vat`);*/
             console.log(`🔐 Biztonsági modul (JWT) aktív.`);
         });
 

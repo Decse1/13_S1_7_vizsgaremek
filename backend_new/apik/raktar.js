@@ -20,7 +20,6 @@ module.exports = (app, authenticateToken) => {
         try {
             const p_ceg = req.body.id;
 
-            // Ellenőrzés: id megadva?
             if (!p_ceg) {
                 return res.status(422).json({
                     ok: false,
@@ -30,7 +29,6 @@ module.exports = (app, authenticateToken) => {
 
             const termekek = await rak_kesz(p_ceg);
 
-            // Ha üres a raktár
             if (!termekek || termekek.length === 0) {
                 return res.status(404).json({
                     ok: false,
@@ -38,7 +36,6 @@ module.exports = (app, authenticateToken) => {
                 });
             }
 
-            // Sikeres lekérés
             return res.status(200).json({
                 ok: true,
                 uzenet: "",

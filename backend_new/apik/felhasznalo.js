@@ -81,7 +81,6 @@ module.exports = (app, authenticateToken) => {
     app.post('/api/Felhasznalo_ad', authenticateToken, async (req, res) => {
         try {
             const profil = req.body;
-            // JAVÍTVA: cegId kötelező lett, telefon kikerült a kötelezőkből!
             const requiredFields = ['nev', 'jelszo', 'telephely_cim', 'cegId'];
 
             for (const field of requiredFields) {
@@ -136,7 +135,6 @@ module.exports = (app, authenticateToken) => {
     app.post('/api/Felhasznalo_update', authenticateToken, async (req, res) => {
         try {
             const profil = req.body;
-            // JAVÍTVA: jelszo és telefon kikerült a kötelezőkből!
             const requiredFields = ['id', 'nev', 'telephely_cim'];
 
             for (const field of requiredFields) {
@@ -157,8 +155,7 @@ module.exports = (app, authenticateToken) => {
                     });
                 }
             }
-
-            // JAVÍTVA: Csak akkor hashelünk új jelszót, ha meg is adták
+            
             let hashedPassword = null;
             if (profil.jelszo && profil.jelszo.trim() !== '') {
                 hashedPassword = await bcrypt.hash(profil.jelszo, 10);

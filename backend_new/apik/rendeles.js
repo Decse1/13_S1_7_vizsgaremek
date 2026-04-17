@@ -11,7 +11,6 @@ module.exports = (app, authenticateToken, url) => {
                 return res.status(422).json({ ok: false, uzenet: "Hiányzó adatok vagy üres kosár!" });
             }
 
-            // ÚJ SÉMA: szamla_minta helyett rendeles_minta használata
             const [eladoAdatok] = await db.query(`
                 SELECT c.rendeles_minta, 
                     (SELECT r.rendeles_szam 
@@ -49,7 +48,6 @@ module.exports = (app, authenticateToken, url) => {
             const datum = new Date().toISOString().split('T')[0];
             const status = "Új";
 
-            // ÚJ SÉMA: szamla_kesz_datum kikerült a Rendeles táblából
             const [result] = await db.query(
                 `INSERT INTO Rendeles (partnerseg, datum, status, sz_cim, rendeles_szam, szamla_kesz, sztorno) 
                  VALUES (?, ?, ?, ?, ?, false, false)`,
@@ -58,7 +56,6 @@ module.exports = (app, authenticateToken, url) => {
             
             const ujRendelesId = result.insertId;
 
-            // Tételek beszúrása
             for (const t of termekek) {
                 await db.query(
                     `INSERT INTO RendelesTetel (rendeles_id, termek_id, mennyiseg, nev, ar, afa_kulcs) VALUES (?, ?, ?, ?, ?, ?)`,

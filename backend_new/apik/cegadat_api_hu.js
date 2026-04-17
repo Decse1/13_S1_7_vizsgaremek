@@ -1,9 +1,8 @@
 const dotenv = require('dotenv');
 dotenv.config();
 const { exec } = require('child_process');
-let CEG_API_KEY= process.env.CEG_API_KEY_TEST;
+let CEG_API_KEY= process.env.CEG_API_KEY/*"213.6089799bc9f4ab8940bbcde8a407feee"*/;
 const API_BASE_URL = "https://api.cegadatapi.hu";
-
 /**
  * A fő funkció, ami elvégzi a CURL hívást.
  * @param {string} endpoint - Az API végpontja (pl. /v1/search)
@@ -19,8 +18,8 @@ function runCurlProxy(endpoint, params) {
         const fullCurlCommand = `curl --ssl-no-revoke -G "${API_BASE_URL}${endpoint}" -H "X-Api-Key: ${CEG_API_KEY}" --data-urlencode "${params}"`;
         //console.log(fullCurlCommand);
         
-        console.log(`[CURL]: ${endpoint} hívása...`);
-        //console.log(`[PARANCS]: ${fullCurlCommand}`); // Ezt vedd ki, ha már nem kell debugolni
+        //console.log(`[CURL]: ${endpoint} hívása...`);
+        //console.log(`[PARANCS]: ${fullCurlCommand}`);
 
         exec(fullCurlCommand, (error, stdout) => {
             if (error) {
@@ -29,8 +28,7 @@ function runCurlProxy(endpoint, params) {
             }
             
             try {
-                //A CURL kimenetét JSON-ként küldjük vissza, feltételezve, hogy az API JSON-t ad
-                console.log(`[CURL KIMENET]: ${stdout}`);
+                //console.log(`[CURL KIMENET]: ${stdout}`);
                 const data = JSON.parse(stdout);
                 resolve({ status: 200, data: data.response.results }); 
             } catch (parseError) {
@@ -58,14 +56,13 @@ module.exports =  (app) => {
     // 2. SEARCH VÉGPONT (/api/search)
     app.post('/api/search/name', async (req, res) => {
         const nev = req.body.name;
-        console.log(nev); 
+        //console.log(nev); 
 
         if (!nev) {
             return res.status(400).json({ error: 'Hiányzó paraméterek: name és businessType kötelező.' });
         }
         
         try {
-            // A paraméterek string formájú összeállítása a CURL --data-urlencode kapcsolójához
             const params = `name=${nev}" --data-urlencode "businessType=all`;
             const result = await runCurlProxy('/v1/search', params);
             //console.log(result.data);
@@ -83,7 +80,6 @@ module.exports =  (app) => {
         }
         
         try {
-            // A paraméterek string formájú összeállítása a CURL --data-urlencode kapcsolójához
             const params = `vatNumber=${adoszam}" --data-urlencode "businessType=all`;
             const result = await runCurlProxy('/v1/search', params);
             //console.log(result.data);
@@ -93,6 +89,3 @@ module.exports =  (app) => {
         }
     });
 }
-/*app.listen(PORT, () => {
-    console.log(`Node.js Proxy (Egyszerűsített CURL) elindítva a http://localhost:${PORT} címen.`);
-});*/

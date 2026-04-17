@@ -7,8 +7,8 @@ const formatMoney = (num) => {
     return Number(num).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " Ft";
 };
 
-module.exports = (app, /*authenticateToken*/) => {
-    app.post('/api/Szamla_create', /*authenticateToken,*/ async (req, res) => {
+module.exports = (app, authenticateToken) => {
+    app.post('/api/Szamla_create', authenticateToken, async (req, res) => {
         try {
             const rendelesId = req.body.id;
             if (!rendelesId) return res.status(400).send('Hiba: Hiányzó ID');
@@ -46,12 +46,10 @@ module.exports = (app, /*authenticateToken*/) => {
 
             // --- SZÁMLA ÁLLAPOT ELLENŐRZÉSE ÉS FRISSÍTÉSE ---
             if (headerData.szamla_sz) {
-                // Ha MÁR VAN a Szamla táblában adat, akkor onnan vesszük
                 szamlaSorszam = headerData.szamla_sz;
                 kiallitasDatum = new Date(headerData.kiallitas_datum);
                 fizHatDate = new Date(headerData.szamla_fizetesi_ido);
             } else {
-                // Ha MÉG NINCS, akkor generáljuk és elmentjük a Szamla táblába
                 kiallitasDatum = new Date();
                 fizHatDate = new Date(kiallitasDatum);
                 fizHatDate.setDate(fizHatDate.getDate() + headerData.fizetesi_napok);
@@ -69,7 +67,6 @@ module.exports = (app, /*authenticateToken*/) => {
                     numLength = mintaMatch[2].length; 
                 }
 
-                // LEKÉRDEZÉS EGYSZERŰSÍTVE: Már közvetlenül a Szamla táblában keressük a kiállítót
                 const [lastSzamlaRows] = await db.query(`
                     SELECT szamla_sz 
                     FROM Szamla 
@@ -94,13 +91,11 @@ module.exports = (app, /*authenticateToken*/) => {
                 const formattedFizHat = fizHatDate.toLocaleDateString('sv-SE');
                 const szamlaTipus = 'NORMAL';
 
-                // BESZÚRÁS BŐVÍTVE: bekerült a kiallito oszlop és a headerData.elado_id
                 await db.query(
                     'INSERT INTO Szamla (szamla_sz, rendeles_id, szamla_tipus, kiallitas_datum, fizetesi_ido, kiallito) VALUES (?, ?, ?, ?, ?, ?)',
                     [szamlaSorszam, rendelesId, szamlaTipus, formattedKiallitas, formattedFizHat, headerData.elado_id]
                 );
 
-                // Frissítjük a Rendelés táblát is, hogy szamla_kesz = true legyen
                 await db.query(
                     'UPDATE Rendeles SET szamla_kesz = true WHERE id = ?',
                     [rendelesId]
@@ -243,12 +238,10 @@ module.exports = (app, /*authenticateToken*/) => {
                 doc.page.margins.bottom = oldBottomMargin;
             };
 
-            // --- PDF GENERÁLÁS FOLYAMATA ---
             res.setHeader('Content-Type', 'application/pdf');
             res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
             doc.pipe(res);
 
-            // Tételek kirajzolása
             doc.font('CustomFont').fontSize(8);
             const xPoz = { nev: 40, kisz: 160, menny: 200, egyseg: 240, netto: 290, afak: 350, afae: 390, brutto: 480 };
 

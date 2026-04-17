@@ -46,7 +46,6 @@ module.exports = (app, authenticateToken) => {
         try {
             const { eladoId, vevoId, fiz_ido, fiz_forma } = req.body;
 
-            // Validáció: kötelező mezők
             if (!eladoId || !vevoId || !fiz_forma || fiz_forma.toString().trim() == '') {
                 return res.status(422).json({
                     ok: false,
@@ -61,7 +60,6 @@ module.exports = (app, authenticateToken) => {
                 });
             }
 
-            // Ellenőrizzük, nincs-e már ilyen kapcsolat
             const marLetezik = await checkPartnerLetezik(eladoId, vevoId);
             if (marLetezik) {
                 return res.status(409).json({
@@ -101,7 +99,6 @@ module.exports = (app, authenticateToken) => {
 
             const partnerek = await Partner_en_vevo(ceg_id);
 
-            // Visszatettem a 404-et, ahogy kérted!
             if (!partnerek || partnerek.length === 0) {
                 return res.status(404).json({
                     ok: false,
@@ -132,7 +129,6 @@ module.exports = (app, authenticateToken) => {
 
             const partnerek = await Partner_en_elado(ceg_id);
 
-            // Visszatettem a 404-et ide is!
             if (!partnerek || partnerek.length === 0) {
                 return res.status(404).json({
                     ok: false,

@@ -14,7 +14,6 @@ module.exports = (app) => {
             if (!rendelesId) return res.status(400).send('Hiba: Hiányzó ID');
 
             // --- 1. ADATBÁZIS LEKÉRDEZÉS ---
-            // Dupla LEFT JOIN a Szamla táblára: egy az eredetinek, egy a sztornónak
             const sql = `
                 SELECT 
                     r.id as rendeles_id, r.rendeles_szam, r.datum as rendeles_datum, 
@@ -45,7 +44,6 @@ module.exports = (app) => {
             
             let headerData = rows[0];
 
-            // Sztornó csak akkor készíthető, ha már van eredeti számla
             if (!headerData.szamla_kesz || !headerData.eredeti_szamlaszam) {
                 return res.status(400).send('Hiba: Csak lezárt, kiállított számla sztornózható.');
             }
@@ -55,7 +53,6 @@ module.exports = (app) => {
 
             // --- SZTORNÓ SZÁMLA ÁLLAPOT ELLENŐRZÉSE ÉS GENERÁLÁSA ---
             if (headerData.storno_szamlaszam) {
-                // Ha már sztornózták korábban, letöltjük a meglévőt
                 szamlaSorszam = headerData.storno_szamlaszam;
                 kiallitasDatum = new Date(headerData.storno_kiallitas_datum);
             } else {
@@ -73,7 +70,6 @@ module.exports = (app) => {
                     numLength = mintaMatch[2].length; 
                 }
 
-                // Utolsó kiadott számlaszám keresése (kiallito alapján)
                 const [lastSzamlaRows] = await db.query(`
                     SELECT szamla_sz 
                     FROM Szamla 
@@ -97,13 +93,11 @@ module.exports = (app) => {
                 const formattedKiallitas = kiallitasDatum.toLocaleDateString('sv-SE');
                 const szamlaTipus = 'STORNO'; 
 
-                // Sztornó számla mentése
                 await db.query(
                     'INSERT INTO Szamla (szamla_sz, rendeles_id, szamla_tipus, kiallitas_datum, fizetesi_ido, kiallito) VALUES (?, ?, ?, ?, ?, ?)',
                     [szamlaSorszam, rendelesId, szamlaTipus, formattedKiallitas, formattedKiallitas, headerData.elado_id] // Fizetési idő = Kiállítás ideje sztornó esetén
                 );
 
-                // Rendelés állapot frissítése
                 await db.query(
                     'UPDATE Rendeles SET sztorno = true WHERE id = ?',
                     [rendelesId]
@@ -141,7 +135,6 @@ module.exports = (app) => {
                 bufferPages: true 
             });
             
-            // A fájlnév a sztornó számla új sorszáma alapján készül
             const filename = `Sztorno_Szamla_${szamlaSorszam}.pdf`;
 
             const fontPathNormal = path.join(__dirname, '../fonts/centurygothic.ttf');
