@@ -130,7 +130,7 @@ export default {
 
       <div class="text-center mt-4 small text-muted">
         <p class="mb-1"><a href="#" @click.prevent="onForgotPassword">Elfelejtettem a jelszavamat</a></p>
-        <p data-test="option-registration" ><a href="/regisztracio">Hozzáférés kérése a RÉKA-rendszerhez</a></p>
+        <p data-test="option-registration" ><a href="/regisztracio">Regisztrálció</a></p>
       </div>
     </div>
   </div>
