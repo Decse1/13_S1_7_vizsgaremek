@@ -57,6 +57,11 @@ const canAddUser = computed(() => {
   return authStore.user && authStore.user.kategoria === 1;
 });
 
+// Check if the user being edited is the currently logged-in user
+const isEditingCurrentUser = computed(() => {
+  return authStore.user && editUser.value.id === authStore.user.id;
+});
+
 // Modal state and form for new user
 const showAddModal = ref(false);
 const formError = ref('');
@@ -539,9 +544,14 @@ const saveEditUser = async () => {
                 </div>
                 <div class="mb-3">
                   <label class="form-label d-block mb-2">Jogosultságok</label>
+                  <div v-if="isEditingCurrentUser" class="alert alert-info mb-3" role="alert">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    <strong>Megjegyzés: </strong>Az adminisztrátor nem változtathatja meg a saját jogosultságait
+                  </div>
                   <div class="form-check mb-2">
                     <input
                       v-model="editUser.rendeles_osszkesz"
+                      :disabled="isEditingCurrentUser"
                       class="form-check-input"
                       type="checkbox"
                       id="edit-rendeles-osszkesz"
@@ -555,6 +565,7 @@ const saveEditUser = async () => {
                   <div class="form-check mb-2">
                     <input
                       v-model="editUser.rendeles_lead"
+                      :disabled="isEditingCurrentUser"
                       class="form-check-input"
                       type="checkbox"
                       id="edit-rendeles-lead"
@@ -568,6 +579,7 @@ const saveEditUser = async () => {
                   <div class="form-check mb-2">
                     <input
                       v-model="editUser.szamla_keszit"
+                      :disabled="isEditingCurrentUser"
                       class="form-check-input"
                       type="checkbox"
                       id="edit-szamla-keszit"
@@ -581,6 +593,7 @@ const saveEditUser = async () => {
                   <div class="form-check">
                     <input
                       v-model="editUser.raktar_kezel"
+                      :disabled="isEditingCurrentUser"
                       class="form-check-input"
                       type="checkbox"
                       id="edit-raktar-kezel"

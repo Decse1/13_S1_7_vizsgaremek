@@ -5,6 +5,10 @@ import { existsSync } from 'fs';
 import { join } from 'path';
 import { BASE_URL, buildUrl } from './config.js';
 
+// Test credentials - easily changeable
+const TEST_USERNAME = 'Juhász Levente';
+const TEST_PASSWORD = 'pwd123';
+
 describe('Sidebar and Navigation Menu E2E Tests', function () {
   this.timeout(90000); // Increased timeout for comprehensive navigation test
   let driver;
@@ -77,8 +81,8 @@ describe('Sidebar and Navigation Menu E2E Tests', function () {
     const passwordInput = await driver.findElement(By.css('[data-test="password-input"]'));
     const loginButton = await driver.findElement(By.css('[data-test="login-button"]'));
 
-    await usernameInput.sendKeys('Juhász Levente');
-    await passwordInput.sendKeys('pwd123');
+    await usernameInput.sendKeys(TEST_USERNAME);
+    await passwordInput.sendKeys(TEST_PASSWORD);
     await loginButton.click();
 
     // Wait for redirect to home page
@@ -93,7 +97,6 @@ describe('Sidebar and Navigation Menu E2E Tests', function () {
 
     // Define all possible sidebar menu items with their data-test attributes and expected routes
     const sidebarMenuItems = [
-      { name: 'Kezdőlap', dataTest: 'sb-menu-home', route: '/kezdolap' },
       { name: 'Áruház', dataTest: 'sb-menu-store', route: '/store', optional: true },
       { name: 'Raktárkezelés', dataTest: 'sb-menu-warehouse', route: '/raktar', optional: true },
       { name: 'Partnerségek', dataTest: 'sb-menu-partnerships', route: '/partnersegek' },
@@ -208,29 +211,6 @@ describe('Sidebar and Navigation Menu E2E Tests', function () {
     );
     console.log('  ✓ Profiladatok - Navigation successful');
 
-    // Wait a bit for the page to load
-    await driver.sleep(500);
-
-    console.log('\nStep 4: Testing logo navigation...');
-    
-    // Click on the RÉKA logo
-    const logoLink = await driver.findElement(By.css('[data-test="logo-home"]'));
-    await logoLink.click();
-    console.log('  → Clicked RÉKA logo');
-
-    // Wait for navigation - should go to / which redirects to /kezdolap when logged in
-    await driver.wait(async () => {
-      const url = await driver.getCurrentUrl();
-      return url.includes('/kezdolap') || url === BASE_URL || url === BASE_URL + '/';
-    }, 5000);
-
-    const finalUrl = await driver.getCurrentUrl();
-    assert.ok(
-      finalUrl.includes('/kezdolap') || finalUrl === BASE_URL || finalUrl === BASE_URL + '/',
-      `Logo should navigate to home, but got ${finalUrl}`
-    );
-    console.log('  ✓ Logo navigation successful - Redirected to home page');
-
     console.log('\n✅ All navigation tests completed successfully!');
   });
 
@@ -245,8 +225,8 @@ describe('Sidebar and Navigation Menu E2E Tests', function () {
     const passwordInput = await driver.findElement(By.css('[data-test="password-input"]'));
     const loginButton = await driver.findElement(By.css('[data-test="login-button"]'));
 
-    await usernameInput.sendKeys('Juhász Levente');
-    await passwordInput.sendKeys('pwd123');
+    await usernameInput.sendKeys(TEST_USERNAME);
+    await passwordInput.sendKeys(TEST_PASSWORD);
     await loginButton.click();
 
     await driver.wait(

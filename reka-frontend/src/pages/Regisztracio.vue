@@ -101,11 +101,9 @@ const handleCegNeveInput = async () => {
       
       if (response.data && Array.isArray(response.data)) {
         // Log the raw response to see the structure
-        console.log('Search API response:', response.data);
         
         // Limit to first 4 companies and store basic info
         filteredCompanies.value = response.data.slice(0, 4).map(company => {
-          console.log('Company data:', company);
           return {
             shortName: company.shortName || company.fullName || 'N/A',
             taxNumber: company.taxNumber || company.vatNumber,
@@ -205,12 +203,9 @@ const handleAdoszamInput = async () => {
       });
       
       if (response.data && Array.isArray(response.data)) {
-        // Log the raw response to see the structure
-        console.log('VAT Search API response:', response.data);
         
         // Limit to first 4 companies and store basic info
         filteredVatCompanies.value = response.data.slice(0, 4).map(company => {
-          console.log('VAT Company data:', company);
           return {
             shortName: company.shortName || company.fullName || 'N/A',
             taxNumber: company.taxNumber || company.vatNumber,
