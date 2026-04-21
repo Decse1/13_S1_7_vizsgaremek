@@ -45,7 +45,7 @@ const routes = [
     component: UserList,
     meta: { 
       requiresAuth: true,
-      requiresAdmin: true // Only admin users with all permissions
+      requiresAdmin: true
     }
   },
   { 
