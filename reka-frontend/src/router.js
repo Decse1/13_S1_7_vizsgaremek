@@ -75,7 +75,7 @@ const routes = [
     component: RendelesLead,
     meta: { 
       requiresAuth: true,
-      requiredPermission: 'rendeles_lead' // Only users who can submit orders
+      requiredPermission: ['rendeles_lead', 'szamla_keszit'] // Only users who can submit orders
     }
   },
   {

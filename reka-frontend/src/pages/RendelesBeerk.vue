@@ -410,7 +410,7 @@ onMounted(() => {
       <table class="table custom-table">
         <thead>
           <tr>
-            <th style="width: 15%;">Rendelési azon.</th>
+            <th style="width: 15%;">Rendelésszám</th>
             <th style="width: 25%;">Megrendelő</th>
             <th style="width: 20%;">Rendelési dátum</th>
             <th style="width: 15%;">Rendelés állapota</th>

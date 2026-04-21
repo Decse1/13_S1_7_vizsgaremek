@@ -129,8 +129,8 @@ export default {
       </form>
 
       <div class="text-center mt-4 small text-muted">
-        <p class="mb-1"><a href="#" @click.prevent="onForgotPassword">Elfelejtettem a jelszavamat</a></p>
-        <p data-test="option-registration" ><a href="/regisztracio">Regisztrálció</a></p>
+        <p data-test="option-registration" class="mb-1"><a href="/regisztracio">Regisztráció</a></p>
+        <p><a href="#" @click.prevent="onForgotPassword">Elfelejtettem a jelszavamat</a></p>
       </div>
     </div>
   </div>

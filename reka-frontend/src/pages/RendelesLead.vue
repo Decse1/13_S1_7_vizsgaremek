@@ -332,6 +332,7 @@ onMounted(() => {
                   type="button" 
                   class="btn btn-teal text-white rounded-pill"
                   @click="downloadInvoice"
+                  :disabled="!hasPermission('szamla_keszit')"
                 >
                   Számla letöltése
                 </button>
@@ -340,6 +341,7 @@ onMounted(() => {
                   type="button" 
                   class="btn btn-danger text-white rounded-pill"
                   @click="downloadStornoInvoice"
+                  :disabled="!hasPermission('szamla_keszit')"
                 >
                   Sztornó számla letöltése
                 </button>
