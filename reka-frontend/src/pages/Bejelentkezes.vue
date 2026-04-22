@@ -11,6 +11,7 @@ export default {
       showError: false,
       errorMessage: "",
       eredmeny: "", // opcionális: szerver válasz megjelenítéséhez
+      showForgotPasswordModal: false,
     };
   },
   mounted() {
@@ -62,7 +63,10 @@ export default {
       }
     },
     onForgotPassword() {
-      this.showError = false;
+      this.showForgotPasswordModal = true;
+    },
+    closeForgotPasswordModal() {
+      this.showForgotPasswordModal = false;
     },
     onRequestAccess() {
       this.errorMessage = "Teszt hibaüzenet: a hozzáférés kérés funkció még nem elérhető.";
@@ -133,6 +137,39 @@ export default {
         <p><a href="#" @click.prevent="onForgotPassword">Elfelejtettem a jelszavamat</a></p>
       </div>
     </div>
+
+    <!-- Forgot Password Modal -->
+    <transition name="modal-fade">
+      <div
+        v-if="showForgotPasswordModal"
+        class="modal-backdrop-custom"
+        tabindex="-1"
+        role="dialog"
+        @click="closeForgotPasswordModal"
+      >
+        <div class="modal-dialog modal-dialog-centered modal-dialog-custom" role="document" @click.stop>
+          <div class="modal-content custom-modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Jelszó visszaállítása</h5>
+              <button type="button" class="btn-close" @click="closeForgotPasswordModal"></button>
+            </div>
+            <div class="modal-body">
+              <p>Új jelszó igényléséhez kérjük, vegye fel a kapcsolatot a vállalat rendszerkezelő felhasználójához.</p>
+              <p>Rendszerkezelő felhasználók esetében:<br>Vegye fel a kapcsolatot a RÉKA problémamegoldási csapatával az alábbi elérhetőségek egyikén:</p>
+              <div class="mt-3">
+                <p><strong>Email:</strong> support@reka.hu</p>
+                <p><strong>Telefon:</strong> +36 1 234 5678</p>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary rounded-pill" @click="closeForgotPasswordModal">
+                Bezárás
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 

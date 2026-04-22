@@ -332,8 +332,8 @@ const saveEditUser = async () => {
           <th style="width: 20%;">Név</th>
           <th style="width: 10%;">Rendelés összeállítás</th>
           <th style="width: 10%;">Rendelés leadás</th>
-          <th style="width: 10%;">Számla készítés</th>
-          <th style="width: 10%;">Raktár kezelés</th>
+          <th style="width: 10%;">Számlakészítés</th>
+          <th style="width: 10%;">Raktárkezelés</th>
           <th style="width: 20%;">Telephely cím</th>
           <th style="width: 10%;">Telefon</th>
           <th v-if="isAdmin()" style="width: 10%;">Műveletek</th>
@@ -447,7 +447,7 @@ const saveEditUser = async () => {
                       :false-value="0"
                     />
                     <label class="form-check-label" for="new-szamla-keszit">
-                      Számla készítés
+                      Számlakészítés
                     </label>
                   </div>
                   <div class="form-check">
@@ -460,7 +460,7 @@ const saveEditUser = async () => {
                       :false-value="0"
                     />
                     <label class="form-check-label" for="new-raktar-kezel">
-                      Raktár kezelés
+                      Raktárkezelés
                     </label>
                   </div>
                 </div>

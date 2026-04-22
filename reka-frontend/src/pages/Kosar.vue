@@ -3,7 +3,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from '../axios.js';
 import authStore, { setAuthState, hasPermission, isAdmin } from '../stores/auth.js';
-import cartStore, { removeFromCart, updateQuantity, getTotalPrice, getTotalPriceWithVAT, clearCart, updateItemPrice } from '../stores/cart.js';
+import cartStore, { removeFromCart, updateQuantity, getTotalPrice, getTotalPriceWithVAT, clearCart, updateItemPrice, getVATAmountsByRate } from '../stores/cart.js';
 import Icons from '../components/Icons.vue';
 
 const router = useRouter();
@@ -33,8 +33,9 @@ const cartItems = computed(() => cartStore.items);
 const companyName = computed(() => cartStore.companyName || 'N/A');
 const totalPrice = computed(() => getTotalPrice());
 const totalPriceWithVAT = computed(() => getTotalPriceWithVAT());
-const emptyCartColspan = computed(() => (isUnder510.value ? 3 : 7));
-const totalLabelColspan = computed(() => (isUnder510.value ? 2 : 4));
+const vatAmountsByRate = computed(() => getVATAmountsByRate());
+const emptyCartColspan = computed(() => (isUnder510.value ? 3 : 9));
+const totalLabelColspan = computed(() => (isUnder510.value ? 2 : 6));
 const totalValueColspan = computed(() => (isUnder510.value ? 1 : 3));
 
 // Format price
@@ -341,9 +342,11 @@ onUnmounted(() => {
         <tr>
           <th class="col-name" style="width: 35%;">Termék neve</th>
           <th class="col-cikkszam hide-under-510" style="width: 15%;">Cikkszám</th>
-          <th class="col-unit-price hide-under-510" style="width: 15%;">Egységár (nettó)</th>
           <th class="col-qty" style="width: 10%;">Mennyiség</th>
-          <th class="col-total" style="width: 20%;">Összesen (nettó)</th>
+          <th class="col-unit-price hide-under-510" style="width: 15%;">Egységár (nettó)</th>
+          <th class="col-vat-rate hide-under-510" style="width: 8%;">ÁFA%</th>
+          <th class="col-vat-value hide-under-510" style="width: 10%;">ÁFA</th>
+          <th class="col-total" style="width: 20%;">Összesen (bruttó)</th>
           <th class="col-action" style="width: 2.5%;"></th>
           <th class="col-action" style="width: 2.5%;"></th>
         </tr>
@@ -371,9 +374,11 @@ onUnmounted(() => {
             </div>
           </td>
           <td class="col-cikkszam hide-under-510">{{ item.cikkszam }}</td>
-          <td class="col-unit-price hide-under-510">{{ formatPrice(item.ar) }} Ft</td>
           <td class="col-qty">{{ item.quantity }} {{ item.kiszereles }}</td>
-          <td class="col-total">{{ formatPrice(item.ar * item.quantity) }} Ft</td>
+          <td class="col-unit-price hide-under-510">{{ formatPrice(item.ar) }} Ft</td>
+          <td class="col-vat-rate hide-under-510">{{ item.afa_kulcs }}%</td>
+          <td class="col-vat-value hide-under-510">{{ formatPrice(item.ar * item.quantity * item.afa_kulcs / 100) }} Ft</td>
+          <td class="col-total">{{ formatPrice(item.ar * item.quantity * (1 + item.afa_kulcs / 100)) }} Ft</td>
 
           <!-- Desktop/tablet actions in their own columns -->
           <td class="product-actions-desktop col-action">
@@ -390,6 +395,10 @@ onUnmounted(() => {
         <tr v-if="cartItems.length > 0" class="total-row">
           <td :colspan="totalLabelColspan" class="text-end"><strong>Végösszeg (nettó):</strong></td>
           <td :colspan="totalValueColspan"><strong>{{ formatPrice(totalPrice) }} Ft</strong></td>
+        </tr>
+        <tr v-for="vat in vatAmountsByRate" :key="vat.rate" class="vat-row">
+          <td :colspan="totalLabelColspan" class="text-end"><strong>ÁFA összege ({{ vat.rate }}%):</strong></td>
+          <td :colspan="totalValueColspan"><strong>{{ formatPrice(vat.amount) }} Ft</strong></td>
         </tr>
         <tr v-if="cartItems.length > 0" class="total-row">
           <td :colspan="totalLabelColspan" class="text-end"><strong>Végösszeg (bruttó):</strong></td>
@@ -421,6 +430,8 @@ onUnmounted(() => {
             </div>
             <div class="modal-body" v-if="editingItem">
               <p><strong>Termék:</strong> {{ editingItem.nev }}</p>
+              <p><strong>Egységár (nettó):</strong> {{ formatPrice(editingItem.ar) }} Ft</p>
+              <p><strong>ÁFA-kulcs:</strong> {{ editingItem.afa_kulcs }}%</p>
               <div class="mb-3">
                 <label class="form-label">Mennyiség ({{ editingItem.kiszereles }})</label>
                 <div class="d-flex align-items-center gap-2">
@@ -488,7 +499,7 @@ onUnmounted(() => {
                 <p class="mb-0">{{ formatPrice(selectedProduct.ar) }} Ft</p>
               </div>
               <div class="mb-3">
-                <label class="form-label fw-bold">ÁFA kulcs</label>
+                <label class="form-label fw-bold">ÁFA-kulcs</label>
                 <p class="mb-0">{{ selectedProduct.afa_kulcs }}%</p>
               </div>
               <div class="mb-3" v-if="selectedProduct.kategoria">
@@ -532,6 +543,16 @@ onUnmounted(() => {
     border-top: 2px solid #000000;
   }
 
+  .vat-row {
+    background-color: #f8f9fa;
+    font-weight: 500;
+  }
+
+  .vat-row td {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
   .action-icon {
     cursor: pointer;
     transition: opacity 0.2s;
@@ -549,18 +570,23 @@ onUnmounted(() => {
     border: 0;
     background: transparent;
     color: #000;
-    display: inline-flex;
+    display: flex;
     align-items: center;
     justify-content: center;
     gap: 0;
-    padding: 0.25rem;
+    padding: 0;
     line-height: 1;
     cursor: pointer;
     transition: opacity 0.2s, background-color 0.2s, border-color 0.2s, color 0.2s;
+    vertical-align: middle;
+    height: 1.25rem;
+    width: 1.25rem;
   }
 
   .action-button :deep(svg) {
     display: block;
+    width: 100%;
+    height: 100%;
   }
 
   .action-button:hover {
@@ -630,6 +656,15 @@ onUnmounted(() => {
   /* Visible on desktop by default */
   .product-actions-desktop {
     white-space: nowrap;
+    vertical-align: middle;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    padding-left: 0.25rem !important;
+    padding-right: 0.25rem !important;
+  }
+
+  .product-actions-desktop .action-button {
+    display: block;
   }
 
   .place-order-wrapper {

@@ -556,9 +556,10 @@
     <table v-else class="table custom-table" style="border-bottom: 1px solid black;" data-test="products-table">
       <thead>
         <tr>
-          <th style="width: 60%;" data-test="table-header-name">Terméknév</th>
+          <th style="width: 48%;" data-test="table-header-name">Terméknév</th>
+          <th style="width: 15%;" data-test="table-header-cikkszam">Cikkszám</th>
           <!-- th style="width: 20%;">Kategória</th -->
-          <th style="width: 25%;" data-test="table-header-price">Ár (nettó)</th>
+          <th style="width: 17%;" data-test="table-header-price">Ár (nettó)</th>
           <th class="text-end" style="width: 12%;" data-test="table-header-stock">Készlet</th>
           <th style="width: 2.5%;" data-test="table-header-actions"></th>
         </tr>
@@ -573,6 +574,7 @@
               {{ item.nev }}
             </span>
           </td>
+          <td :data-test="`product-cikkszam-${item.id}`">{{ item.cikkszam }}</td>
           <!-- td>asd</td -->
           <td :data-test="`product-price-${item.id}`">{{ item.ar }} Ft</td>
           <td class="text-end" :data-test="`product-stock-${item.id}`">{{ item.mennyiseg }} {{ item.kiszereles }}</td>
@@ -981,7 +983,7 @@
   .product-name-link {
     color: #00948B;
     cursor: pointer;
-    text-decoration: underline;
+    text-decoration: none;
     transition: opacity 0.2s;
   }
 

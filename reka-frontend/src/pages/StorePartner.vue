@@ -576,6 +576,18 @@
     width: 50%;
   }
 
+  /* Center text in number input and hide spinners */
+  .quantity-input::-webkit-outer-spin-button,
+  .quantity-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .quantity-input[type=number] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+
   .qty-btn {
     width: 2rem;
     height: 2rem;

@@ -379,29 +379,17 @@
         <tr>
           <th style="width: 45%;">Partner neve</th>
           <th style="width: 33%;">Fizetési mód</th>
-          <th class="text-end" style="width: 17%;">Fizetési idő</th>
-          <th style="width: 2.5%;"></th>
-          <th style="width: 2.5%;"></th>
+          <th class="text-end" style="width: 22%;">Fizetési idő</th>
         </tr>
       </thead>
       <tbody>
         <tr v-if="filteredSellerItems.length === 0" data-test="seller-no-items">
-          <td colspan="5" class="text-center">Nincs megjeleníthető eladói partner</td>
+          <td colspan="3" class="text-center">Nincs megjeleníthető eladói partner</td>
         </tr>
         <tr v-for="(item, index) in filteredSellerItems" :key="item.id || index" :data-test="`seller-item-${index}`">
           <td data-test="seller-item-name">{{ item.nev }}</td>
           <td data-test="seller-item-payment-method">{{ item.kiszereles }}</td>
           <td class="text-end" data-test="seller-item-payment-time">{{ item.mennyiseg === 0 ? 'Azonnali' : `${item.mennyiseg} nap` }}</td>
-          <td>
-            <span class="action-icon" title="Szerkesztés">
-              <Icons name="pencil" size="1.25rem" />
-            </span>
-          </td>
-          <td>
-            <span class="action-icon trash-icon" title="Törlés">
-              <Icons name="trash" size="1.25rem" />
-            </span>
-          </td>
         </tr>
       </tbody>
     </table>
@@ -553,29 +541,17 @@
         <tr>
           <th style="width: 45%;">Partner neve</th>
           <th style="width: 33%;">Fizetési mód</th>
-          <th class="text-end" style="width: 17%;">Fizetési idő</th>
-          <th style="width: 2.5%;"></th>
-          <th style="width: 2.5%;"></th>
+          <th class="text-end" style="width: 22%;">Fizetési idő</th>
         </tr>
       </thead>
       <tbody>
         <tr v-if="filteredBuyerItems.length === 0" data-test="buyer-no-items">
-          <td colspan="5" class="text-center">Nincs megjeleníthető vevői partner</td>
+          <td colspan="3" class="text-center">Nincs megjeleníthető vevői partner</td>
         </tr>
         <tr v-for="(item, index) in filteredBuyerItems" :key="item.id || index" :data-test="`buyer-item-${index}`">
           <td data-test="buyer-item-name">{{ item.nev }}</td>
           <td data-test="buyer-item-payment-method">{{ item.kiszereles }}</td>
           <td class="text-end" data-test="buyer-item-payment-time">{{ item.mennyiseg === 0 ? 'Azonnali' : `${item.mennyiseg} nap` }}</td>
-          <td>
-            <span class="action-icon" title="Szerkesztés">
-              <Icons name="pencil" size="1.25rem" />
-            </span>
-          </td>
-          <td>
-            <span class="action-icon trash-icon" title="Törlés">
-              <Icons name="trash" size="1.25rem" />
-            </span>
-          </td>
         </tr>
       </tbody>
     </table>

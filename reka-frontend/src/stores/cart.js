@@ -177,6 +177,30 @@ export const getTotalPriceWithVAT = () => {
   }, 0);
 };
 
+// Get VAT amounts by VAT rate
+export const getVATAmountsByRate = () => {
+  const vatMap = {};
+  
+  cartStore.items.forEach(item => {
+    const vatRate = item.afa_kulcs;
+    const vatAmount = item.ar * item.quantity * (vatRate / 100);
+    
+    if (!vatMap[vatRate]) {
+      vatMap[vatRate] = 0;
+    }
+    
+    vatMap[vatRate] += vatAmount;
+  });
+  
+  // Convert to array and sort by VAT rate
+  return Object.entries(vatMap)
+    .map(([rate, amount]) => ({
+      rate: parseInt(rate),
+      amount: amount
+    }))
+    .sort((a, b) => a.rate - b.rate);
+};
+
 // Update cart item price
 export const updateItemPrice = (itemId, newPrice, newVatRate) => {
   const item = cartStore.items.find(i => i.id === itemId);
