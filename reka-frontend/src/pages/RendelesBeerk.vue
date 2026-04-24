@@ -6,33 +6,26 @@ import authStore, { setAuthState, hasPermission, isAdmin } from '../stores/auth.
 
 const router = useRouter();
 
-// State
 const rendelesek = ref([]);
 const loading = ref(false);
 const error = ref(null);
 
-// Modal state
 const showDetailsModal = ref(false);
 const selectedOrderDetails = ref(null);
 const editableProducts = ref([]);
 
-// Computed
 const companyId = computed(() => authStore.ceg?.id);
 
-// Check if all products are checked
 const allProductsChecked = computed(() => {
   return editableProducts.value.length > 0 && 
          editableProducts.value.every(product => product.checked);
 });
 
-// Check if current order is fulfilled
 const isOrderFulfilled = computed(() => {
   return selectedOrderDetails.value?.status === 'Teljesítve';
 });
 
-// Group orders by order number and date
 const groupedOrders = computed(() => {
-  // Use a single Map to prevent duplicates across all buyers
   const orderMap = new Map();
   
   rendelesek.value.forEach(rendeles => {
@@ -49,11 +42,10 @@ const groupedOrders = computed(() => {
           status: tetel.status,
           sztorno: tetel.sztorno,
           termekek: [],
-          productSet: new Set() // Track unique products
+          productSet: new Set()
         });
       }
       
-      // Create a unique key for each product to prevent duplicates
       const productKey = `${tetel.termek_neve}-${tetel.rendelt_mennyiseg}`;
       const order = orderMap.get(key);
       
@@ -68,7 +60,6 @@ const groupedOrders = computed(() => {
     });
   });
   
-  // Convert Map to array, remove productSet, and sort by date (desc), then order number (desc)
   return Array.from(orderMap.values()).map(order => {
     const { productSet, ...orderWithoutSet } = order;
     return orderWithoutSet;
@@ -84,7 +75,6 @@ const groupedOrders = computed(() => {
   });
 });
 
-// Format price
 const formatPrice = (price) => {
   return new Intl.NumberFormat('hu-HU', {
     minimumFractionDigits: 0,
@@ -92,14 +82,12 @@ const formatPrice = (price) => {
   }).format(Math.round(price));
 };
 
-// Format date
 const formatDate = (dateString) => {
   if (!dateString) return 'N/A';
   const date = new Date(dateString);
   return date.toLocaleDateString('hu-HU');
 };
 
-// Get order status display text
 const getOrderStatus = (order) => {
   if (order.sztorno === 1 || order.sztorno === true) {
     return 'Sztornózva';
@@ -107,7 +95,6 @@ const getOrderStatus = (order) => {
   return order.status;
 };
 
-// Fetch orders
 const fetchOrders = async () => {
   if (!companyId.value) {
     error.value = 'Nincs bejelentkezett cég';
@@ -135,7 +122,6 @@ const fetchOrders = async () => {
   }
 };
 
-// Format date and time
 const formatDateTime = (dateString) => {
   if (!dateString) return 'N/A';
   const date = new Date(dateString);
@@ -146,10 +132,8 @@ const formatDateTime = (dateString) => {
   });
 };
 
-// Open order details modal
 const openDetailsModal = (order) => {
   selectedOrderDetails.value = order;
-  // Initialize editable products with checkboxes and editable quantities
   editableProducts.value = order.termekek.map(termek => ({
     ...termek,
     checked: false,
@@ -164,7 +148,6 @@ const closeDetailsModal = () => {
   editableProducts.value = [];
 };
 
-// Handle order fulfillment
 const fulfillOrder = async () => {
   if (!hasPermission('rendeles_osszkesz')) {
     alert('Nincsen megfelelő jogosultsága ehhez a funkcióhoz.');
@@ -178,7 +161,6 @@ const fulfillOrder = async () => {
   try {
     loading.value = true;
 
-    // Prepare the data for the API call
     const orderData = {
       id: selectedOrderDetails.value.rendeles_id,
       termekek: editableProducts.value.map(product => ({
@@ -190,13 +172,10 @@ const fulfillOrder = async () => {
     const response = await axios.post('/Rendeles_statusz_frissit', orderData);
 
     if (response.data.ok) {
-      // Close modal
       closeDetailsModal();
       
-      // Refresh orders list
       await fetchOrders();
       
-      // Show success message (you can add a toast/notification here)
       alert('Rendelés sikeresen teljesítve!');
     } else {
       error.value = response.data.uzenet || 'Hiba történt a rendelés teljesítése során';
@@ -209,14 +188,12 @@ const fulfillOrder = async () => {
   }
 };
 
-// Handle invoice generation
 const generateInvoice = async () => {
   if (!hasPermission('szamla_keszit')) {
     alert('Nincsen megfelelő jogosultsága ehhez a funkcióhoz.');
     return;
   }
 
-  // Verify order is actually fulfilled
   if (!isOrderFulfilled.value) {
     error.value = 'A számla csak teljesített rendeléshez generálható';
     return;
@@ -226,14 +203,12 @@ const generateInvoice = async () => {
     loading.value = true;
     error.value = null;
 
-    // Call the invoice generation API
     const response = await axios.post('/Szamla_create', {
       id: selectedOrderDetails.value.rendeles_id
     }, {
-      responseType: 'blob' // Important for handling PDF response
+      responseType: 'blob'
     });
 
-    // Create a blob URL and trigger download
     const blob = new Blob([response.data], { type: 'application/pdf' });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -242,11 +217,9 @@ const generateInvoice = async () => {
     document.body.appendChild(link);
     link.click();
     
-    // Cleanup
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
 
-    // Show success message
     alert('Számla sikeresen legenerálva és letöltve!');
     
   } catch (err) {
@@ -258,7 +231,6 @@ const generateInvoice = async () => {
   }
 };
 
-// Handle storno invoice download
 const downloadStornoInvoice = async () => {
   if (!hasPermission('szamla_keszit')) {
     alert('Nincsen megfelelő jogosultsága ehhez a funkcióhoz.');
@@ -269,14 +241,12 @@ const downloadStornoInvoice = async () => {
     loading.value = true;
     error.value = null;
 
-    // Call the storno invoice API
     const response = await axios.post('/Szamla_storno', {
       id: selectedOrderDetails.value.rendeles_id
     }, {
       responseType: 'blob'
     });
 
-    // Download the storno invoice
     const blob = new Blob([response.data], { type: 'application/pdf' });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -285,7 +255,6 @@ const downloadStornoInvoice = async () => {
     document.body.appendChild(link);
     link.click();
     
-    // Cleanup
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
 
@@ -299,15 +268,12 @@ const downloadStornoInvoice = async () => {
   }
 };
 
-// Handle order deletion
 const deleteOrder = async () => {
-  // Check if user has all four permissions
   if (!isAdmin()) {
     alert('Nincs jogosultsága a rendelés törléséhez. Minden jogosultság szükséges ehhez a művelethez.');
     return;
   }
 
-  // Show confirmation dialog
   const confirmed = confirm(
     `Biztosan törölni szeretné a(z) ${selectedOrderDetails.value.rendeles_szam} rendelést?`
   );
@@ -320,15 +286,12 @@ const deleteOrder = async () => {
     loading.value = true;
     error.value = null;
 
-    // Call the deletion API
     const response = await axios.post('/Rendeles_delete', {
       rendelesId: selectedOrderDetails.value.rendeles_id
     });
 
     if (response.data.ok) {
-      // Check if we need to generate a storno invoice
       if (response.data.action === 'generate_pdf_required') {
-        // Generate storno invoice
         try {
           const szornoResponse = await axios.post('/Szamla_storno', {
             id: selectedOrderDetails.value.rendeles_id
@@ -336,7 +299,6 @@ const deleteOrder = async () => {
             responseType: 'blob'
           });
 
-          // Download the storno invoice
           const blob = new Blob([szornoResponse.data], { type: 'application/pdf' });
           const url = window.URL.createObjectURL(blob);
           const link = document.createElement('a');
@@ -345,7 +307,6 @@ const deleteOrder = async () => {
           document.body.appendChild(link);
           link.click();
           
-          // Cleanup
           document.body.removeChild(link);
           window.URL.revokeObjectURL(url);
 
@@ -355,11 +316,9 @@ const deleteOrder = async () => {
           alert('Rendelés sztornózva, de hiba történt a sztornó számla generálása során.');
         }
       } else {
-        // Physical deletion - no invoice needed
         alert(response.data.uzenet || 'Rendelés sikeresen törölve!');
       }
 
-      // Close modal and refresh orders list
       closeDetailsModal();
       await fetchOrders();
       
@@ -376,7 +335,6 @@ const deleteOrder = async () => {
   }
 };
 
-// On mounted
 onMounted(() => {
   fetchOrders();
 });
@@ -436,7 +394,6 @@ onMounted(() => {
       </table>
     </div>
 
-    <!-- Order Details Modal -->
     <transition name="modal-fade">
       <div
         v-if="showDetailsModal"
@@ -503,7 +460,7 @@ onMounted(() => {
                         :disabled="isOrderFulfilled || !hasPermission('rendeles_osszkesz')"
                         :readonly="isOrderFulfilled || !hasPermission('rendeles_osszkesz')"
                       />
-                      <span class="text-muted">db<!-- {{ product.editedQuantity > 1 ? 'db' : 'kg' }} --></span>
+                      <span class="text-muted">db</span>
                     </div>
                   </div>
                 </div>
@@ -557,8 +514,6 @@ onMounted(() => {
 </template>
 
 <style scoped>
-  /* Page-specific styles only - common styles moved to global.css */
-
   .card {
     border: 1px solid #dee2e6;
     border-radius: 0.5rem;

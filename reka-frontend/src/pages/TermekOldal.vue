@@ -73,8 +73,6 @@ const updateQuantity = (event) => {
 </template>
 
 <style scoped>
-  /* Page-specific styles only - common styles moved to global.css */
-
   .quantity-selector {
     min-width: 200px;
   }

@@ -54,19 +54,16 @@ onMounted(() => {
     <h2>Áruház</h2>
     <h4>Szerződött partnerek készletei</h4>
 
-    <!-- Loading spinner -->
     <div v-if="loading" class="text-center my-4">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Betöltés...</span>
       </div>
     </div>
 
-    <!-- Error message -->
     <div v-else-if="error" class="alert alert-warning" role="alert">
       {{ error }}
     </div>
 
-    <!-- Partnership tiles -->
     <div v-else>
       <div v-if="partnerek.length === 0" class="text-muted">
         Nincsenek megjeleníthető vevői partnerek
@@ -86,8 +83,6 @@ onMounted(() => {
 </template>
 
 <style scoped>
-  /* Page-specific styles only - common styles moved to global.css */
-
   .partner-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -95,7 +90,6 @@ onMounted(() => {
     margin-top: 1.5rem;
   }
 
-  /* Tablet and desktop - more columns */
   @media (min-width: 576px) {
     .partner-grid {
       grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));

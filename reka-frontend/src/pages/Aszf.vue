@@ -37,7 +37,6 @@ const router = useRouter();
   }
 }
 
-/* Mobile margin */
 @media (max-width: 991.98px) {
   .content {
     margin-left: 0;

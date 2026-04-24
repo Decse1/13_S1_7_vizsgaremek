@@ -18,7 +18,6 @@ import authStore, { setAuthState, hasPermission, isAdmin } from '../stores/auth.
 </template>
 
 <style scoped>
-  /* Desktop margin */
   @media (min-width: 992px) {
     .content {
       margin-left: 250px;
@@ -27,7 +26,6 @@ import authStore, { setAuthState, hasPermission, isAdmin } from '../stores/auth.
     }
   }
 
-  /* Mobile margin */
   @media (max-width: 991.98px) {
     .content {
       margin-left: 0;

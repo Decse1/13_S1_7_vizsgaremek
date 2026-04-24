@@ -3,14 +3,12 @@
   import axios from '../axios.js'
   import authStore, { setAuthState, hasPermission, isAdmin } from '../stores/auth.js';
 
-  // product list from database
   const items = ref([])
   const loading = ref(false)
   const error = ref('')
 
   const search = ref('')
 
-  // Categories from database
   const categories = ref([])
 
   const filteredItems = computed(() =>
@@ -19,12 +17,10 @@
     )
   )
 
-  // Check if company has active subscription
   const hasSubscription = computed(() => {
     return authStore.ceg && authStore.ceg.elofiz === 1
   })
 
-  // Fetch products from backend
   const fetchProducts = async () => {
     if (!authStore.ceg || !authStore.ceg.id) {
       error.value = 'Nincs bejelentkezve cég!'
@@ -53,7 +49,6 @@
     }
   }
 
-  // Fetch categories from backend
   const fetchCategories = async () => {
     if (!authStore.ceg || !authStore.ceg.id) {
       return
@@ -75,24 +70,20 @@
     }
   }
 
-  // Load products on component mount
   onMounted(() => {
     fetchProducts()
     fetchCategories()
   })
 
-  // Modal state and form model for new product
   const showAddModal = ref(false)
   const showEditModal = ref(false)
   const showDetailsModal = ref(false)
   const formError = ref('')
   const selectedProduct = ref(null)
 
-  // Category autocomplete state for add modal
   const showAddCategorySuggestions = ref(false)
   const filteredAddCategories = ref([])
 
-  // Category autocomplete state for edit modal
   const showEditCategorySuggestions = ref(false)
   const filteredEditCategories = ref([])
   const newProduct = ref({
@@ -120,7 +111,6 @@
     afa_kulcs: 27
   })
 
-  // Store original values to prevent modification
   const originalProductValues = ref({
     name: '',
     cikkszam: ''
@@ -143,7 +133,6 @@
       ar: item.ar,
       afa_kulcs: item.afa_kulcs
     }
-    // Store original values for validation
     originalProductValues.value = {
       name: item.nev,
       cikkszam: item.cikkszam
@@ -162,32 +151,26 @@
     selectedProduct.value = null
   }
 
-  // Get category name by ID
   const getCategoryName = (categoryId) => {
     const category = categories.value.find(cat => cat.id === categoryId)
     return category ? category.nev : 'N/A'
   }
 
-  // Resolve or create category by name
   const resolveCategoryId = async (categoryName) => {
     if (!categoryName || categoryName.trim() === '') {
       return null
     }
 
-    // Check if category already exists
     const existingCategory = categories.value.find(cat => cat.nev.toLowerCase() === categoryName.trim().toLowerCase())
     if (existingCategory) {
       console.log('Category already exists:', existingCategory)
       return existingCategory.id
     }
 
-    // Create new category if it doesn't exist
     try {
       const response = await axios.post('/Kategoriak_add', {
         nev: categoryName.trim()
       })
-
-      console.log('Category creation response:', response.data)
 
       if (response.data.ok) {
         const categoryId = response.data.id
@@ -198,12 +181,10 @@
           return null
         }
 
-        // Add to local categories list
         categories.value.push({
           id: categoryId,
           nev: categoryName.trim()
         })
-        console.log('Category created successfully with ID:', categoryId)
         return categoryId
       } else {
         formError.value = 'Hiba a kategória létrehozása közben: ' + (response.data.uzenet || 'Ismeretlen hiba')
@@ -217,7 +198,6 @@
     }
   }
 
-  // Format price
   const formatPrice = (price) => {
     return new Intl.NumberFormat('hu-HU', {
       minimumFractionDigits: 0,
@@ -259,12 +239,10 @@
     formError.value = ''
   }
 
-  // Handle category input for add modal
   const handleAddCategoryInput = () => {
     const searchTerm = newProduct.value.category.trim()
 
     if (searchTerm.length >= 3) {
-      // Filter categories based on input - limit to first 4 results
       filteredAddCategories.value = categories.value.filter(cat =>
         cat.nev.toLowerCase().includes(searchTerm.toLowerCase())
       ).slice(0, 4)
@@ -275,12 +253,10 @@
     }
   }
 
-  // Handle category input for edit modal
   const handleEditCategoryInput = () => {
     const searchTerm = editProduct.value.category.trim()
 
     if (searchTerm.length >= 3) {
-      // Filter categories based on input - limit to first 4 results
       filteredEditCategories.value = categories.value.filter(cat =>
         cat.nev.toLowerCase().includes(searchTerm.toLowerCase())
       ).slice(0, 4)
@@ -291,28 +267,24 @@
     }
   }
 
-  // Select category from add modal suggestions
   const selectAddCategory = (category) => {
     newProduct.value.category = category.nev
     showAddCategorySuggestions.value = false
     filteredAddCategories.value = []
   }
 
-  // Select category from edit modal suggestions
   const selectEditCategory = (category) => {
     editProduct.value.category = category.nev
     showEditCategorySuggestions.value = false
     filteredEditCategories.value = []
   }
 
-  // Close add category suggestions when clicking outside
   const closeAddCategorySuggestions = () => {
     setTimeout(() => {
       showAddCategorySuggestions.value = false
     }, 200)
   }
 
-  // Close edit category suggestions when clicking outside
   const closeEditCategorySuggestions = () => {
     setTimeout(() => {
       showEditCategorySuggestions.value = false
@@ -320,7 +292,6 @@
   }
 
   const saveNewProduct = async () => {
-    // Validate form fields
     formError.value = ''
 
     if (!newProduct.value.name || newProduct.value.name.trim() === '') {
@@ -368,20 +339,17 @@
       return
     }
 
-    // Check if user is logged in
     if (!authStore.ceg || !authStore.ceg.id) {
       formError.value = 'Nincs bejelentkezve cég!'
       return
     }
 
-    // Resolve category name to ID
     const categoryId = await resolveCategoryId(newProduct.value.category)
     if (!categoryId) {
       formError.value = 'A kategória nem sikerült feloldani!'
       return
     }
 
-    // If all validations pass, send to backend
     try {
       const response = await axios.post('/Termek_ad', {
         tulajdonos: authStore.ceg.id,
@@ -397,7 +365,6 @@
       })
 
       if (response.data.ok) {
-        // Success - refresh the page
         window.location.reload()
       } else {
         formError.value = response?.data?.uzenet || 'Hiba történt a termék mentése során'
@@ -409,10 +376,8 @@
   }
 
   const saveEditProduct = async () => {
-    // Validate form fields
     formError.value = ''
 
-    // Prevent modification of name and cikkszam
     if (editProduct.value.name !== originalProductValues.value.name) {
       formError.value = 'A terméknév nem módosítható!'
       return
@@ -468,20 +433,17 @@
       return
     }
 
-    // Check if user is logged in
     if (!authStore.ceg || !authStore.ceg.id) {
       formError.value = 'Nincs bejelentkezve cég!'
       return
     }
 
-    // Resolve category name to ID
     const categoryId = await resolveCategoryId(editProduct.value.category)
     if (!categoryId) {
       formError.value = 'A kategória nem sikerült feloldani!'
       return
     }
 
-    // If all validations pass, send to backend
     try {
       const response = await axios.post('/Termek_update', {
         id: editProduct.value.id,
@@ -498,7 +460,6 @@
       })
 
       if (response.data.ok) {
-        // Success - refresh the page
         window.location.reload()
       } else {
         formError.value = response?.data?.uzenet || 'Hiba történt a termék frissítése során'
@@ -512,7 +473,6 @@
 
 <template>
   <div class="content">
-    <!-- Header -->
     <div class="d-flex align-items-center justify-content-between flex-wrap mb-3">
       <div class="d-flex align-items-center flex-grow-1 mb-2 mb-md-0">
         <h2 class="me-3 mb-0" data-test="page-title">Raktár</h2>
@@ -542,7 +502,6 @@
       </div>
     </div>
 
-    <!-- First table -->
     <div v-if="loading" class="text-center my-4" data-test="loading-spinner">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Betöltés...</span>
@@ -558,7 +517,6 @@
         <tr>
           <th style="width: 48%;" data-test="table-header-name">Terméknév</th>
           <th style="width: 15%;" data-test="table-header-cikkszam">Cikkszám</th>
-          <!-- th style="width: 20%;">Kategória</th -->
           <th style="width: 17%;" data-test="table-header-price">Ár (nettó)</th>
           <th class="text-end" style="width: 12%;" data-test="table-header-stock">Készlet</th>
           <th style="width: 2.5%;" data-test="table-header-actions"></th>
@@ -575,7 +533,6 @@
             </span>
           </td>
           <td :data-test="`product-cikkszam-${item.id}`">{{ item.cikkszam }}</td>
-          <!-- td>asd</td -->
           <td :data-test="`product-price-${item.id}`">{{ item.ar }} Ft</td>
           <td class="text-end" :data-test="`product-stock-${item.id}`">{{ item.mennyiseg }} {{ item.kiszereles }}</td>
           <td>
@@ -588,7 +545,6 @@
       </tbody>
     </table>
 
-    <!-- Add product modal -->
     <transition name="modal-fade">
       <div
         v-if="showAddModal"
@@ -721,7 +677,6 @@
                   />
                 </div>
               </form>
-              <!-- Error message display -->
               <div v-if="formError" class="alert alert-danger mt-3 mb-0" role="alert" data-test="add-product-error">
                 <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ formError }}
               </div>
@@ -739,7 +694,6 @@
       </div>
     </transition>
 
-    <!-- Edit product modal -->
     <transition name="modal-fade">
       <div
         v-if="showEditModal"
@@ -874,7 +828,6 @@
                   />
                 </div>
               </form>
-              <!-- Error message display -->
               <div v-if="formError" class="alert alert-danger mt-3 mb-0" role="alert" data-test="edit-product-error">
                 <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ formError }}
               </div>
@@ -892,7 +845,6 @@
       </div>
     </transition>
 
-    <!-- Product Details Modal -->
     <transition name="modal-fade">
       <div
         v-if="showDetailsModal && selectedProduct"
@@ -951,8 +903,6 @@
 </template>
 
 <style scoped>
-  /* Page-specific styles only - common styles moved to global.css */
-
   .cursor-pointer {
     cursor: pointer;
     color: #000;
@@ -979,7 +929,6 @@
     display: none;
   }
 
-  /* Clickable product name styling */
   .product-name-link {
     color: #00948B;
     cursor: pointer;
@@ -991,7 +940,6 @@
     opacity: 0.7;
   }
 
-  /* Autocomplete styles */
   .autocomplete-wrapper {
     position: relative;
   }
@@ -1030,7 +978,6 @@
     padding-left: 20px;
   }
 
-  /* Scrollbar styling for autocomplete dropdown */
   .autocomplete-dropdown::-webkit-scrollbar {
     width: 6px;
   }

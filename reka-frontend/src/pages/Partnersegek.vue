@@ -4,13 +4,8 @@
   import authStore, { setAuthState, hasPermission, isAdmin } from '../stores/auth.js';
   import Icons from '../components/Icons.vue';
 
-  //Teljesen megadott adószám esetén megjeleníteni a cég nevét a mező alatt
-  //Partnerség felvételéhez majd integrálni a CégadatAPI-t
-  
-  // Eladói partnerségek (seller partnerships) list
   const sellerItems = ref([])
 
-  // Vevői partnerségek (buyer partnerships) list
   const buyerItems = ref([])
 
   const sellerLoading = ref(false)
@@ -33,14 +28,12 @@
     )
   )
 
-  // Fetch partnerships from backend
   const fetchPartnerships = async () => {
     sellerLoading.value = true
     buyerLoading.value = true
     sellerError.value = ''
     buyerError.value = ''
 
-    // Get ceg_id from authStore
     const cegId = authStore.ceg?.id
 
     if (!cegId) {
@@ -51,14 +44,12 @@
       return
     }
 
-    // Fetch seller partnerships (where we are the buyer)
     try {
       const sellerResponse = await axios.post('/Partnerek_en_elado', {
         id: cegId
       })
 
       if (sellerResponse.data.ok) {
-        // Map backend data to frontend structure
         sellerItems.value = sellerResponse.data.partnerek.map(partner => ({
           id: partner.id,
           nev: partner.nev,
@@ -66,7 +57,6 @@
           mennyiseg: partner.fizetesi_ido
         }))
       } else {
-        // If no seller partnerships found, set empty array
         sellerItems.value = []
       }
     } catch (err) {
@@ -77,14 +67,12 @@
       sellerLoading.value = false
     }
 
-    // Fetch buyer partnerships (where we are the seller)
     try {
       const buyerResponse = await axios.post('/Partnerek_en_vevo', {
         id: cegId
       })
 
       if (buyerResponse.data.ok) {
-        // Map backend data to frontend structure
         buyerItems.value = buyerResponse.data.partnerek.map(partner => ({
           id: partner.id,
           nev: partner.nev,
@@ -92,7 +80,6 @@
           mennyiseg: partner.fizetesi_ido
         }))
       } else {
-        // If no buyer partnerships found, set empty array
         buyerItems.value = []
       }
     } catch (err) {
@@ -104,25 +91,14 @@
     }
   }
 
-  // Fetch data on component mount
   onMounted(() => {
     fetchPartnerships()
   })
 
-  // Check if company has subscription
   const hasSubscription = computed(() => {
     return authStore.ceg?.elofiz === true || authStore.ceg?.elofiz === 1
   })
 
-  const edit = (item) => {
-    console.log('Edit:', item)
-  }
-
-  const remove = (item) => {
-    console.log('Delete:', item)
-  }
-
-  // Modal state and form model for new seller partnership
   const showAddModal = ref(false)
   const newPartnership = ref({
     vatNumber: '',
@@ -135,12 +111,9 @@
   const foundCompanyName = ref('')
   const searchingCompany = ref(false)
 
-  // Format VAT number with hyphens for display (12345678-1-23)
   const formatVatNumber = (value) => {
-    // Remove all non-digit characters
     const digits = value.replace(/\D/g, '')
     
-    // Add hyphens after 8th and 9th digits
     if (digits.length <= 8) {
       return digits
     } else if (digits.length <= 9) {
@@ -150,12 +123,10 @@
     }
   }
 
-  // Remove hyphens from VAT number for backend submission
   const removeVatNumberHyphens = (value) => {
     return value.replace(/\D/g, '')
   }
 
-  // Payment method options
   const paymentMethods = ref([
     'Átutalás',
     'Készpénz',
@@ -163,7 +134,6 @@
   ])
 
   const openAddModal = () => {
-    // Check if company has subscription
     if (!hasSubscription.value) {
       return
     }
@@ -182,19 +152,15 @@
     foundCompanyName.value = ''
   }
 
-  // Search for company by VAT number when 11 characters are entered
   const handleVatNumberInput = async (event) => {
-    // Format the input with hyphens
     const rawValue = event.target.value
     const formattedValue = formatVatNumber(rawValue)
     newPartnership.value.vatNumber = formattedValue
     
     foundCompanyName.value = ''
     
-    // Get digits only for length check
     const digitsOnly = removeVatNumberHyphens(formattedValue)
     
-    // Only search if exactly 11 digits
     if (digitsOnly.length !== 11) {
       return
     }
@@ -220,7 +186,6 @@
     }
   }
 
-  // Watch for payment method changes to set payment time to 0 for cash
   const handlePaymentMethodChange = () => {
     if (newPartnership.value.paymentMethod === 'Készpénz') {
       newPartnership.value.paymentTime = 0
@@ -231,7 +196,6 @@
     addModalError.value = ''
     addModalLoading.value = true
 
-    // Get current company info
     const currentCompany = authStore.ceg
     if (!currentCompany || !currentCompany.id || !currentCompany.adoszam) {
       addModalError.value = 'Hiányzó bejelentkezési adatok'
@@ -239,7 +203,6 @@
       return
     }
 
-    // Validate form fields
     if (!newPartnership.value.vatNumber || 
         newPartnership.value.paymentTime === null || 
         newPartnership.value.paymentTime === undefined || 
@@ -250,10 +213,9 @@
       return
     }
 
-    // Remove hyphens from VAT number for backend operations
     const vatNumberDigitsOnly = removeVatNumberHyphens(newPartnership.value.vatNumber)
 
-    // Step 1: Check if vat number is the same as logged in user's company
+    // Step 1
     if (vatNumberDigitsOnly === currentCompany.adoszam) {
       addModalError.value = 'Nem lehet saját magával partnerséget létrehozni'
       addModalLoading.value = false
@@ -261,7 +223,7 @@
     }
 
     try {
-      // Step 2: Check if the vat number exists in the database
+      // Step 2
       const companiesResponse = await axios.get('/Ceg_osszes')
       if (!companiesResponse.data.ok) {
         addModalError.value = 'Hiba a cégek lekérdezése során'
@@ -279,7 +241,7 @@
         return
       }
 
-      // Step 3: Check if the seller partnership already exists
+      // Step 3
       let partnershipExists = false
       try {
         const existingPartnershipsResponse = await axios.post('/Partnerek_en_elado', {
@@ -296,12 +258,9 @@
           }
         }
       } catch (err) {
-        // If 404, it means no partnerships exist yet - this is OK, continue
         if (err.response?.status !== 404) {
-          // For other errors, throw to outer catch
           throw err
         }
-        // If 404, partnershipExists remains false, continue to step 4
       }
 
       if (partnershipExists) {
@@ -310,7 +269,7 @@
         return
       }
 
-      // Step 4: Add the new seller partnership
+      // Step 4
       const addResponse = await axios.post('/Partnerek_ad', {
         eladoId: currentCompany.id,
         vevoId: otherCompany.id,
@@ -319,7 +278,6 @@
       })
 
       if (addResponse.data.ok) {
-        // Success - refresh the partnerships list
         await fetchPartnerships()
         closeAddModal()
       } else {
@@ -336,7 +294,6 @@
 
 <template>
   <div class="content">
-    <!-- Eladói partnerségek section -->
     <div class="d-flex align-items-center justify-content-between flex-wrap mb-3">
       <div class="d-flex align-items-center flex-grow-1 mb-2 mb-md-0">
         <h2 class="me-3 mb-0" data-test="seller-partnerships-title">Eladói partnerségek</h2>
@@ -363,7 +320,6 @@
       </button>
     </div>
 
-    <!-- Eladói partnerségek table -->
     <div v-if="sellerLoading" class="text-center my-4" data-test="seller-loading">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Betöltés...</span>
@@ -394,7 +350,6 @@
       </tbody>
     </table>
 
-    <!-- Add partnership modal -->
     <transition name="modal-fade">
       <div
         v-if="showAddModal"
@@ -508,7 +463,6 @@
     </transition>
 
     <br>
-    <!-- Vevői partnerségek section -->
     <div class="d-flex align-items-center justify-content-between flex-wrap mb-3">
       <div class="d-flex align-items-center flex-grow-1 mb-2 mb-md-0">
         <h2 class="me-3 mb-0" data-test="buyer-partnerships-title">Vevői partnerségek</h2>
@@ -525,7 +479,6 @@
       </div>
     </div>
 
-    <!-- Vevői partnerségek table -->
     <div v-if="buyerLoading" class="text-center my-4" data-test="buyer-loading">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Betöltés...</span>
@@ -559,8 +512,6 @@
 </template>
 
 <style scoped>
-  /* Page-specific styles only - common styles moved to global.css */
-
   .action-icon {
     cursor: pointer;
     transition: opacity 0.2s;

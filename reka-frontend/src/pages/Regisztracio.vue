@@ -134,28 +134,22 @@ const selectCompany = async (company) => {
   // Close suggestions immediately and show loading
   showSuggestions.value = false;
   isLoadingCompanies.value = true;
-  
-  console.log('Selected company:', company);
-  
+    
   try {
     // Fetch detailed information using /v1/detail endpoint
     // Try with the companyId first, then taxNumber
     const identifier = company.companyId || company.taxNumber || company.id;
-    console.log('Fetching details for identifier:', identifier);
     
     const detailResponse = await axios.post('/detail', {
       adoszam: identifier
     });
-    
-    console.log('Detail API response:', detailResponse.data);
-    
+        
     // Check if response is an object (not an array)
     const detail = Array.isArray(detailResponse.data) 
       ? detailResponse.data[0] 
       : detailResponse.data;
     
     if (detail && (detail.shortName || detail.fullName)) {
-      console.log('Detail data:', detail);
       
       // Fill in the form with detailed data
       formData.value.cegNeve = detail.shortName || detail.fullName || company.shortName;
@@ -175,7 +169,7 @@ const selectCompany = async (company) => {
     // Fallback to basic info
     formData.value.cegNeve = company.shortName;
     formData.value.adoszamMagyar = company.taxNumber;
-    errorMessage.value = 'Nem sikerült betölteni a cég részletes adatait. Kérjük, töltse ki kézzel!';
+    errorMessage.value = 'Nem sikerült betölteni a cég részletes adatait';
     showError.value = true;
   } finally {
     isLoadingCompanies.value = false;
@@ -243,29 +237,22 @@ const selectVatCompany = async (company) => {
   // Close suggestions immediately and show loading
   showVatSuggestions.value = false;
   isLoadingVatCompanies.value = true;
-  
-  console.log('Selected company from VAT:', company);
-  
+    
   try {
     // Fetch detailed information using /v1/detail endpoint
     // Try with the companyId first, then taxNumber
     const identifier = company.companyId || company.taxNumber || company.id;
-    console.log('Fetching details for identifier:', identifier);
     
     const detailResponse = await axios.post('/detail', {
       adoszam: identifier
     });
-    
-    console.log('Detail API response:', detailResponse.data);
     
     // Check if response is an object (not an array)
     const detail = Array.isArray(detailResponse.data) 
       ? detailResponse.data[0] 
       : detailResponse.data;
     
-    if (detail && (detail.shortName || detail.fullName)) {
-      console.log('Detail data:', detail);
-      
+    if (detail && (detail.shortName || detail.fullName)) {      
       // Fill in the form with detailed data
       formData.value.cegNeve = detail.shortName || detail.fullName || company.shortName;
       formData.value.cegCime = detail.fullAddress || '';
@@ -284,7 +271,7 @@ const selectVatCompany = async (company) => {
     // Fallback to basic info
     formData.value.cegNeve = company.shortName;
     formData.value.adoszamMagyar = company.taxNumber;
-    errorMessage.value = 'Nem sikerült betölteni a cég részletes adatait. Kérjük, töltse ki kézzel!';
+    errorMessage.value = 'Nem sikerült betölteni a cég részletes adatait';
     showError.value = true;
   } finally {
     isLoadingVatCompanies.value = false;
@@ -312,21 +299,13 @@ const handleSubmit = async () => {
       szamlaszam: formData.value.szamlaszam
     };
 
-    // Add console log to verify the data being sent
-    console.log('rendeles_minta value:', cegData.rendeles_minta);
-
-    // Log the data being sent for debugging
-    console.log('Sending company data:', cegData);
-
     // Make API call to backend using axios
     const response = await axios.post('/Regisz/Ceg_ad', cegData);
 
     if (response.data.ok) {
       // Store the company ID for later use
-      console.log('Full backend response:', response.data);
       // Convert cegId to number since backend returns it as string
       registeredCegId.value = parseInt(response.data.cegId, 10);
-      console.log('Stored company ID:', registeredCegId.value);
       
       // Now create the system manager user
       const felhasznaloData = {
@@ -344,7 +323,6 @@ const handleSubmit = async () => {
       // Remove spaces from phone number before sending
       felhasznaloData.telefon = felhasznaloData.telefon.replace(/\s/g, '');
       
-      console.log('Creating user with data:', felhasznaloData);
       const userResponse = await axios.post('/Regisz/Felhasznalo_ad', felhasznaloData);
 
       if (userResponse.data.ok) {

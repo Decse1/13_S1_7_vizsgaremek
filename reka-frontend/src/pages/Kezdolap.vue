@@ -7,7 +7,6 @@ const showError = ref(false);
 const errorMessage = ref('');
 
 onMounted(() => {
-  // Check for various error types
   if (route.query.error === 'page-not-found') {
     errorMessage.value = 'Az oldal nem található! Átirányítottunk a kezdőlapra.';
     showError.value = true;
@@ -19,7 +18,6 @@ onMounted(() => {
     showError.value = true;
   }
   
-  // Auto-hide error after 5 seconds if shown
   if (showError.value) {
     setTimeout(() => {
       showError.value = false;
@@ -34,7 +32,6 @@ const closeError = () => {
 
 <template>
   <div class="content">
-    <!-- Error Alert -->
     <div
       v-if="showError"
       class="alert alert-danger alert-dismissible fade show d-flex justify-content-between align-items-center mb-4"

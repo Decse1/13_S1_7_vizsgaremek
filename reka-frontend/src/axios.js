@@ -2,7 +2,6 @@ import axios from 'axios';
 import { getToken, updateToken, clearAuthState, resetActivityTimer } from './stores/auth.js';
 import router from './router.js';
 
-// Create axios instance with base configuration
 const axiosInstance = axios.create({
   baseURL: 'http://localhost:3000/api',
   headers: {
@@ -34,7 +33,6 @@ axiosInstance.interceptors.response.use(
     const newToken = response.headers['x-new-token'];
     if (newToken) {
       updateToken(newToken);
-      console.log('Token refreshed successfully');
     }
     return response;
   },

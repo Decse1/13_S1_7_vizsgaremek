@@ -6,19 +6,15 @@ import authStore, { setAuthState, hasPermission, isAdmin } from '../stores/auth.
 
 const router = useRouter();
 
-// State
 const rendelesek = ref([]);
 const loading = ref(false);
 const error = ref(null);
 
-// Modal state
 const showDetailsModal = ref(false);
 const selectedOrderDetails = ref(null);
 
-// Computed
 const companyId = computed(() => authStore.ceg?.id);
 
-// Group orders by order number and date
 const groupedOrders = computed(() => {
   const orderMap = new Map();
   
@@ -40,7 +36,6 @@ const groupedOrders = computed(() => {
         });
       }
       
-      // Only add the product if it's not already in the array
       const order = orderMap.get(key);
       const productExists = order.termekek.some(p => p.termek_neve === termek.termek_neve);
       if (!productExists) {
@@ -52,7 +47,6 @@ const groupedOrders = computed(() => {
     });
   });
   
-  // Convert map to array and sort by date (desc), then by order number (desc)
   return Array.from(orderMap.values()).sort((a, b) => {
     const dateA = new Date(a.datum || 0).getTime();
     const dateB = new Date(b.datum || 0).getTime();
@@ -65,14 +59,12 @@ const groupedOrders = computed(() => {
   });
 });
 
-// Format date
 const formatDate = (dateString) => {
   if (!dateString) return 'N/A';
   const date = new Date(dateString);
   return date.toLocaleDateString('hu-HU');
 };
 
-// Format date and time
 const formatDateTime = (dateString) => {
   if (!dateString) return 'N/A';
   const date = new Date(dateString);
@@ -83,7 +75,6 @@ const formatDateTime = (dateString) => {
   });
 };
 
-// Get order status display text
 const getOrderStatus = (order) => {
   if (order.sztorno === 1 || order.sztorno === true) {
     return 'Sztornózva';
@@ -91,7 +82,6 @@ const getOrderStatus = (order) => {
   return order.status;
 };
 
-// Fetch orders
 const fetchOrders = async () => {
   if (!companyId.value) {
     error.value = 'Nincs bejelentkezett cég';
@@ -119,7 +109,6 @@ const fetchOrders = async () => {
   }
 };
 
-// Open order details modal
 const openDetailsModal = (order) => {
   selectedOrderDetails.value = order;
   showDetailsModal.value = true;
@@ -130,7 +119,6 @@ const closeDetailsModal = () => {
   selectedOrderDetails.value = null;
 };
 
-// Handle invoice download
 const downloadInvoice = async () => {
   if (!selectedOrderDetails.value) return;
 
@@ -138,14 +126,12 @@ const downloadInvoice = async () => {
     loading.value = true;
     error.value = null;
 
-    // Call the invoice generation/download API
     const response = await axios.post('/Szamla_create', {
       id: selectedOrderDetails.value.rendeles_id
     }, {
       responseType: 'blob'
     });
 
-    // Create a blob URL and trigger download
     const blob = new Blob([response.data], { type: 'application/pdf' });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -154,7 +140,6 @@ const downloadInvoice = async () => {
     document.body.appendChild(link);
     link.click();
     
-    // Cleanup
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
 
@@ -169,7 +154,6 @@ const downloadInvoice = async () => {
   }
 };
 
-// Handle storno invoice download
 const downloadStornoInvoice = async () => {
   if (!selectedOrderDetails.value) return;
 
@@ -177,14 +161,12 @@ const downloadStornoInvoice = async () => {
     loading.value = true;
     error.value = null;
 
-    // Call the storno invoice API
     const response = await axios.post('/Szamla_storno', {
       id: selectedOrderDetails.value.rendeles_id
     }, {
       responseType: 'blob'
     });
 
-    // Download the storno invoice
     const blob = new Blob([response.data], { type: 'application/pdf' });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -193,7 +175,6 @@ const downloadStornoInvoice = async () => {
     document.body.appendChild(link);
     link.click();
     
-    // Cleanup
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
 
@@ -207,7 +188,6 @@ const downloadStornoInvoice = async () => {
   }
 };
 
-// On mounted
 onMounted(() => {
   fetchOrders();
 });
@@ -267,7 +247,6 @@ onMounted(() => {
       </table>
     </div>
 
-    <!-- Order Details Modal -->
     <transition name="modal-fade">
       <div
         v-if="showDetailsModal"
@@ -358,7 +337,6 @@ onMounted(() => {
 </template>
 
 <style scoped>
-  /* Page-specific styles only - common styles moved to global.css */
 
   .card {
     border: 1px solid #dee2e6;
