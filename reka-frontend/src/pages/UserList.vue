@@ -4,21 +4,18 @@ import { useRoute } from 'vue-router';
 import authStore, { clearAuthState, setAuthState, hasPermission, isAdmin } from '../stores/auth.js';
 import axios from '../axios.js';
 
-// User list from database
 const users = ref([]);
 const loading = ref(false);
 const error = ref('');
 
 const search = ref('');
 
-// Filtered users based on search
 const filteredUsers = computed(() =>
   users.value.filter((user) =>
     user.nev.toLowerCase().includes(search.value.toLowerCase())
   )
 );
 
-// Fetch users from backend
 const fetchUsers = async () => {
   if (!authStore.ceg || !authStore.ceg.id) {
     error.value = 'Nincs bejelentkezve cég!';
@@ -47,22 +44,18 @@ const fetchUsers = async () => {
   }
 };
 
-// Load users on component mount
 onMounted(() => {
   fetchUsers();
 });
 
-// Check if current user can add new users (category 1 only)
 const canAddUser = computed(() => {
   return authStore.user && authStore.user.kategoria === 1;
 });
 
-// Check if the user being edited is the currently logged-in user
 const isEditingCurrentUser = computed(() => {
   return authStore.user && editUser.value.id === authStore.user.id;
 });
 
-// Modal state and form for new user
 const showAddModal = ref(false);
 const formError = ref('');
 const newUser = ref({
@@ -97,7 +90,6 @@ const closeAddModal = () => {
 };
 
 const saveNewUser = async () => {
-  // Validate form fields
   formError.value = '';
 
   if (!newUser.value.nev || newUser.value.nev.trim() === '') {
@@ -115,7 +107,6 @@ const saveNewUser = async () => {
     return;
   }
 
-  // If telephely_cim is empty, use company's address
   if (!newUser.value.telephely_cim || newUser.value.telephely_cim.trim() === '') {
     if (authStore.ceg && authStore.ceg.cim) {
       newUser.value.telephely_cim = authStore.ceg.cim;
@@ -130,20 +121,17 @@ const saveNewUser = async () => {
     return;
   }
 
-  // Check if at least one permission is selected (value must be 1, not 0)
   if (newUser.value.rendeles_osszkesz !== 1 && newUser.value.rendeles_lead !== 1 && 
       newUser.value.szamla_keszit !== 1 && newUser.value.raktar_kezel !== 1) {
     formError.value = 'Legalább egy jogosultságot ki kell választani!';
     return;
   }
 
-  // Check if user is logged in
   if (!authStore.ceg || !authStore.ceg.id) {
     formError.value = 'Nincs bejelentkezve cég!';
     return;
   }
 
-  // If all validations pass, send to backend
   try {
     const response = await axios.post('/Felhasznalo_ad', {
       nev: newUser.value.nev,
@@ -158,7 +146,6 @@ const saveNewUser = async () => {
     });
 
     if (response.data.ok) {
-      // Success - refresh the page
       window.location.reload();
     } else {
       formError.value = response?.data?.uzenet || 'Hiba történt a felhasználó mentése során';
@@ -170,7 +157,6 @@ const saveNewUser = async () => {
   }
 };
 
-// Edit user functionality
 const showEditModal = ref(false);
 const editUser = ref({
   id: null,
@@ -188,7 +174,7 @@ const openEditModal = (user) => {
   editUser.value = {
     id: user.id,
     nev: user.nev,
-    jelszo: '', // Leave empty, user will need to enter a new password
+    jelszo: '',
     telephely_cim: user.telephely_cim,
     telefon: user.telefon,
     rendeles_osszkesz: user.rendeles_osszkesz || 0,
@@ -206,7 +192,6 @@ const closeEditModal = () => {
 };
 
 const saveEditUser = async () => {
-  // Validate form fields
   formError.value = '';
 
   if (!editUser.value.nev || editUser.value.nev.trim() === '') {
@@ -234,20 +219,17 @@ const saveEditUser = async () => {
     return;
   }
 
-  // Check if at least one permission is selected (value must be 1, not 0)
   if (editUser.value.rendeles_osszkesz !== 1 && editUser.value.rendeles_lead !== 1 && 
       editUser.value.szamla_keszit !== 1 && editUser.value.raktar_kezel !== 1) {
     formError.value = 'Legalább egy jogosultságot ki kell választani!';
     return;
   }
 
-  // Check if user is logged in
   if (!authStore.ceg || !authStore.ceg.id) {
     formError.value = 'Nincs bejelentkezve cég!';
     return;
   }
 
-  // If all validations pass, send to backend
   try {
     const response = await axios.post('/Felhasznalo_update', {
       id: editUser.value.id,
@@ -263,16 +245,12 @@ const saveEditUser = async () => {
     });
 
     if (response.data.ok) {
-      // Check if the edited user is the currently logged-in user
       const isCurrentUser = authStore.user && authStore.user.id === editUser.value.id;
       
       if (isCurrentUser) {
-        // Log out the user since their data has been modified
         clearAuthState();
-        // Redirect to login page
         window.location.href = '/bejelentkezes';
       } else {
-        // Success - refresh the user list
         await fetchUsers();
         closeEditModal();
       }
@@ -288,7 +266,6 @@ const saveEditUser = async () => {
 
 <template>
   <div class="content">
-    <!-- Header -->
     <div class="d-flex align-items-center justify-content-between flex-wrap mb-3">
       <div class="d-flex align-items-center flex-grow-1 mb-2 mb-md-0">
         <h2 class="me-3 mb-0">Céghez tartozó felhasználók</h2>
@@ -313,19 +290,16 @@ const saveEditUser = async () => {
       </button>
     </div>
 
-    <!-- Loading spinner -->
     <div v-if="loading" class="text-center my-4">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Betöltés...</span>
       </div>
     </div>
 
-    <!-- Error message -->
     <div v-else-if="error" class="alert alert-warning" role="alert">
       {{ error }}
     </div>
 
-    <!-- Users table -->
     <table v-else class="table custom-table" style="border-bottom: 1px solid black;">
       <thead>
         <tr>
@@ -372,7 +346,6 @@ const saveEditUser = async () => {
       </tbody>
     </table>
 
-    <!-- Add user modal -->
     <transition name="modal-fade">
       <div
         v-if="showAddModal"
@@ -485,7 +458,6 @@ const saveEditUser = async () => {
                   />
                 </div>
               </form>
-              <!-- Error message display -->
               <div v-if="formError" class="alert alert-danger mt-3 mb-0" role="alert">
                 <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ formError }}
               </div>
@@ -503,7 +475,6 @@ const saveEditUser = async () => {
       </div>
     </transition>
 
-    <!-- Edit user modal -->
     <transition name="modal-fade">
       <div
         v-if="showEditModal"
@@ -626,7 +597,6 @@ const saveEditUser = async () => {
                   />
                 </div>
               </form>
-              <!-- Error message display -->
               <div v-if="formError" class="alert alert-danger mt-3 mb-0" role="alert">
                 <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ formError }}
               </div>
@@ -647,13 +617,10 @@ const saveEditUser = async () => {
 </template>
 
 <style scoped>
-  /* Page-specific styles only - common styles moved to global.css */
-
   .modal-backdrop {
     display: none;
   }
 
-  /* Hide permission columns on screens under 750px */
   @media (max-width: 749px) {
     th:nth-child(2),
     th:nth-child(3),
@@ -667,7 +634,6 @@ const saveEditUser = async () => {
     }
   }
 
-  /* Hide telefon column on screens under 440px */
   @media (max-width: 439px) {
     th:nth-child(7),
     td:nth-child(7) {
@@ -675,7 +641,6 @@ const saveEditUser = async () => {
     }
   }
 
-  /* Ensure spacing between title and button when button is below title */
   @media (max-width: 768px) {
     h2 {
       margin-bottom: 1rem;

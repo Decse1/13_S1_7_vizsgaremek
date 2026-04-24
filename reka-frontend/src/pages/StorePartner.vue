@@ -9,7 +9,6 @@
   const route = useRoute()
   const router = useRouter()
 
-  // product list from database
   const items = ref([])
   const loading = ref(false)
   const error = ref('')
@@ -18,17 +17,13 @@
 
   const search = ref('')
 
-  // Categories from database
   const categories = ref([])
 
-  // Track quantities for each product
   const quantities = ref({})
 
-  // Modal state
   const showProductModal = ref(false)
   const selectedProduct = ref(null)
   
-  // Confirmation modal state
   const showConfirmModal = ref(false)
   const pendingCartItem = ref(null)
   const pendingQuantity = ref(0)
@@ -40,7 +35,6 @@
     )
   )
 
-  // Check if partnership exists
   const checkPartnership = async () => {
     if (!authStore.ceg || !authStore.ceg.id) {
       error.value = 'Nincs bejelentkezve cég!'
@@ -57,20 +51,17 @@
     error.value = ''
 
     try {
-      // Check buyer partnerships (where logged in company is the buyer)
       const response = await axios.post('/Partnerek_en_vevo', {
         id: authStore.ceg.id
       })
 
       if (response.data.ok && response.data.partnerek) {
-        // Find if the partner company exists in the list
         const partner = response.data.partnerek.find(p => p.cId === partnerId)
         
         if (partner) {
           hasPartnership.value = true
           partnerCompany.value = partner
           
-          // Check if partner company has subscription
           try {
             const cegResponse = await axios.get('/Ceg_osszes')
             
@@ -111,7 +102,6 @@
     }
   }
 
-  // Fetch products from backend
   const fetchProducts = async () => {
     const partnerId = parseInt(route.params.id)
     if (isNaN(partnerId)) {
@@ -129,7 +119,6 @@
 
       if (response.data.ok) {
         items.value = response.data.termekek
-        // Initialize quantities with min_vas_menny for each product
         items.value.forEach(item => {
           quantities.value[item.id] = item.min_vas_menny || 1
         })
@@ -149,7 +138,6 @@
     }
   }
 
-  // Fetch categories from backend
   const fetchCategories = async () => {
     if (!authStore.ceg || !authStore.ceg.id) {
       return
@@ -171,14 +159,12 @@
     }
   }
 
-  // Load products on component mount
   onMounted(async () => {
     const isPartner = await checkPartnership()
     if (isPartner) {
       fetchProducts()
       fetchCategories()
       
-      // Update page title with partner company name
       if (partnerCompany.value && partnerCompany.value.nev) {
         document.title = `${partnerCompany.value.nev} készlete | RÉKA`
       }
@@ -211,7 +197,6 @@
     const result = addItemToCart(item, quantity, partnerId, companyName, partnershipId)
     
     if (result.requiresConfirmation) {
-      // Show confirmation modal
       pendingCartItem.value = item
       pendingQuantity.value = quantity
       confirmMessage.value = result.message
@@ -258,7 +243,6 @@
     selectedProduct.value = null
   }
 
-  // Get category name by ID
   const getCategoryName = (categoryId) => {
     const category = categories.value.find(cat => cat.id === categoryId)
     return category ? category.nev : 'N/A'
@@ -267,7 +251,6 @@
 
 <template>
   <div class="content">
-    <!-- Header -->
     <div class="d-flex align-items-center justify-content-between flex-wrap mb-3">
       <div class="d-flex align-items-center flex-grow-1 mb-2 mb-md-0 header-container">
         <button 
@@ -298,7 +281,6 @@
       </div>
     </div>
 
-    <!-- First table -->
     <div v-if="loading" class="text-center my-4">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Betöltés...</span>
@@ -360,7 +342,6 @@
       </div>
     </div>
 
-    <!-- Product Details Modal -->
     <transition name="modal-fade">
       <div
         v-if="showProductModal"
@@ -415,7 +396,6 @@
       </div>
     </transition>
 
-    <!-- Confirmation Modal -->
     <transition name="modal-fade">
       <div
         v-if="showConfirmModal"
@@ -450,8 +430,6 @@
 </template>
 
 <style scoped>
-  /* Page-specific styles only - common styles moved to global.css */
-
   .cursor-pointer {
     cursor: pointer;
   }
@@ -502,7 +480,6 @@
     color: white;
   }
 
-  /* Desktop margin */
   @media (min-width: 992px) {
     .content {
       margin-left: 250px;
@@ -511,7 +488,6 @@
     }
   }
 
-  /* Mobile margin */
   @media (max-width: 991.98px) {
     .content {
       margin-left: 0;
@@ -576,7 +552,6 @@
     width: 50%;
   }
 
-  /* Center text in number input and hide spinners */
   .quantity-input::-webkit-outer-spin-button,
   .quantity-input::-webkit-inner-spin-button {
     -webkit-appearance: none;
@@ -612,7 +587,6 @@
     flex: 1 1 auto;
   }
 
-  /* Modal open/close animation */
   .modal-fade-enter-active,
   .modal-fade-leave-active {
     transition: opacity 0.15s ease;
@@ -628,12 +602,10 @@
     opacity: 1;
   }
 
-  /* Space between footer buttons */
   .custom-modal-content .modal-footer .btn + .btn {
     margin-left: 0.5rem;
   }
 
-  /* Style for close button with gray shadow */
   .custom-modal-content .btn-close {
     width: 2.5rem;
     height: 2.5rem;
@@ -671,7 +643,6 @@
     border-radius: 50%;
   }
 
-  /* Mobile: Stack back button above title */
   @media (max-width: 767.98px) {
     .header-container {
       flex-direction: column;
@@ -697,7 +668,6 @@
     }
   }
 
-  /* Desktop: Keep back button inline with title */
   @media (min-width: 768px) {
     .header-container {
       flex-direction: row;

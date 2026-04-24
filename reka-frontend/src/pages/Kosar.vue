@@ -8,19 +8,15 @@ import Icons from '../components/Icons.vue';
 
 const router = useRouter();
 
-// Modal state
 const showEditModal = ref(false);
 const editingItem = ref(null);
 const editingQuantity = ref(0);
 
-// Product details modal state
 const showProductModal = ref(false);
 const selectedProduct = ref(null);
 
-// Categories from database
 const categories = ref([]);
 
-// Price update notifications
 const priceUpdates = ref([]);
 const isUnder510 = ref(false);
 
@@ -28,7 +24,6 @@ const updateResponsiveState = () => {
   isUnder510.value = window.innerWidth < 510;
 };
 
-// Computed properties
 const cartItems = computed(() => cartStore.items);
 const companyName = computed(() => cartStore.companyName || 'N/A');
 const totalPrice = computed(() => getTotalPrice());
@@ -38,7 +33,6 @@ const emptyCartColspan = computed(() => (isUnder510.value ? 3 : 9));
 const totalLabelColspan = computed(() => (isUnder510.value ? 2 : 6));
 const totalValueColspan = computed(() => (isUnder510.value ? 1 : 3));
 
-// Format price
 const formatPrice = (price) => {
   return new Intl.NumberFormat('hu-HU', {
     minimumFractionDigits: 0,
@@ -46,7 +40,6 @@ const formatPrice = (price) => {
   }).format(Math.round(price));
 };
 
-// Edit item quantity
 const openEditModal = (item) => {
   editingItem.value = item;
   editingQuantity.value = item.quantity;
@@ -77,21 +70,18 @@ const increaseEditQuantity = () => {
   editingQuantity.value++;
 };
 
-// Remove item from cart
 const removeItem = (item) => {
   if (confirm(`Biztosan eltávolítod a kosárból: ${item.nev}?`)) {
     removeFromCart(item.id);
   }
 };
 
-// Clear entire cart
 const handleClearCart = () => {
   if (confirm('Biztosan törölni szeretnéd a kosár teljes tartalmát?')) {
     clearCart();
   }
 };
 
-// Place order
 const placeOrder = async () => {
   if (cartItems.value.length === 0) {
     alert('A kosár üres!');
@@ -114,7 +104,6 @@ const placeOrder = async () => {
   }
 
   try {
-    // Check if the seller company has an active subscription
     const companiesResponse = await axios.get('/Ceg_osszes');
     
     if (!companiesResponse.data.ok || !companiesResponse.data.cegek) {
@@ -134,7 +123,6 @@ const placeOrder = async () => {
       return;
     }
 
-    // Transform cart items to the expected format
     const termekek = cartItems.value.map(item => ({
       termekId: item.id,
       mennyiseg: item.quantity,
@@ -143,20 +131,18 @@ const placeOrder = async () => {
       afa_kulcs: item.afa_kulcs
     }));
 
-    // Prepare order data
     const orderData = {
-      partnerseg: cartStore.partnershipId, // Partnership ID
-      sz_cim: authStore.user.id, // Billing address (User ID)
+      partnerseg: cartStore.partnershipId, 
+      sz_cim: authStore.user.id, 
       termekek: termekek
     };
 
-    // Send order to backend
     const response = await axios.post('/Rendeles_ad', orderData);
 
     if (response.data.ok) {
       alert(`Rendelés sikeresen leadva! Rendelésszám: ${response.data.rendelesSzam}`);
       clearCart();
-      router.push('/rendelesek/leadott'); // Redirect to orders page
+      router.push('/rendelesek/leadott'); 
     } else {
       alert(`Hiba a rendelés leadásakor: ${response.data.uzenet || 'Ismeretlen hiba'}`);
     }
@@ -170,7 +156,6 @@ const placeOrder = async () => {
   }
 };
 
-// Fetch categories from backend
 const fetchCategories = async () => {
   if (!authStore.ceg || !authStore.ceg.id) {
     return;
@@ -192,7 +177,6 @@ const fetchCategories = async () => {
   }
 };
 
-// Fetch full product details
 const fetchProductDetails = async (item) => {
   if (!cartStore.companyId) {
     return null;
@@ -214,13 +198,11 @@ const fetchProductDetails = async (item) => {
   return item;
 };
 
-// Open product details modal
 const openProductModal = async (item) => {
   const fullProduct = await fetchProductDetails(item);
   selectedProduct.value = fullProduct;
   showProductModal.value = true;
   
-  // Fetch categories if not already loaded
   if (categories.value.length === 0) {
     fetchCategories();
   }
@@ -231,13 +213,11 @@ const closeProductModal = () => {
   selectedProduct.value = null;
 };
 
-// Get category name by ID
 const getCategoryName = (categoryId) => {
   const category = categories.value.find(cat => cat.id === categoryId);
   return category ? category.nev : 'N/A';
 };
 
-// Check and update prices
 const checkAndUpdatePrices = async () => {
   if (cartItems.value.length === 0 || !cartStore.companyId) {
     return;
@@ -256,7 +236,6 @@ const checkAndUpdatePrices = async () => {
         const currentProduct = currentProducts.find(p => p.id === cartItem.id);
         
         if (currentProduct) {
-          // Check if price or VAT rate has changed
           if (currentProduct.ar !== cartItem.ar || currentProduct.afa_kulcs !== cartItem.afa_kulcs) {
             updates.push({
               nev: cartItem.nev,
@@ -272,11 +251,9 @@ const checkAndUpdatePrices = async () => {
         }
       });
 
-      // Show notification if there were updates
       if (updates.length > 0) {
         priceUpdates.value = updates;
         
-        // Create notification message
         let message = 'Az alábbi termékek ára megváltozott:\n\n';
         updates.forEach(update => {
           message += `${update.nev}:\n`;
@@ -290,7 +267,6 @@ const checkAndUpdatePrices = async () => {
   }
 };
 
-// On component mount, check prices
 onMounted(() => {
   updateResponsiveState();
   window.addEventListener('resize', updateResponsiveState);

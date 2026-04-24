@@ -11,7 +11,6 @@ const showError = ref(false);
 const errorMessage = ref('');
 const isUpdating = ref(false);
 
-// add computed text for elofiz: explicit checks for 1/'1' -> yes, 0/'0' -> no
 const elofizText = computed(() => {
   const v = authStore?.ceg?.elofiz;
   if (v === 1 || v === '1') return 'igen';
@@ -28,11 +27,9 @@ const closeError = () => {
 };
 
 const formatSzamlaszam = (event) => {
-  // Remove all non-numeric characters (except hyphens, which will be removed anyway)
   let value = event.target.value.replace(/[^0-9]/g, '');
   let formatted = '';
   
-  // Build formatted string with automatic hyphens
   for (let i = 0; i < value.length && i < 24; i++) {
     if (i === 8 || i === 16) {
       formatted += '-';
@@ -48,7 +45,6 @@ const formError = ref('')
 const szamla_minta = ref('')
 const isLoadingCegadat = ref(false)
 
-// Form data for editing company info
 const editForm = ref({
   nev: '',
   adoszam: '',
@@ -61,7 +57,6 @@ const editForm = ref({
 })
 
 const openAddModal = () => {
-  // Pre-fill form with current company data
   editForm.value = {
     nev: authStore.ceg.nev,
     adoszam: authStore.ceg.adoszam,
@@ -82,7 +77,6 @@ const closeAddModal = () => {
 }
 
 const fetchCegadatAPI = async () => {
-  // Validate VAT number length
   if (!editForm.value.adoszam || editForm.value.adoszam.length !== 11) {
     formError.value = 'Az adószámnak pontosan 11 karakter hosszúnak kell lennie!'
     return
@@ -92,7 +86,7 @@ const fetchCegadatAPI = async () => {
   formError.value = ''
 
   try {
-    // Step 1: Search for VAT number in CégadatAPI
+    // Part 1
     const searchResponse = await axios.post('/search/vat', {
       vatNumber: editForm.value.adoszam
     })
@@ -103,10 +97,9 @@ const fetchCegadatAPI = async () => {
       return
     }
 
-    // Get the company VAT number from search results (using it as ID)
     const vatNumber = searchResponse.data[0].vatNumber
 
-    // Step 2: Get detailed company information
+    // Part 2
     const detailResponse = await axios.post('/detail', {
       adoszam: vatNumber
     })
@@ -114,11 +107,9 @@ const fetchCegadatAPI = async () => {
     if (detailResponse.data) {
       const company = detailResponse.data
 
-      // Fill the form with the received data based on actual API response structure
       editForm.value.nev = company.shortName || company.fullName || editForm.value.nev
       editForm.value.cim = company.fullAddress || editForm.value.cim
       
-      // Fill email and phone if they exist in the API response
       if (company.emailAddress && company.emailAddress.trim() !== '') {
         editForm.value.email = company.emailAddress
       }
@@ -127,15 +118,13 @@ const fetchCegadatAPI = async () => {
         editForm.value.telefon = company.phoneNumber
       }
       
-      // Note: CégadatAPI doesn't provide EU VAT number in the standard response
-      
       formError.value = ''
     } else {
       formError.value = 'Nem sikerült lekérni a cég részletes adatait!'
     }
   } catch (error) {
     console.error('CégadatAPI error:', error)
-    formError.value = error.response?.data?.error || 'Hiba történt a CégadatAPI lekérdezése során!'
+    formError.value = 'Hiba történt a CégadatAPI-al történő kommunikáció során'
   } finally {
     isLoadingCegadat.value = false
   }
@@ -152,7 +141,7 @@ const saveCompanyData = async () => {
       email: editForm.value.email,
       telefon: editForm.value.telefon,
       elofiz: authStore.ceg.elofiz,
-      szamla_minta: authStore.ceg.szamla_minta, // Preserve szamla_minta
+      szamla_minta: authStore.ceg.szamla_minta,
       rendeles_minta: editForm.value.rendeles_minta,
       szamlaszam: editForm.value.szamlaszam
     }
@@ -160,11 +149,9 @@ const saveCompanyData = async () => {
     const response = await axios.post('/Ceg_update', updatedCegData)
 
     if (response.data.ok) {
-      // Update the local auth store
       const updatedCeg = { ...authStore.ceg, ...updatedCegData }
       setAuthState(authStore.user, updatedCeg)
       closeAddModal()
-      // Refresh the page to show updated data
       router.go(0)
     } else {
       formError.value = response.data.uzenet || 'Hiba történt a mentés során!'
@@ -176,14 +163,12 @@ const saveCompanyData = async () => {
 }
 
 const activateReka = async () => {
-  // Validate szamla_minta before proceeding
   if (!szamla_minta.value || szamla_minta.value.trim() === '') {
     errorMessage.value = 'A számla minta megadása kötelező az előfizetés aktiválásához!';
     showError.value = true;
     return;
   }
 
-  // Check if szamla_minta is the same as rendeles_minta
   if (szamla_minta.value.trim() === authStore.ceg.rendeles_minta) {
     errorMessage.value = 'A számla minta nem lehet azonos a rendelési szám mintájával!';
     showError.value = true;
@@ -202,23 +187,20 @@ const activateReka = async () => {
       cim: authStore.ceg.cim,
       email: authStore.ceg.email,
       telefon: authStore.ceg.telefon,
-      elofiz: 1, // Send boolean true instead of 1
+      elofiz: 1,
       szamla_minta: szamla_minta.value,
-      rendeles_minta: authStore.ceg.rendeles_minta, // Preserve rendeles_minta
+      rendeles_minta: authStore.ceg.rendeles_minta,
       szamlaszam: authStore.ceg.szamlaszam
     };
 
     const response = await axios.post('/Ceg_update', updatedCegData);
 
     if (response.data.ok) {
-      // Update the local auth store
       const updatedCeg = { ...authStore.ceg, elofiz: 1, szamla_minta: szamla_minta.value };
       setAuthState(authStore.user, updatedCeg);
       
-      // Clear the input field
       szamla_minta.value = '';
       
-      // Refresh the page to show updated data
       router.go(0);
     } else {
       errorMessage.value = response.data.uzenet || 'Hiba történt az előfizetés aktiválása során!';
@@ -246,20 +228,18 @@ const deactivateReka = async () => {
       cim: authStore.ceg.cim,
       email: authStore.ceg.email,
       telefon: authStore.ceg.telefon,
-      elofiz: 0, // Send boolean false instead of 0
+      elofiz: 0,
       szamla_minta: "-",
-      rendeles_minta: authStore.ceg.rendeles_minta, // Preserve rendeles_minta
+      rendeles_minta: authStore.ceg.rendeles_minta,
       szamlaszam: authStore.ceg.szamlaszam
     };
 
     const response = await axios.post('/Ceg_update', updatedCegData);
 
     if (response.data.ok) {
-      // Update the local auth store
       const updatedCeg = { ...authStore.ceg, elofiz: 0, szamla_minta: "-" };
       setAuthState(authStore.user, updatedCeg);
       
-      // Refresh the page to show updated data
       router.go(0);
     } else {
       errorMessage.value = response.data.uzenet || 'Hiba történt az előfizetés deaktiválása során!';
@@ -288,11 +268,9 @@ const deactivateReka = async () => {
         @click="openAddModal"
       >
         <i class="bi bi-pencil"></i>
-        <!-- Only hide on extra-small screens -->
         <span class="d-none d-sm-inline ms-2">Cégadatok módosítása</span>
       </button>
     </div>
-    <p>Cég azonosítója: {{ authStore.ceg.id }}</p>
     <p>Cég neve: {{ authStore.ceg.nev }}</p>
     <p>Adószám: {{ authStore.ceg.adoszam }}</p>
     <p>Adószám (EU): {{ authStore.ceg.euAdoszam || "nincsen megadva"}}</p>
@@ -306,15 +284,12 @@ const deactivateReka = async () => {
         class="btn btn-success btn-teal add-btn rounded-5 d-flex align-items-center mt-3 mb-3"
         @click="goToUsers"
       >
-        <!-- Keep visible on mobile -->
         <span>Felhasználók</span>
     </button>
 
     <h2>Előfizetés állapota</h2>
     <p>Előfizet-e a RÉKA vállalatirányítási rendszerére: {{ elofizText }}</p>
     
-    
-    <!-- Error Alert -->
     <div
       v-if="showError"
       class="alert alert-danger d-flex justify-content-between align-items-center mb-4"
@@ -324,7 +299,6 @@ const deactivateReka = async () => {
       <button type="button" class="btn-close" aria-label="Bezárás" @click="closeError"></button>
     </div>
     
-    <!-- Számla minta input for subscription activation -->
     <div v-if="authStore.ceg.elofiz == 0 && isAdmin()" class="mb-3">
       <label class="form-label fw-bold">Számla minta (előfizetés aktiválásához szükséges)</label>
       <input
@@ -343,7 +317,6 @@ const deactivateReka = async () => {
         :disabled="isUpdating"
       >
         <span v-if="isUpdating" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-        <!-- Keep visible on mobile -->
         <span>
           {{ isUpdating ? 'Frissítés...' : 'RÉKA-előfizetés bekapcsolása' }}
         </span>
@@ -354,7 +327,6 @@ const deactivateReka = async () => {
         :disabled="isUpdating"
       >
         <span v-if="isUpdating" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-        <!-- Keep visible on mobile -->
         <span>
           {{ isUpdating ? 'Frissítés...' : 'RÉKA-előfizetés kikapcsolása' }}
         </span>
@@ -460,7 +432,6 @@ const deactivateReka = async () => {
                     placeholder="pl. R-NP-0000"
                   />
                 </div>
-                <!-- Error message display -->
                 <div v-if="formError" class="alert alert-danger mt-3 mb-0" role="alert">
                   <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ formError }}
                 </div>
@@ -491,5 +462,5 @@ const deactivateReka = async () => {
 </template>
 
 <style scoped>
-  /* Page-specific styles only - common styles moved to global.css */
+
 </style>

@@ -18,12 +18,10 @@ const userName = computed(() => {
 });
 
 const cartItemCount = computed(() => {
-  // Accessing cartStore.items keeps this computed reactive to cart changes.
   cartStore.items;
   return getItemCount();
 });
 
-// Decode JWT token to get expiration time
 const decodeToken = (token) => {
   try {
     const base64Url = token.split('.')[1];
@@ -38,7 +36,6 @@ const decodeToken = (token) => {
   }
 };
 
-// Update countdown timer
 const updateCountdown = () => {
   if (!tokenExpiry.value) {
     countdown.value = '';
@@ -62,7 +59,6 @@ const updateCountdown = () => {
   countdown.value = `(${minutes}:${seconds.toString().padStart(2, '0')})`;
 };
 
-// Initialize token expiry
 const initTokenExpiry = () => {
   const token = getToken();
   if (token) {
@@ -71,7 +67,6 @@ const initTokenExpiry = () => {
       tokenExpiry.value = decoded.exp;
       updateCountdown();
       
-      // Update countdown every second
       if (countdownInterval) {
         clearInterval(countdownInterval);
       }
@@ -112,9 +107,7 @@ onMounted(() => {
   document.addEventListener('click', handleClickOutside);
   initTokenExpiry();
   
-  // Subscribe to token updates
   unsubscribeTokenUpdate = onTokenUpdate(() => {
-    console.log('Token updated - refreshing countdown');
     initTokenExpiry();
   });
 });
@@ -132,11 +125,9 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <!-- Navbar -->
   <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top px-2">
     <div class="container-fluid d-flex justify-content-between align-items-center">
       
-      <!-- Left: Hamburger + Logo -->
       <div class="d-flex align-items-center">
         <button class="btn d-lg-none me-2" data-test="sb-menu-open" @click="toggleSidebar">
           <span class="navbar-toggler-icon"></span>
@@ -147,7 +138,6 @@ onUnmounted(() => {
         </router-link>
       </div>
 
-      <!-- Right: Profile -->
       <div class="d-flex align-items-center position-relative" ref="dropdownRef" data-test="pf-menu">
         <img 
           src="/src/pfp.png" 
@@ -163,8 +153,8 @@ onUnmounted(() => {
           <span>{{ userName }} <span class="token-countdown">{{ countdown }}</span></span>
         </div>
 
-        <!-- Dropdown Menu -->
         <div class="profile-dropdown" :class="{ show: dropdownOpen }">
+          <div class="d-lg-none dropdown-countdown"><span class="username-text">{{ userName }}</span> {{ countdown }}</div>
           <router-link to="/userinfo" class="dropdown-item" data-test="pf-menu-pfinfo" @click="closeDropdown">Profiladatok</router-link>
           <a href="#" class="dropdown-item logout" data-test="pf-menu-logout" @click.prevent="handleLogout">Kijelentkezés</a>
           <router-link to="/aszf" class="dropdown-item" data-test="pf-menu-terms" @click="closeDropdown">Felhasználási feltételek</router-link>
@@ -174,7 +164,6 @@ onUnmounted(() => {
     </div>
   </nav>
 
-  <!-- Sidebar -->
   <div class="sidebar bg-light" :class="{ show: sidebarOpen } " data-test="sb-menu">
     <!-- router-link to="/kezdolap" @click="closeSidebar" class="sidebar-item" data-test="sb-menu-home">Kezdőlap</router-link -->
     <router-link v-if="hasPermission('rendeles_lead')" to="/store" @click="closeSidebar" class="sidebar-item" data-test="sb-menu-store">Áruház</router-link>
@@ -187,10 +176,8 @@ onUnmounted(() => {
       <span>Kosár</span>
       <span v-if="cartItemCount > 0" class="cart-badge">{{ cartItemCount }}</span>
     </router-link>
-    <!-- <router-link to="/" @click="closeSidebar" class="sidebar-item" data-test="sb-menu-settings">Beállítások</router-link> -->
   </div>
 
-  <!-- Overlay -->
   <div class="overlay" :class="{ show: sidebarOpen }" @click="closeSidebar"></div>
 </template>
 
@@ -206,7 +193,6 @@ onUnmounted(() => {
   object-fit: cover;
 }
 
-/* Sidebar styling */
 .sidebar {
   height: 105vh;
   width: 250px;
@@ -227,14 +213,6 @@ onUnmounted(() => {
   text-decoration: none;
 }
 
-/*
-.sidebar a:hover {
-  background-color: #e9ecef;
-  border-radius: 4px;
-}
-*/
-
-/* Mobile: collapsed by default */
 @media (max-width: 991.98px) {
   .sidebar {
     transform: translateX(-100%);
@@ -280,8 +258,6 @@ onUnmounted(() => {
   background-color: #e9ecef;
 }
 
-
-/* ACTIVE (exact match) */
 .sidebar a.router-link-exact-active.sidebar-item {
   background-color: #048c85; /* your teal color */
   color: #fff;
@@ -293,7 +269,6 @@ onUnmounted(() => {
   color: #000;
 }
 
-/* Overlay */
 .overlay {
   display: none;
   position: fixed;
@@ -309,7 +284,6 @@ onUnmounted(() => {
   display: block;
 }
 
-/* Profile Dropdown */
 .profile-dropdown {
   position: absolute;
   top: 100%;
@@ -362,10 +336,26 @@ onUnmounted(() => {
   background-color: #fff5f5;
 }
 
-/* Token countdown styling */
 .token-countdown {
   font-size: 0.85em;
   color: #6c757d;
   font-weight: normal;
+}
+
+.dropdown-countdown {
+  padding: 0.75rem 1rem;
+  font-size: 0.85em;
+  color: #6c757d;
+  font-weight: normal;
+  border-bottom: 1px solid #e9ecef;
+  border-radius: 8px 8px 0 0;
+  text-align: center;
+}
+
+.dropdown-countdown .username-text {
+  display: block;
+  font-size: 1.25em;
+  color: #333;
+  font-weight: 500;
 }
 </style>

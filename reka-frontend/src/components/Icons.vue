@@ -18,5 +18,4 @@ defineProps({
   <PencilIcon v-if="name === 'pencil'" :style="{ width: size, height: size }" />
   <TrashIcon v-if="name === 'trash'" :style="{ width: size, height: size }" />
   <ChevronLeftIcon v-if="name === 'chevronleft'" :style="{ width: size, height: size }" />
-  <!-- Add more icons as needed -->
 </template>

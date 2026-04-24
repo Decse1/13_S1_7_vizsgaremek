@@ -15,7 +15,6 @@ export default {
     };
   },
   mounted() {
-    // If already logged in, redirect to home page
     if (authStore.isAuthenticated) {
       this.$router.push("/kezdolap");
     }
@@ -31,18 +30,11 @@ export default {
         password: this.password,
       });
 
-      // A backend mindig 200 OK, ha minden rendben, ok ellenőrzése
       if (!response.data.ok) {
         this.errorMessage = response.data.uzenet || "Hibás felhasználónév vagy jelszó.";
         this.showError = true;
       }
-      else if (response.data.ok) {
-        console.log("Felhasználó:", response.data.felhasznalo);
-        console.log("Cég:", response.data.ceg);
-        console.log("Token:", response.data.token);
-        console.log("Jogosultságok:", response.data.felhasznalo.jogkor);
-        
-        // Store authentication data with JWT token (includes user permissions in jogkor)
+      else if (response.data.ok) {        
         setAuthState(response.data.felhasznalo, response.data.ceg, response.data.token);
         
         this.$router.push("/kezdolap");
@@ -51,7 +43,6 @@ export default {
       this.eredmeny = JSON.stringify(response.data, null, 4);
 
       } catch (err) {
-      // 400-as hibák itt is elkapódnak
       if (err.response) {
         this.errorMessage = err.response.data.uzenet || "Hiba történt a kérés során.";
         this.eredmeny = JSON.stringify(err.response.data, null, 4);
@@ -110,7 +101,6 @@ export default {
           />
         </div>
 
-        <!-- Error alert -->
         <div
           v-if="showError"
           class="alert alert-danger d-flex justify-content-between align-items-center mb-4"
@@ -138,7 +128,6 @@ export default {
       </div>
     </div>
 
-    <!-- Forgot Password Modal -->
     <transition name="modal-fade">
       <div
         v-if="showForgotPasswordModal"
@@ -180,7 +169,7 @@ export default {
 
 .login-card {
   width: calc(100% - 2rem);
-  max-width: 800px; /* wider on large screens */
+  max-width: 800px;
 }
 
 .logo {
@@ -226,7 +215,7 @@ a:hover {
 
 .btn-login-teal:hover,
 .btn-login-teal:focus {
-  background-color: #007a72 !important; /* a bit darker on hover */
+  background-color: #007a72 !important;
   border-color: #007a72 !important;
 }
 
