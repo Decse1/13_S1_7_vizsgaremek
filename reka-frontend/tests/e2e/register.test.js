@@ -4,7 +4,7 @@ import assert from 'assert';
 import { join } from 'path';
 import { BASE_URL, buildUrl } from './config.js';
 
-describe('Registration E2E Tests', function () {
+describe('Regisztráció E2E-tesztek', function () {
   this.timeout(60000); // Increased timeout for slower machines
   let driver;
 
@@ -27,7 +27,7 @@ describe('Registration E2E Tests', function () {
           const fs = await import('fs');
           if (fs.existsSync(firefoxPath)) {
             options.setBinary(firefoxPath);
-            console.log('Using Firefox from:', firefoxPath);
+            console.log('Firefox megtalálva itt:', firefoxPath);
             break;
           }
         } catch (error) {
@@ -35,15 +35,15 @@ describe('Registration E2E Tests', function () {
         }
       }
 
-      console.log('Attempting to start Firefox...');
+      console.log('Firefox elindítása folyamatban...');
       driver = await new Builder()
         .forBrowser('firefox')
         .setFirefoxOptions(options)
         .build();
       
-      console.log('Firefox started successfully');
+      console.log('Firefox sikeresen elindítva!');
     } catch (error) {
-      console.error('Failed to start Firefox:', error.message);
+      console.error('Hiba a Firefox elindítása során:', error.message);
       throw error;
     }
   });
@@ -75,7 +75,7 @@ describe('Registration E2E Tests', function () {
     }
   });
 
-  it('successfully registers a new company and user', async () => {
+  it('új cég és felhasználó sikeres regisztrálása', async () => {
     // Wait for the login page to load
     await driver.wait(
       until.elementLocated(By.css('[data-test="login-form"]')),
@@ -98,7 +98,7 @@ describe('Registration E2E Tests', function () {
       10000
     );
 
-    assert.ok(registrationForm, 'Registration form should be present');
+    assert.ok(registrationForm, 'A regisztrációs űrlapnak meg kell jelennie');
 
     // Fill in company information
     const companyNameInput = await driver.findElement(By.css('[data-test="company-name-input"]'));
@@ -121,6 +121,9 @@ describe('Registration E2E Tests', function () {
 
     const bankAccountInput = await driver.findElement(By.css('[data-test="bank-account-input"]'));
     await bankAccountInput.sendKeys('11700002-76327127-14236732');
+
+    const rendelesMintaInput = await driver.findElement(By.css('[data-test="rendeles-minta-input"]'));
+    await rendelesMintaInput.sendKeys('TSZT-0000');
 
     // Fill in user information
     const usernameInput = await driver.findElement(By.css('[data-test="username-input"]'));
@@ -154,12 +157,12 @@ describe('Registration E2E Tests', function () {
       15000
     );
 
-    assert.ok(successAlert, 'Success alert should be displayed');
+    assert.ok(successAlert, 'A sikeres regisztrációs üzenetnek meg kell jelennie');
 
     const successMessage = await driver.findElement(By.css('[data-test="success-message"]'));
     const successText = await successMessage.getText();
 
-    assert.ok(successText.includes('Sikeres regisztráció'), 'Success message should confirm registration');
+    assert.ok(successText.includes('Sikeres regisztráció'), 'A sikeres regisztrációs üzenetnek kell megerősítenie a regisztrációt');
 
     // Wait for redirect to login page (with 3 second delay as per code)
     await driver.wait(
@@ -169,7 +172,7 @@ describe('Registration E2E Tests', function () {
 
     // Verify we're on the login page
     const currentUrl = await driver.getCurrentUrl();
-    assert.ok(currentUrl.includes('/bejelentkezes'), 'Should redirect to login page after registration');
+    assert.ok(currentUrl.includes('/bejelentkezes'), 'Bejelentkezési oldalra kell irányítania a regisztráció után');
 
     // Now log in with the newly created account
     const loginUsernameInput = await driver.wait(
@@ -191,7 +194,7 @@ describe('Registration E2E Tests', function () {
 
     // Verify we're on the home page
     const homeUrl = await driver.getCurrentUrl();
-    assert.strictEqual(homeUrl, buildUrl('/kezdolap'), 'Should redirect to home page after login');
+    assert.strictEqual(homeUrl, buildUrl('/kezdolap'), 'Kezdőlapra kell irányítania a bejelentkezés után');
 
     // Navigate to company info page
     // Try to find the sidebar menu item directly (visible on desktop)
@@ -210,7 +213,7 @@ describe('Registration E2E Tests', function () {
       
       await cegInfoLink.click();
     } catch (error) {
-      console.error('Error clicking company info link:', error);
+      console.error('Hiba a céginformáció linkre kattintás során:', error);
       throw error;
     }
 
@@ -222,15 +225,15 @@ describe('Registration E2E Tests', function () {
 
     // Verify we're on the company info page
     const companyInfoUrl = await driver.getCurrentUrl();
-    assert.ok(companyInfoUrl.includes('/ceginfo'), 'Should navigate to company info page');
+    assert.ok(companyInfoUrl.includes('/ceginfo'), 'A céginformációs oldalra kell irányítania');
 
     // Verify company information is displayed
     const pageContent = await driver.findElement(By.css('.content')).getText();
-    assert.ok(pageContent.includes('Teszt Kft.'), 'Company name should be displayed');
-    assert.ok(pageContent.includes('55667788999'), 'Tax number should be displayed');
+    assert.ok(pageContent.includes('Teszt Kft.'), 'A cég nevének meg kell jelennie');
+    assert.ok(pageContent.includes('55667788999'), 'Az adószámnak meg kell jelennie');
   });
 
-  it('fails registration with existing tax number', async () => {
+  it('sikertelen regisztráció egy már létező adószámmal', async () => {
     // Wait for the login page to load
     await driver.wait(
       until.elementLocated(By.css('[data-test="login-form"]')),
@@ -253,7 +256,7 @@ describe('Registration E2E Tests', function () {
       10000
     );
 
-    assert.ok(registrationForm, 'Registration form should be present');
+    assert.ok(registrationForm, 'A regisztrációs űrlapnak meg kell jelennie');
 
     // Fill in company information with existing tax number
     const companyNameInput = await driver.findElement(By.css('[data-test="company-name-input"]'));
@@ -276,6 +279,9 @@ describe('Registration E2E Tests', function () {
 
     const bankAccountInput = await driver.findElement(By.css('[data-test="bank-account-input"]'));
     await bankAccountInput.sendKeys('11700002-76327127-14236732');
+
+    const rendelesMintaInput = await driver.findElement(By.css('[data-test="rendeles-minta-input"]'));
+    await rendelesMintaInput.sendKeys('TSZT-0000');
 
     // Fill in user information
     const usernameInput = await driver.findElement(By.css('[data-test="username-input"]'));
@@ -309,15 +315,15 @@ describe('Registration E2E Tests', function () {
       15000
     );
 
-    assert.ok(errorAlert, 'Error alert should be displayed');
+    assert.ok(errorAlert, 'A hibaüzenetnek meg kell jelennie');
 
     const errorMessage = await driver.findElement(By.css('[data-test="error-message"]'));
     const errorText = await errorMessage.getText();
 
-    assert.ok(errorText.length > 0, 'Error message should not be empty');
+    assert.ok(errorText.length > 0, 'A hibaüzenet nem lehet üres');
     
     // Verify we're still on the registration page
     const currentUrl = await driver.getCurrentUrl();
-    assert.ok(currentUrl.includes('/regisztracio'), 'Should remain on registration page after error');
+    assert.ok(currentUrl.includes('/regisztracio'), 'A regisztrációs oldalon kell maradnia hiba esetén');
   });
 });

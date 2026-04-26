@@ -5,7 +5,7 @@ import { platform } from 'os';
 try {
   const geckoDriverPath = await download();
   process.env.GECKODRIVER_PATH = geckoDriverPath;
-  console.log('Geckodriver downloaded to:', geckoDriverPath);
+  console.log('Geckodriver letöltve ide:', geckoDriverPath);
   
   // Also add the directory to PATH
   const { dirname } = await import('path');
@@ -13,8 +13,8 @@ try {
   const pathSeparator = platform() === 'win32' ? ';' : ':';
   process.env.PATH = `${geckoDriverDir}${pathSeparator}${process.env.PATH}`;
   
-  console.log('Test environment setup complete');
+  console.log('Tesztkörnyezet beállítva');
 } catch (error) {
-  console.error('Failed to download geckodriver:', error);
+  console.error('Hiba a geckodriver letöltése során:', error);
   throw error;
 }

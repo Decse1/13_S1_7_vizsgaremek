@@ -287,20 +287,21 @@ const deactivateReka = async () => {
         <span>Felhasználók</span>
     </button>
 
-    <h2>Előfizetés állapota</h2>
-    <p>Előfizet-e a RÉKA vállalatirányítási rendszerére: {{ elofizText }}</p>
+    <h2 data-test="subscription-status-title">Előfizetés állapota</h2>
+    <p data-test="subscription-status-text">Előfizet-e a RÉKA vállalatirányítási rendszerére: {{ elofizText }}</p>
     
     <div
       v-if="showError"
       class="alert alert-danger d-flex justify-content-between align-items-center mb-4"
       role="alert"
+      data-test="subscription-error-alert"
     >
-      <span>{{ errorMessage }}</span>
+      <span data-test="subscription-error-message">{{ errorMessage }}</span>
       <button type="button" class="btn-close" aria-label="Bezárás" @click="closeError"></button>
     </div>
     
-    <div v-if="authStore.ceg.elofiz == 0 && isAdmin()" class="mb-3">
-      <label class="form-label fw-bold">Számla minta (előfizetés aktiválásához szükséges)</label>
+    <div v-if="authStore.ceg.elofiz == 0 && isAdmin()" class="mb-3" data-test="subscription-activation-form">
+      <label class="form-label fw-bold" data-test="subscription-activation-label">Számla minta (előfizetés aktiválásához szükséges)</label>
       <input
         v-model="szamla_minta"
         type="text"
@@ -308,6 +309,7 @@ const deactivateReka = async () => {
         placeholder="Adja meg a számla mintát"
         required
         maxlength="15"
+        data-test="subscription-activation-input"
       />
     </div>
 
@@ -315,6 +317,7 @@ const deactivateReka = async () => {
         class="btn btn-success btn-teal add-btn rounded-5 d-flex align-items-center mb-3"
         @click="activateReka"
         :disabled="isUpdating"
+        data-test="subscription-activate-button"
       >
         <span v-if="isUpdating" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
         <span>
@@ -325,13 +328,14 @@ const deactivateReka = async () => {
         class="btn btn-danger add-btn rounded-5 d-flex align-items-center mb-3"
         @click="deactivateReka"
         :disabled="isUpdating"
+        data-test="subscription-deactivate-button"
       >
         <span v-if="isUpdating" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
         <span>
           {{ isUpdating ? 'Frissítés...' : 'RÉKA-előfizetés kikapcsolása' }}
         </span>
     </button>
-    <p v-if="authStore.ceg.elofiz == 1 && isAdmin()">Számla minta: {{ authStore.ceg.szamla_minta }}</p>
+    <p v-if="authStore.ceg.elofiz == 1 && isAdmin()" data-test="subscription-billing-pattern">Számla minta: {{ authStore.ceg.szamla_minta }}</p>
 
     <transition name="modal-fade">
       <div

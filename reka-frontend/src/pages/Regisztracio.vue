@@ -29,13 +29,10 @@ const successMessage = ref('');
 const isSubmitting = ref(false);
 const registeredCegId = ref(null);
 
-// Format bank account number with hyphens
 const formatSzamlaszam = (event) => {
-  // Remove all non-numeric characters (except hyphens, which will be removed anyway)
   let value = event.target.value.replace(/[^0-9]/g, '');
   let formatted = '';
   
-  // Build formatted string with automatic hyphens
   for (let i = 0; i < value.length && i < 24; i++) {
     if (i === 8 || i === 16) {
       formatted += '-';
@@ -46,13 +43,10 @@ const formatSzamlaszam = (event) => {
   formData.value.szamlaszam = formatted;
 };
 
-// Format VAT number (adószám) with hyphens
 const formatAdoszam = (event) => {
-  // Remove all non-numeric characters
   let value = event.target.value.replace(/[^0-9]/g, '');
   let formatted = '';
   
-  // Build formatted string with automatic hyphens after 8th and 9th digits
   for (let i = 0; i < value.length && i < 11; i++) {
     if (i === 8 || i === 9) {
       formatted += '-';
@@ -63,12 +57,9 @@ const formatAdoszam = (event) => {
   formData.value.adoszamMagyar = formatted;
 };
 
-// Format phone number (only numbers and + allowed)
 const formatPhoneNumber = (event, field) => {
-  // Remove all characters except numbers and +
   let value = event.target.value.replace(/[^0-9+]/g, '');
   
-  // Ensure + is only at the beginning
   if (value.includes('+')) {
     const parts = value.split('+');
     value = '+' + parts.join('').replace(/\+/g, '');
@@ -77,38 +68,32 @@ const formatPhoneNumber = (event, field) => {
   formData.value[field] = value;
 };
 
-// Autocomplete functionality for company name
 const showSuggestions = ref(false);
 const filteredCompanies = ref([]);
 const isLoadingCompanies = ref(false);
 
-// Autocomplete functionality for VAT number
 const showVatSuggestions = ref(false);
 const filteredVatCompanies = ref([]);
 const isLoadingVatCompanies = ref(false);
 
-// Search companies by name - using API
 const handleCegNeveInput = async () => {
   const searchTerm = formData.value.cegNeve;
   
   if (searchTerm.length >= 4) {
     isLoadingCompanies.value = true;
     try {
-      // Search companies by name using /v1/search endpoint
       const response = await axios.post('/search/name', {
         name: searchTerm
       });
       
       if (response.data && Array.isArray(response.data)) {
-        // Log the raw response to see the structure
         
-        // Limit to first 4 companies and store basic info
         filteredCompanies.value = response.data.slice(0, 4).map(company => {
           return {
             shortName: company.shortName || company.fullName || 'N/A',
             taxNumber: company.taxNumber || company.vatNumber,
             companyId: company.id || company.taxNumber || company.vatNumber,
-            id: company.taxNumber || company.vatNumber // Use taxNumber as unique identifier
+            id: company.taxNumber || company.vatNumber
           };
         });
         showSuggestions.value = filteredCompanies.value.length > 0;
@@ -129,29 +114,23 @@ const handleCegNeveInput = async () => {
   }
 };
 
-// Select a company from suggestions and fetch detailed information
 const selectCompany = async (company) => {
-  // Close suggestions immediately and show loading
   showSuggestions.value = false;
   isLoadingCompanies.value = true;
     
   try {
-    // Fetch detailed information using /v1/detail endpoint
-    // Try with the companyId first, then taxNumber
     const identifier = company.companyId || company.taxNumber || company.id;
     
     const detailResponse = await axios.post('/detail', {
       adoszam: identifier
     });
         
-    // Check if response is an object (not an array)
     const detail = Array.isArray(detailResponse.data) 
       ? detailResponse.data[0] 
       : detailResponse.data;
     
     if (detail && (detail.shortName || detail.fullName)) {
       
-      // Fill in the form with detailed data
       formData.value.cegNeve = detail.shortName || detail.fullName || company.shortName;
       formData.value.cegCime = detail.fullAddress || '';
       formData.value.adoszamMagyar = detail.vatNumber || company.taxNumber;
@@ -159,14 +138,12 @@ const selectCompany = async (company) => {
       formData.value.cegEmail = detail.emailAddress || '';
     } else {
       console.log('No detail data received, using fallback');
-      // Fallback to basic info if detail fetch fails
       formData.value.cegNeve = company.shortName;
       formData.value.adoszamMagyar = company.taxNumber;
     }
   } catch (error) {
     console.error('Error fetching company details:', error);
     console.error('Error response:', error.response?.data);
-    // Fallback to basic info
     formData.value.cegNeve = company.shortName;
     formData.value.adoszamMagyar = company.taxNumber;
     errorMessage.value = 'Nem sikerült betölteni a cég részletes adatait';
@@ -176,35 +153,30 @@ const selectCompany = async (company) => {
   }
 };
 
-// Close suggestions when clicking outside
 const closeSuggestions = () => {
   setTimeout(() => {
     showSuggestions.value = false;
   }, 200);
 };
 
-// Search companies by VAT number - using API
 const handleAdoszamInput = async () => {
-  // Remove hyphens for search
   const searchTerm = formData.value.adoszamMagyar.replace(/-/g, '');
   
   if (searchTerm.length >= 6) {
     isLoadingVatCompanies.value = true;
     try {
-      // Search companies by VAT number using /v1/search endpoint
       const response = await axios.post('/search/vat', {
         vatNumber: searchTerm
       });
       
       if (response.data && Array.isArray(response.data)) {
         
-        // Limit to first 4 companies and store basic info
         filteredVatCompanies.value = response.data.slice(0, 4).map(company => {
           return {
             shortName: company.shortName || company.fullName || 'N/A',
             taxNumber: company.taxNumber || company.vatNumber,
             companyId: company.id || company.taxNumber || company.vatNumber,
-            id: company.taxNumber || company.vatNumber // Use taxNumber as unique identifier
+            id: company.taxNumber || company.vatNumber
           };
         });
         showVatSuggestions.value = filteredVatCompanies.value.length > 0;
@@ -225,35 +197,28 @@ const handleAdoszamInput = async () => {
   }
 };
 
-// Close VAT suggestions when clicking outside
 const closeVatSuggestions = () => {
   setTimeout(() => {
     showVatSuggestions.value = false;
   }, 200);
 };
 
-// Select a company from VAT suggestions and fetch detailed information
 const selectVatCompany = async (company) => {
-  // Close suggestions immediately and show loading
   showVatSuggestions.value = false;
   isLoadingVatCompanies.value = true;
     
   try {
-    // Fetch detailed information using /v1/detail endpoint
-    // Try with the companyId first, then taxNumber
     const identifier = company.companyId || company.taxNumber || company.id;
     
     const detailResponse = await axios.post('/detail', {
       adoszam: identifier
     });
     
-    // Check if response is an object (not an array)
     const detail = Array.isArray(detailResponse.data) 
       ? detailResponse.data[0] 
       : detailResponse.data;
     
     if (detail && (detail.shortName || detail.fullName)) {      
-      // Fill in the form with detailed data
       formData.value.cegNeve = detail.shortName || detail.fullName || company.shortName;
       formData.value.cegCime = detail.fullAddress || '';
       formData.value.adoszamMagyar = detail.vatNumber || company.taxNumber;
@@ -261,14 +226,12 @@ const selectVatCompany = async (company) => {
       formData.value.cegEmail = detail.emailAddress || '';
     } else {
       console.log('No detail data received, using fallback');
-      // Fallback to basic info if detail fetch fails
       formData.value.cegNeve = company.shortName;
       formData.value.adoszamMagyar = company.taxNumber;
     }
   } catch (error) {
     console.error('Error fetching company details:', error);
     console.error('Error response:', error.response?.data);
-    // Fallback to basic info
     formData.value.cegNeve = company.shortName;
     formData.value.adoszamMagyar = company.taxNumber;
     errorMessage.value = 'Nem sikerült betölteni a cég részletes adatait';
@@ -279,58 +242,49 @@ const selectVatCompany = async (company) => {
 };
 
 const handleSubmit = async () => {
-  // Reset messages
   showError.value = false;
   showSuccess.value = false;
   isSubmitting.value = true;
 
   try {
-    // Prepare data according to backend API expectations
     const cegData = {
       nev: formData.value.cegNeve,
-      adoszam: formData.value.adoszamMagyar.replace(/-/g, ''), // Remove hyphens before sending
+      adoszam: formData.value.adoszamMagyar.replace(/-/g, ''),
       euAdoszam: formData.value.adoszamEuropai,
       cim: formData.value.cegCime,
       email: formData.value.cegEmail,
-      telefon: formData.value.cegTelszam.replace(/\s/g, ''), // Remove spaces before sending
-      elofiz: false, // Default to false for new registrations
-      szamla_minta: "-", // Default value for new registrations
-      rendeles_minta: formData.value.rendelesminta || "-", // Map rendelesminta to rendeles_minta
+      telefon: formData.value.cegTelszam.replace(/\s/g, ''),
+      elofiz: false,
+      szamla_minta: "-",
+      rendeles_minta: formData.value.rendelesminta || "-",
       szamlaszam: formData.value.szamlaszam
     };
 
-    // Make API call to backend using axios
     const response = await axios.post('/Regisz/Ceg_ad', cegData);
 
     if (response.data.ok) {
-      // Store the company ID for later use
-      // Convert cegId to number since backend returns it as string
       registeredCegId.value = parseInt(response.data.cegId, 10);
       
-      // Now create the system manager user
       const felhasznaloData = {
         nev: formData.value.felhasznalonev,
         jelszo: formData.value.jelszo,
-        telephely_cim: formData.value.telephelyCime || formData.value.cegCime, // Use cegCime if telephelyCime is empty
+        telephely_cim: formData.value.telephelyCime || formData.value.cegCime,
         telefon: formData.value.felhszTel,
-        rendeles_osszkesz: 1, // System manager permissions
+        rendeles_osszkesz: 1,
         rendeles_lead: 1,
         szamla_keszit: 1,
         raktar_kezel: 1,
         cegId: registeredCegId.value
       };
 
-      // Remove spaces from phone number before sending
       felhasznaloData.telefon = felhasznaloData.telefon.replace(/\s/g, '');
       
       const userResponse = await axios.post('/Regisz/Felhasznalo_ad', felhasznaloData);
 
       if (userResponse.data.ok) {
-        // Both company and user created successfully
         successMessage.value = 'Sikeres regisztráció! A cég és a rendszerkezelő felhasználó létrehozva. Jelentkezzen be fiókjába a folytatáshoz!';
         showSuccess.value = true;
         
-        // Reset form
         formData.value = {
           cegNeve: '',
           cegCime: '',
@@ -347,17 +301,14 @@ const handleSubmit = async () => {
           elfogadom: false
         };
 
-        // Redirect to login page after 3 seconds
         setTimeout(() => {
           router.push('/bejelentkezes');
         }, 3000);
       } else {
-        // User creation failed
         errorMessage.value = 'A cég létrehozva, de a felhasználó létrehozása sikertelen: ' + (userResponse.data.uzenet || 'Ismeretlen hiba');
         showError.value = true;
       }
     } else {
-      // Error from backend
       errorMessage.value = response.data.uzenet || 'Hiba történt a regisztráció során!';
       showError.value = true;
     }
@@ -365,15 +316,11 @@ const handleSubmit = async () => {
     console.error('Registration error:', error);
     console.error('Error response data:', error.response?.data);
     if (error.response) {
-      // Server responded with error
       errorMessage.value = error.response.data.uzenet || error.response.data.error || 'Hiba történt a regisztráció során!';
-      // Log the full error for debugging
       console.error('Backend error details:', error.response.data);
     } else if (error.request) {
-      // Request made but no response
       errorMessage.value = 'Nem sikerült kapcsolódni a szerverhez. Kérjük, próbálja újra később!';
     } else {
-      // Something else happened
       errorMessage.value = 'Hiba történt a kérés feldolgozása során!';
     }
     showError.value = true;
@@ -389,7 +336,6 @@ const handleSubmit = async () => {
     <h2 class="mb-4">Regisztráció</h2>
     
     <form @submit.prevent="handleSubmit" data-test="registration-form">
-      <!-- Cég adatai -->
       <section class="mb-4">
         <h5 class="mb-3">I. Cég adatai</h5>
         
@@ -602,7 +548,6 @@ const handleSubmit = async () => {
         </div>
       </section>
 
-      <!-- Checkbox -->
       <div class="form-check mb-4">
         <input 
           class="form-check-input custom-checkbox" 
@@ -617,7 +562,6 @@ const handleSubmit = async () => {
         </label>
       </div>
 
-      <!-- Error Alert -->
       <div
         v-if="showError"
         class="alert alert-danger d-flex justify-content-between align-items-center mb-4"
@@ -628,7 +572,6 @@ const handleSubmit = async () => {
         <button type="button" class="btn-close" aria-label="Bezárás" @click="showError = false"></button>
       </div>
 
-      <!-- Success Alert -->
       <div
         v-if="showSuccess"
         class="alert alert-success d-flex justify-content-between align-items-center mb-4"
@@ -639,7 +582,6 @@ const handleSubmit = async () => {
         <button type="button" class="btn-close" aria-label="Bezárás" @click="showSuccess = false"></button>
       </div>
 
-      <!-- Submit Button -->
       <div class="text-center">
         <button 
           type="submit" 
@@ -779,7 +721,6 @@ a:hover {
   }
 }
 
-/* Mobile margin */
 @media (max-width: 991.98px) {
   .content {
     margin-left: 0;

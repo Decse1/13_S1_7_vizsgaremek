@@ -5,7 +5,7 @@ import { existsSync } from 'fs';
 import { join } from 'path';
 import { BASE_URL, buildUrl } from './config.js';
 
-describe('Login E2E Tests', function () {
+describe('Bejelentkezési E2E-tesztek', function () {
   this.timeout(60000); // Increased timeout for slower machines
   let driver;
 
@@ -25,13 +25,13 @@ describe('Login E2E Tests', function () {
       // Check which Firefox path exists
       for (const firefoxPath of possibleFirefoxPaths) {
         if (existsSync(firefoxPath)) {
-          console.log('Found Firefox at:', firefoxPath);
+          console.log('Firefox megtalálva itt:', firefoxPath);
           options.setBinary(firefoxPath);
           break;
         }
       }
 
-      console.log('Attempting to start Firefox...');
+      console.log('Firefox elindítása folyamatban...');
       
       // Don't specify geckodriver path, let selenium-webdriver find it via PATH
       driver = await new Builder()
@@ -39,10 +39,10 @@ describe('Login E2E Tests', function () {
         .setFirefoxOptions(options)
         .build();
       
-      console.log('Firefox started successfully!');
+      console.log('Firefox sikeresen elindítva!');
     } catch (error) {
-      console.error('Failed to start Firefox:', error.message);
-      console.error('Error stack:', error.stack);
+      console.error('Hiba a Firefox elindítása során:', error.message);
+      console.error('Hiba verem:', error.stack);
       throw error;
     }
   });
@@ -74,26 +74,26 @@ describe('Login E2E Tests', function () {
     await driver.sleep(300);
   });
 
-  it('loads the login page', async () => {
+  it('bejelentkezés oldalának megnyitása', async () => {
     // Wait for the login form to be present
     const loginForm = await driver.wait(
       until.elementLocated(By.css('[data-test="login-form"]')),
       10000
     );
 
-    assert.ok(loginForm, 'Login form should be present');
+    assert.ok(loginForm, 'A bejelentkező oldalnak meg kell jelennie');
 
     // Verify all required elements are present
     const usernameInput = await driver.findElement(By.css('[data-test="username-input"]'));
     const passwordInput = await driver.findElement(By.css('[data-test="password-input"]'));
     const loginButton = await driver.findElement(By.css('[data-test="login-button"]'));
 
-    assert.ok(usernameInput, 'Username input should be present');
-    assert.ok(passwordInput, 'Password input should be present');
-    assert.ok(loginButton, 'Login button should be present');
+    assert.ok(usernameInput, 'A felhasználónév mezőnek meg kell jelennie');
+    assert.ok(passwordInput, 'A jelszó mezőnek meg kell jelennie');
+    assert.ok(loginButton, 'A bejelentkezés gombnak meg kell jelennie');
   });
 
-  it('shows error message on invalid credentials', async () => {
+  it('hibaüzenet megjelenítése a hibás hitelesítő adatok esetén', async () => {
     // Wait for username input to be visible
     const usernameInput = await driver.wait(
       until.elementLocated(By.css('[data-test="username-input"]')),
@@ -115,16 +115,17 @@ describe('Login E2E Tests', function () {
       10000
     );
 
-    assert.ok(errorAlert, 'Error alert should be displayed');
+    assert.ok(errorAlert, 'A hibaüzenetnek meg kell jelennie');
 
     // Verify error message is present
     const errorMessage = await driver.findElement(By.css('[data-test="error-message"]'));
     const errorText = await errorMessage.getText();
 
-    assert.ok(errorText.length > 0, 'Error message should not be empty');
+    assert.ok(errorText.length > 0, 'A hibaüzenet nem lehet üres');
+    console.log('✓ Hibaüzenet megjelenítve');
   });
 
-  it('successfully logs in with valid credentials', async () => {
+  it('sikeres bejelentkezés az érvényes hitelesítő adatokkal', async () => {
     // Wait for username input to be visible
     const usernameInput = await driver.wait(
       until.elementLocated(By.css('[data-test="username-input"]')),
@@ -148,10 +149,10 @@ describe('Login E2E Tests', function () {
 
     // Verify we're on the home page
     const currentUrl = await driver.getCurrentUrl();
-    assert.strictEqual(currentUrl, buildUrl('/kezdolap'), 'Should redirect to home page');
+    assert.strictEqual(currentUrl, buildUrl('/kezdolap'), 'Kezdőlapra kell irányítania');
   });
 
-  it('validates required fields', async () => {
+  it('kötelező mezők validálása', async () => {
     // Wait for login button to be visible
     const loginButton = await driver.wait(
       until.elementLocated(By.css('[data-test="login-button"]')),
@@ -164,10 +165,10 @@ describe('Login E2E Tests', function () {
     // The form should not submit (HTML5 validation)
     // We should still be on the login page
     const currentUrl = await driver.getCurrentUrl();
-    assert.ok(currentUrl.includes('/bejelentkezes'), 'Should remain on login page when fields are empty');
+    assert.ok(currentUrl.includes('/bejelentkezes'), 'A bejelentkező oldalon kell maradnia, amikor a mezők üresek');
   });
 
-  it('can close error message', async () => {
+  it('hibaüzenet bezárása', async () => {
     // Wait for username input to be visible
     const usernameInput = await driver.wait(
       until.elementLocated(By.css('[data-test="username-input"]')),
@@ -196,10 +197,10 @@ describe('Login E2E Tests', function () {
 
     // Verify error is no longer visible
     const errorAlerts = await driver.findElements(By.css('[data-test="error-alert"]'));
-    assert.strictEqual(errorAlerts.length, 0, 'Error alert should be closed');
+    assert.strictEqual(errorAlerts.length, 0, 'A hibaüzenetnek el kell tűnnie');
   });
 
-  it('redirects to home if already logged in', async () => {
+  it('visszairányítás a kezdőlapra, ha már be van jelentkezve', async () => {
     // First, log in with valid credentials
     const usernameInput = await driver.wait(
       until.elementLocated(By.css('[data-test="username-input"]')),
@@ -228,6 +229,6 @@ describe('Login E2E Tests', function () {
     );
 
     const currentUrl = await driver.getCurrentUrl();
-    assert.strictEqual(currentUrl, buildUrl('/kezdolap'), 'Should redirect to home page if already logged in');
+    assert.strictEqual(currentUrl, buildUrl('/kezdolap'), 'Kezdőlapra kell irányítania, ha már be van jelentkezve');
   });
 });

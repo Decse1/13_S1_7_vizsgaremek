@@ -6,10 +6,10 @@ import { join } from 'path';
 import { BASE_URL, buildUrl } from './config.js';
 
 // Test credentials - easily changeable
-const TEST_USERNAME = 'Juhász Levente';
+const TEST_USERNAME = 'Kovács Péter';
 const TEST_PASSWORD = 'pwd123';
 
-describe('Sidebar and Navigation Menu E2E Tests', function () {
+describe('Oldalsáv és navigációs menü E2E-tesztek', function () {
   this.timeout(90000); // Increased timeout for comprehensive navigation test
   let driver;
 
@@ -29,23 +29,23 @@ describe('Sidebar and Navigation Menu E2E Tests', function () {
       // Check which Firefox path exists
       for (const firefoxPath of possibleFirefoxPaths) {
         if (existsSync(firefoxPath)) {
-          console.log('Found Firefox at:', firefoxPath);
+          console.log('Firefox megtalálva itt:', firefoxPath);
           options.setBinary(firefoxPath);
           break;
         }
       }
 
-      console.log('Attempting to start Firefox...');
+      console.log('Firefox elindítása folyamatban...');
       
       driver = await new Builder()
         .forBrowser('firefox')
         .setFirefoxOptions(options)
         .build();
       
-      console.log('Firefox started successfully!');
+      console.log('Firefox sikeresen elindítva!');
     } catch (error) {
-      console.error('Failed to start Firefox:', error.message);
-      console.error('Error stack:', error.stack);
+      console.error('Hiba a Firefox elindítása során:', error.message);
+      console.error('Hiba verem:', error.stack);
       throw error;
     }
   });
@@ -70,8 +70,8 @@ describe('Sidebar and Navigation Menu E2E Tests', function () {
     await driver.sleep(300);
   });
 
-  it('navigates through all available sidebar menu items, profile menu, and logo', async () => {
-    console.log('Step 1: Logging in...');
+  it('körbenavigálás az összes elérhető oldalsáv-menüponton, a profilmenün és a logón', async () => {
+    console.log('1. lépés: Bejelentkezés...');
     
     // Login first
     const usernameInput = await driver.wait(
@@ -90,7 +90,7 @@ describe('Sidebar and Navigation Menu E2E Tests', function () {
       until.urlIs(buildUrl('/kezdolap')),
       10000
     );
-    console.log('✓ Login successful');
+    console.log('✓ Sikeres bejelentkezés');
 
     // Wait a bit for the page to fully load
     await driver.sleep(500);
@@ -106,7 +106,7 @@ describe('Sidebar and Navigation Menu E2E Tests', function () {
       { name: 'Kosár', dataTest: 'sb-menu-cart', route: '/kosar', optional: true },
     ];
 
-    console.log('Step 2: Testing sidebar menu items...');
+    console.log('2. lépés: Oldalsáv menüpontok tesztelése...');
     
     // Get current window size to determine if we're in mobile view
     const windowSize = await driver.manage().window().getSize();
@@ -114,7 +114,7 @@ describe('Sidebar and Navigation Menu E2E Tests', function () {
 
     for (const menuItem of sidebarMenuItems) {
       try {
-        console.log(`\nTesting menu item: ${menuItem.name}`);
+        console.log(`\nMenüelem tesztelése: ${menuItem.name}`);
         
         // On mobile, open the sidebar first
         if (isMobileView) {
@@ -128,7 +128,7 @@ describe('Sidebar and Navigation Menu E2E Tests', function () {
         
         if (menuElements.length === 0) {
           if (menuItem.optional) {
-            console.log(`  ⊘ ${menuItem.name} - Not available (permission required)`);
+            console.log(`  ⊘ ${menuItem.name} - Nem elérhető (szükséges jogosultság hiánya vagy nem implementált)`);
             
             // Close sidebar on mobile if it was opened
             if (isMobileView) {
@@ -144,7 +144,7 @@ describe('Sidebar and Navigation Menu E2E Tests', function () {
 
         // Click the menu item
         await menuElements[0].click();
-        console.log(`  → Clicked ${menuItem.name}`);
+        console.log(`  →  "${menuItem.name}" lekattintva`);
 
         // Wait for navigation
         await driver.wait(
@@ -156,39 +156,39 @@ describe('Sidebar and Navigation Menu E2E Tests', function () {
         const currentUrl = await driver.getCurrentUrl();
         assert.ok(
           currentUrl.includes(menuItem.route),
-          `Should navigate to ${menuItem.route}, but got ${currentUrl}`
+          `A ${menuItem.route} oldalra kellett volna irányítania, de a ${currentUrl} oldalra kerültünk`
         );
-        console.log(`  ✓ ${menuItem.name} - Navigation successful (${currentUrl})`);
+        console.log(`  ✓ ${menuItem.name} - Navigáció sikeres (${currentUrl})`);
 
         // Wait a bit for the page to load
         await driver.sleep(500);
 
       } catch (error) {
         if (menuItem.optional) {
-          console.log(`  ⊘ ${menuItem.name} - Not available or error: ${error.message}`);
+          console.log(`  ⊘ ${menuItem.name} - Nem elérhető vagy hiba: ${error.message}`);
         } else {
-          console.error(`  ✗ ${menuItem.name} - Failed: ${error.message}`);
+          console.error(`  ✗ ${menuItem.name} - Hiba: ${error.message}`);
           throw error;
         }
       }
     }
 
-    console.log('\nStep 3: Testing profile menu...');
+    console.log('\n3. lépés: Profilmenü tesztelése...');
     
     // Open profile menu - use the name variant (desktop) or pfp variant (mobile)
     let profileMenuButton;
     const profileMenuButtons = await driver.findElements(By.css('[data-test="pf-menu-open-name"]'));
     if (profileMenuButtons.length > 0 && await profileMenuButtons[0].isDisplayed()) {
       profileMenuButton = profileMenuButtons[0];
-      console.log('  Using desktop profile menu');
+      console.log('  Asztali profilmenü használata');
     } else {
       profileMenuButton = await driver.findElement(By.css('[data-test="pf-menu-open-pfp"]'));
-      console.log('  Using mobile profile menu');
+      console.log('  Mobil profilmenü használata');
     }
 
     await profileMenuButton.click();
     await driver.sleep(300); // Wait for dropdown animation
-    console.log('  ✓ Profile menu opened');
+    console.log('  ✓ Profilmenü megnyitva');
 
     // Click on 'Profiladatok'
     const profileInfoLink = await driver.wait(
@@ -196,7 +196,7 @@ describe('Sidebar and Navigation Menu E2E Tests', function () {
       5000
     );
     await profileInfoLink.click();
-    console.log('  → Clicked Profiladatok');
+    console.log('  → Profiladatok lekattintva');
 
     // Wait for navigation to /userinfo
     await driver.wait(
@@ -207,15 +207,15 @@ describe('Sidebar and Navigation Menu E2E Tests', function () {
     const userInfoUrl = await driver.getCurrentUrl();
     assert.ok(
       userInfoUrl.includes('/userinfo'),
-      'Should navigate to /userinfo'
+      'A /userinfo oldalra kellett volna irányítania'
     );
-    console.log('  ✓ Profiladatok - Navigation successful');
+    console.log('  ✓ Profiladatok - Navigáció sikeres');
 
-    console.log('\n✅ All navigation tests completed successfully!');
+    console.log('\n✅ Az összes navigációs teszt sikeresen teljesült');
   });
 
-  it('verifies sidebar opens and closes on mobile view', async () => {
-    console.log('Testing sidebar toggle functionality...');
+  it('oldalsáv megnyitása és bezárása mobil nézetben', async () => {
+    console.log('Oldalsáv funkcionalitásának tesztelése...');
     
     // Login first
     const usernameInput = await driver.wait(
@@ -240,7 +240,7 @@ describe('Sidebar and Navigation Menu E2E Tests', function () {
 
     // Find hamburger menu button
     const hamburgerButton = await driver.findElement(By.css('[data-test="sb-menu-open"]'));
-    assert.ok(await hamburgerButton.isDisplayed(), 'Hamburger menu should be visible on mobile');
+    assert.ok(await hamburgerButton.isDisplayed(), 'A hamburger menünek mobil nézetben láthatónak kell lennie');
 
     // Open sidebar
     await hamburgerButton.click();
@@ -249,8 +249,8 @@ describe('Sidebar and Navigation Menu E2E Tests', function () {
     // Check if sidebar is visible
     const sidebar = await driver.findElement(By.css('[data-test="sb-menu"]'));
     const sidebarClass = await sidebar.getAttribute('class');
-    assert.ok(sidebarClass.includes('show'), 'Sidebar should have "show" class when open');
-    console.log('✓ Sidebar opened successfully');
+    assert.ok(sidebarClass.includes('show'), 'Az oldalsávnak "show" osztállyal kell rendelkeznie, amikor nyitva van');
+    console.log('✓ Oldalsáv sikeresen megnyitva');
 
     // Close sidebar by clicking overlay
     const overlay = await driver.findElement(By.css('.overlay'));
@@ -259,8 +259,8 @@ describe('Sidebar and Navigation Menu E2E Tests', function () {
 
     // Check if sidebar is hidden
     const sidebarClassAfterClose = await sidebar.getAttribute('class');
-    assert.ok(!sidebarClassAfterClose.includes('show'), 'Sidebar should not have "show" class when closed');
-    console.log('✓ Sidebar closed successfully');
+    assert.ok(!sidebarClassAfterClose.includes('show'), 'Az oldalsáv nem rendelkezhet a "show" osztállyal, amikor be van zárva');
+    console.log('✓ Oldalsáv sikeresen bezárva');
 
     // Restore window size
     await driver.manage().window().setRect({ width: 1280, height: 720 });

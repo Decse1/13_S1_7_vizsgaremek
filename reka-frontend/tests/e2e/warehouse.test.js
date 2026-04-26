@@ -5,7 +5,7 @@ import { existsSync } from 'fs';
 import { join } from 'path';
 import { BASE_URL, buildUrl } from './config.js';
 
-describe('Warehouse (Raktár) E2E Tests', function () {
+describe('Raktár E2E-tesztek', function () {
   this.timeout(90000); // Increased timeout for complex operations
   let driver;
 
@@ -25,23 +25,23 @@ describe('Warehouse (Raktár) E2E Tests', function () {
       // Check which Firefox path exists
       for (const firefoxPath of possibleFirefoxPaths) {
         if (existsSync(firefoxPath)) {
-          console.log('Found Firefox at:', firefoxPath);
+          console.log('Firefox megtalálva itt:', firefoxPath);
           options.setBinary(firefoxPath);
           break;
         }
       }
 
-      console.log('Attempting to start Firefox...');
+      console.log('Firefox elindítása folyamatban...');
       
       driver = await new Builder()
         .forBrowser('firefox')
         .setFirefoxOptions(options)
         .build();
       
-      console.log('Firefox started successfully!');
+      console.log('Firefox sikeresen elindítva!');
     } catch (error) {
-      console.error('Failed to start Firefox:', error.message);
-      console.error('Error stack:', error.stack);
+      console.error('Hiba a Firefox elindítása során:', error.message);
+      console.error('Hiba verem:', error.stack);
       throw error;
     }
   });
@@ -117,21 +117,21 @@ describe('Warehouse (Raktár) E2E Tests', function () {
     await driver.sleep(500); // Wait for page to load
   }
 
-  it('successfully adds a new product with all required data', async () => {
-    console.log('Test: Add new product');
+  it('új termék sikeres felvétele az összes szükséges adattal', async () => {
+    console.log('Teszt: Új termék felvétele');
     
     // Login with user that has subscription and permissions
     await login('Kovács Péter', 'pwd123');
-    console.log('✓ Logged in');
+    console.log('✓ Bejelentkezve');
 
     // Navigate to warehouse
     await navigateToWarehouse();
-    console.log('✓ Navigated to Raktár');
+    console.log('✓ Raktárra navigálva');
 
     // Verify page loaded
     const pageTitle = await driver.findElement(By.css('[data-test="page-title"]'));
     const titleText = await pageTitle.getText();
-    assert.strictEqual(titleText, 'Raktár', 'Page title should be "Raktár"');
+    assert.strictEqual(titleText, 'Raktár', 'Az oldal címének "Raktár"-nak kell lennie');
 
     // Click on 'Új termék felvétele' button
     const addProductBtn = await driver.wait(
@@ -139,15 +139,15 @@ describe('Warehouse (Raktár) E2E Tests', function () {
       10000
     );
     await addProductBtn.click();
-    console.log('✓ Clicked add product button');
+    console.log('✓ Új termék hozzáadása gomb lekattintva');
 
     // Wait for modal to appear
     const addModal = await driver.wait(
       until.elementLocated(By.css('[data-test="add-product-modal"]')),
       10000
     );
-    assert.ok(addModal, 'Add product modal should be visible');
-    console.log('✓ Modal opened');
+    assert.ok(addModal, 'Új termék hozzáadása ablakának meg kell jelennie');
+    console.log('✓ Ablak megnyitva');
 
     // Fill in the form
     // Terméknév
@@ -181,8 +181,8 @@ describe('Warehouse (Raktár) E2E Tests', function () {
     await arInput.clear();
     await arInput.sendKeys('4000');
 
-    // Kategória - select by visible text
-    const categorySelect = await driver.findElement(By.css('[data-test="add-product-category-select"]'));
+    // Kategória - add form input
+    const categorySelect = await driver.findElement(By.css('[data-test="add-product-category-input"]'));
     await categorySelect.sendKeys('Irodaszer');
 
     // ÁFA kulcs
@@ -190,12 +190,12 @@ describe('Warehouse (Raktár) E2E Tests', function () {
     await afaInput.clear();
     await afaInput.sendKeys('27');
 
-    console.log('✓ Form filled');
+    console.log('✓ Űrlap kitöltve');
 
     // Click Save button
     const saveButton = await driver.findElement(By.css('[data-test="add-modal-save-btn"]'));
     await saveButton.click();
-    console.log('✓ Clicked save button');
+    console.log('✓ Mentés gomb lekattintva');
 
     // Wait for page refresh - the page reloads after successful save
     await driver.sleep(2000); // Give time for the reload
@@ -212,7 +212,7 @@ describe('Warehouse (Raktár) E2E Tests', function () {
       10000
     );
 
-    console.log('✓ Page reloaded');
+    console.log('✓ Oldal újratöltve');
 
     // Verify the product appears in the table
     const tableBody = await driver.findElement(By.css('[data-test="products-table"] tbody'));
@@ -220,74 +220,74 @@ describe('Warehouse (Raktár) E2E Tests', function () {
     
     assert.ok(
       tableHTML.includes('Tesztrúd') || tableHTML.includes('RUD-001'),
-      'New product should appear in the table'
+      'Az új terméknek meg kell jelennie a táblázatban'
     );
-    console.log('✓ New product verified in table');
+    console.log('✓ Az új termék megjelent a táblázatban');
 
-    console.log('✅ Test passed: Product added successfully');
+    console.log('✅ Teszt teljesítve: A termék sikeresen hozzáadásra került');
   });
 
-  it('shows subscription required warning for users without subscription', async () => {
-    console.log('Test: Subscription required warning');
+  it('előfizetés szükséges figyelmeztetés megjelenítése előfizetéssel nem rendelkező felhasználók részére', async () => {
+    console.log('Teszt: Előfizetés szükséges figyelmeztetés megjelenítése');
     
     // Login with user that does NOT have subscription
     // Note: You'll need to replace these credentials with actual test user without subscription
     await login('Molnár Zoltán', 'pwd123');
-    console.log('✓ Logged in');
+    console.log('✓ Bejelentkezve');
 
     // Navigate to warehouse
     await navigateToWarehouse();
-    console.log('✓ Navigated to Raktár');
+    console.log('✓ Raktárra navigálva');
 
     // Verify subscription warning is present
     const subscriptionWarning = await driver.wait(
       until.elementLocated(By.css('[data-test="subscription-required-warning"]')),
       10000
     );
-    assert.ok(subscriptionWarning, 'Subscription required warning should be visible');
+    assert.ok(subscriptionWarning, 'Előfizetés szükséges figyelmeztetésnek láthatónak kell lennie');
     
     const warningText = await subscriptionWarning.getText();
-    assert.ok(warningText.length > 0, 'Warning message should not be empty');
-    console.log('✓ Subscription warning verified');
+    assert.ok(warningText.length > 0, 'Az figyelmeztető üzenet nem lehet üres');
+    console.log('✓ Előfizetési figyelmeztetés megjelenítve');
 
     // Verify add button is NOT present
     const addButtons = await driver.findElements(By.css('[data-test="add-product-btn"]'));
-    assert.strictEqual(addButtons.length, 0, 'Add product button should not be present without subscription');
+    assert.strictEqual(addButtons.length, 0, 'Az új termék hozzáadása gomb nem lehet látható előfizetés nélkül');
 
-    console.log('✅ Test passed: Subscription warning displayed correctly');
+    console.log('✅ Teszt teljesítve: Előfizetési figyelmeztetés helyesen jelenik meg');
   });
 
-  it('shows neither add button nor subscription warning for users without permissions', async () => {
-    console.log('Test: No permissions - no buttons visible');
+  it('nem jelenik meg semmilyen gomb vagy figyelmezetés megfelelő engedéllyel nem rendelkező felhasználóknak', async () => {
+    console.log('Teszt: Nincs engedély - nem látható "Új termék hozzáadása" gomb');
     
     // Login with user that has NO permissions to access warehouse features
     // Note: You'll need to replace these credentials with actual test user without permissions
     await login('osszeallit', 'pwd123');
-    console.log('✓ Logged in');
+    console.log('✓ Bejelentkezve');
 
     // Navigate to warehouse
     await navigateToWarehouse();
-    console.log('✓ Navigated to Raktár');
+    console.log('✓ Raktárra navigálva');
 
     // Verify neither add button nor subscription warning are present
     const addButtons = await driver.findElements(By.css('[data-test="add-product-btn"]'));
-    assert.strictEqual(addButtons.length, 0, 'Add product button should not be present without permissions');
-    console.log('✓ Add button not present');
+    assert.strictEqual(addButtons.length, 0, 'Az új termék hozzáadása gomb nem lehet látható engedély nélkül');
+    console.log('✓ Új termék hozzáadása gomb nem látható');
 
     const subscriptionWarnings = await driver.findElements(By.css('[data-test="subscription-required-warning"]'));
-    assert.strictEqual(subscriptionWarnings.length, 0, 'Subscription warning should not be present without permissions');
-    console.log('✓ Subscription warning not present');
+    assert.strictEqual(subscriptionWarnings.length, 0, 'Az előfizetés szükséges figyelmeztetés nem lehet látható engedély nélkül');
+    console.log('✓ Előfizetési figyelmeztetés nem látható');
 
-    console.log('✅ Test passed: No buttons visible for users without permissions');
+    console.log('✅ Teszt teljesítve: Nem látható "Új termék hozzáadása" gomb engedéllyel nem rendelkező felhasználók számára');
   });
 
-  it('hides Raktár menu option for users without access', async () => {
-    console.log('Test: Raktár menu not visible without access');
+  it('Raktár menü elrejtése megfelelő engedéllyel nem rendelkező felhasználók számára', async () => {
+    console.log('Teszt: Raktár menü nem látható engedély nélküli felhasználók számára');
     
     // Login with user that does NOT have access to Raktár at all
     // Note: You'll need to replace these credentials with actual test user without access
     await login('lead', 'pwd123');
-    console.log('✓ Logged in');
+    console.log('✓ Bejelentkezve');
 
     // Get current window size to determine if we're in mobile view
     const windowSize = await driver.manage().window().getSize();
@@ -302,8 +302,8 @@ describe('Warehouse (Raktár) E2E Tests', function () {
 
     // Try to find Raktár menu item - it should NOT be present
     const warehouseMenuItems = await driver.findElements(By.css('[data-test="sb-menu-warehouse"]'));
-    assert.strictEqual(warehouseMenuItems.length, 0, 'Raktár menu item should not be present for users without access');
-    console.log('✓ Raktár menu item not found (as expected)');
+    assert.strictEqual(warehouseMenuItems.length, 0, 'A raktár menüelem nem lehet látható a szükséges engedély nélkül');
+    console.log('✓ Raktár menüelem nem látható');
 
     // Close sidebar on mobile if it was opened
     if (isMobileView) {
@@ -312,26 +312,26 @@ describe('Warehouse (Raktár) E2E Tests', function () {
       await driver.sleep(300);
     }
 
-    console.log('✅ Test passed: Raktár menu hidden for users without access');
+    console.log('✅ Teszt teljesítve: Raktár menü elrejtve engedély nélküli felhasználók számára');
   });
 
-  it('tests mobile view sidebar interaction for warehouse page', async () => {
-    console.log('Test: Mobile view sidebar interaction');
+  it('oldalsáv interakció tesztelése a raktár oldalára mobilos nézeten', async () => {
+    console.log('Teszt: Mobilos nézet oldalsáv interakció');
     
     // Login
     await login('Kovács Péter', 'pwd123');
-    console.log('✓ Logged in');
+    console.log('✓ Bejelentkezve');
 
     // Resize to mobile view
     await driver.manage().window().setRect({ width: 375, height: 667 });
     await driver.sleep(300);
-    console.log('✓ Resized to mobile view');
+    console.log('✓ Mobilos nézetre átméretezve');
 
     // Open sidebar with hamburger menu
     const hamburgerButton = await driver.findElement(By.css('[data-test="sb-menu-open"]'));
     await hamburgerButton.click();
     await driver.sleep(300);
-    console.log('✓ Sidebar opened');
+    console.log('✓ Oldalsáv megnyitva');
 
     // Click on Raktár
     const warehouseMenuItem = await driver.wait(
@@ -348,13 +348,13 @@ describe('Warehouse (Raktár) E2E Tests', function () {
 
     // Verify we're on the warehouse page
     const currentUrl = await driver.getCurrentUrl();
-    assert.ok(currentUrl.includes('/raktar'), 'Should navigate to warehouse page');
-    console.log('✓ Navigated to Raktár on mobile');
+    assert.ok(currentUrl.includes('/raktar'), 'A raktár oldalára kell navigálnia');
+    console.log('✓ Raktárra navigálva mobil nézetben');
 
     // Restore window size
     await driver.manage().window().setRect({ width: 1280, height: 720 });
 
-    console.log('✅ Test passed: Mobile navigation works correctly');
+    console.log('✅ Teszt teljesítve: A mobilos navigáció helyesen működik');
   });
 });
 
