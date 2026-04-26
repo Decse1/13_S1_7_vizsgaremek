@@ -1,0 +1,576 @@
+{
+  "info": {
+    "name": "RÉKA – Backend Tesztek",
+    "description": "RÉKA vállalatirányítási rendszer backend API tesztjei (18 végpont). A tesztek sorban futtatva önállóan működnek: az első kérés (Bejelentkezés) automatikusan elmenti a JWT tokent, amelyet az összes többi kérés felhasznál.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "BASE_URL",
+      "value": "http://localhost:3000",
+      "type": "string",
+      "description": "A backend szerver alap URL-je. Módosítsd szükség esetén."
+    },
+    {
+      "key": "JWT_TOKEN",
+      "value": "",
+      "type": "string",
+      "description": "A bejelentkezés után automatikusan töltődik fel."
+    }
+  ],
+  "item": [
+    {
+      "name": "6.1 – Bejelentkezés",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "{{BASE_URL}}/api/Bejelent", "host": ["{{BASE_URL}}"], "path": ["api", "Bejelent"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"Adminisztrátor Anna\",\n  \"password\": \"pass_1\"\n}"
+        },
+        "description": "Sikeres bejelentkezés érvényes felhasználói adatokkal. JWT tokent ad vissza, amelyet a teszt automatikusan elment a JWT_TOKEN változóba."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP státusz 200\", () => pm.response.to.have.status(200));",
+              "const json = pm.response.json();",
+              "pm.test(\"ok mező: true\", () => pm.expect(json.ok).to.be.true);",
+              "pm.test(\"token mező létezik\", () => pm.expect(json.token).to.be.a('string').and.not.empty);",
+              "pm.test(\"felhasznalo objektum létezik\", () => pm.expect(json.felhasznalo).to.be.an('object'));",
+              "pm.test(\"ceg objektum létezik\", () => pm.expect(json.ceg).to.exist);",
+              "if (json.token) { pm.collectionVariables.set('JWT_TOKEN', json.token); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6.2 – Új cég felvétele",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" }
+        ],
+        "url": { "raw": "{{BASE_URL}}/api/Ceg_ad", "host": ["{{BASE_URL}}"], "path": ["api", "Ceg_ad"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nev\": \"Teszt Cég Kft.\",\n  \"adoszam\": \"66666666112\",\n  \"euAdoszam\": \"HU66666666\",\n  \"cim\": \"1111 Budapest, Teszt utca 1.\",\n  \"email\": \"teszt@ceg.hu\",\n  \"telefon\": \"+3612345678\",\n  \"elofiz\": true,\n  \"szamla_minta\": \"TC-0001\",\n  \"rendeles_minta\": \"R-TC-0001\",\n  \"szamlaszam\": \"11700000-66666666-00000000\"\n}"
+        },
+        "description": "Sikeres cégfelvétel. Ellenőrzi, hogy a rendszer új céget hoz létre és visszaadja az új rekord ID-ját."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP státusz 200\", () => pm.response.to.have.status(200));",
+              "const json = pm.response.json();",
+              "pm.test(\"ok mező: true\", () => pm.expect(json.ok).to.be.true);",
+              "pm.test(\"uzenet: Sikeres adatfelvétel!\", () => pm.expect(json.uzenet).to.equal('Sikeres adatfelvétel!'));",
+              "pm.test(\"cegId visszaadva\", () => pm.expect(json.cegId).to.exist);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6.3 – Cégek listázása",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" }
+        ],
+        "url": { "raw": "{{BASE_URL}}/api/Ceg_osszes", "host": ["{{BASE_URL}}"], "path": ["api", "Ceg_osszes"] },
+        "description": "Sikeres cégek lekérése. Ellenőrzi, hogy az összes cég visszaadásra kerül."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP státusz 200\", () => pm.response.to.have.status(200));",
+              "const json = pm.response.json();",
+              "pm.test(\"ok mező: true\", () => pm.expect(json.ok).to.be.true);",
+              "pm.test(\"cegek mező tömb\", () => pm.expect(json.cegek).to.be.an('array'));",
+              "pm.test(\"legalább 1 cég\", () => pm.expect(json.cegek.length).to.be.at.least(1));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6.4 – Új felhasználó felvétele",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" }
+        ],
+        "url": { "raw": "{{BASE_URL}}/api/Felhasznalo_ad", "host": ["{{BASE_URL}}"], "path": ["api", "Felhasznalo_ad"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nev\": \"Teszt Felhasználó\",\n  \"jelszo\": \"Jelszo123!\",\n  \"telephely_cim\": \"1010 Budapest, Teszt tér 5.\",\n  \"telefon\": \"+3612345670\",\n  \"rendeles_osszkesz\": true,\n  \"rendeles_lead\": false,\n  \"szamla_keszit\": true,\n  \"raktar_kezel\": false,\n  \"cegId\": 1\n}"
+        },
+        "description": "Sikeres felhasználó felvétel. Ellenőrzi, hogy az új felhasználó létrejön és hozzárendelődik a céghez."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP státusz 200\", () => pm.response.to.have.status(200));",
+              "const json = pm.response.json();",
+              "pm.test(\"ok mező: true\", () => pm.expect(json.ok).to.be.true);",
+              "pm.test(\"uzenet: Sikeres felhasználó felvétel!\", () => pm.expect(json.uzenet).to.equal('Sikeres felhasználó felvétel!'));",
+              "pm.test(\"felhasznaloId visszaadva\", () => pm.expect(json.felhasznaloId).to.exist);",
+              "if (json.felhasznaloId) { pm.collectionVariables.set('FELHASZNALO_ID', String(json.felhasznaloId)); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6.5 – Felhasználó módosítása",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" }
+        ],
+        "url": { "raw": "{{BASE_URL}}/api/Felhasznalo_update", "host": ["{{BASE_URL}}"], "path": ["api", "Felhasznalo_update"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": \"15\",\n  \"nev\": \"Teszt Felhasználó Módosítva\",\n  \"telephely_cim\": \"1010 Budapest, Teszt tér 6.\",\n  \"telefon\": \"+3612345671\",\n  \"rendeles_osszkesz\": false,\n  \"rendeles_lead\": true,\n  \"szamla_keszit\": false,\n  \"raktar_kezel\": true,\n  \"jelszo\": \"UjJelszo123!\"\n}"
+        },
+        "description": "Sikeres felhasználó módosítás. Ellenőrzi, hogy a meglévő felhasználó adatai frissíthetők."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP státusz 200\", () => pm.response.to.have.status(200));",
+              "const json = pm.response.json();",
+              "pm.test(\"ok mező: true\", () => pm.expect(json.ok).to.be.true);",
+              "pm.test(\"uzenet: Sikeres módosítás!\", () => pm.expect(json.uzenet).to.equal('Sikeres módosítás!'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6.6 – Új partnerség létrehozása",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" }
+        ],
+        "url": { "raw": "{{BASE_URL}}/api/Partnerek_ad", "host": ["{{BASE_URL}}"], "path": ["api", "Partnerek_ad"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"eladoId\": 1,\n  \"vevoId\": 2,\n  \"fiz_ido\": 15,\n  \"fiz_forma\": \"Átutalás\"\n}"
+        },
+        "description": "Sikeres partnerség felvétele két különböző cég között."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP státusz 200\", () => pm.response.to.have.status(200));",
+              "const json = pm.response.json();",
+              "pm.test(\"ok mező: true\", () => pm.expect(json.ok).to.be.true);",
+              "pm.test(\"uzenet helyes\", () => pm.expect(json.uzenet).to.equal('A partnerség sikeresen hozzá lett adva'));",
+              "pm.test(\"partnersegId visszaadva\", () => pm.expect(json.partnersegId).to.exist);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6.7 – Raktárkészlet lekérdezése",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" }
+        ],
+        "url": { "raw": "{{BASE_URL}}/api/Raktar", "host": ["{{BASE_URL}}"], "path": ["api", "Raktar"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": 1\n}"
+        },
+        "description": "Sikeres raktárkészlet lekérdezés. Visszaadja a cég raktárában lévő termékeket."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP státusz 200\", () => pm.response.to.have.status(200));",
+              "const json = pm.response.json();",
+              "pm.test(\"ok mező: true\", () => pm.expect(json.ok).to.be.true);",
+              "pm.test(\"termekek mező tömb\", () => pm.expect(json.termekek).to.be.an('array'));",
+              "pm.test(\"legalább 1 termék\", () => pm.expect(json.termekek.length).to.be.at.least(1));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6.8 – Új rendelés leadása",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" }
+        ],
+        "url": { "raw": "{{BASE_URL}}/api/Rendeles_ad", "host": ["{{BASE_URL}}"], "path": ["api", "Rendeles_ad"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"partnerseg\": 1,\n  \"sz_cim\": 1,\n  \"termekek\": [\n    { \"termekId\": 1, \"mennyiseg\": 5 },\n    { \"termekId\": 2, \"mennyiseg\": 10 }\n  ]\n}"
+        },
+        "description": "Sikeres rendelés leadás. Ellenőrzi, hogy a rendszer feldolgozza a rendelést és generál rendelésszámot."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP státusz 200\", () => pm.response.to.have.status(200));",
+              "const json = pm.response.json();",
+              "pm.test(\"ok mező: true\", () => pm.expect(json.ok).to.be.true);",
+              "pm.test(\"uzenet helyes\", () => pm.expect(json.uzenet).to.equal('Rendelés sikeresen feldolgozva!'));",
+              "pm.test(\"rendelesId visszaadva\", () => pm.expect(json.rendelesId).to.exist);",
+              "pm.test(\"rendelesSzam visszaadva\", () => pm.expect(json.rendelesSzam).to.be.a('string').and.not.empty);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6.9 – Beérkezett rendelések",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" }
+        ],
+        "url": { "raw": "{{BASE_URL}}/api/Beerkezett_rendeles", "host": ["{{BASE_URL}}"], "path": ["api", "Beerkezett_rendeles"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cegId\": 1\n}"
+        },
+        "description": "Beérkezett rendelések lekérdezése eladói nézet. Egy eladó cég lekérheti a hozzá beérkezett rendeléseket."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP státusz 200\", () => pm.response.to.have.status(200));",
+              "const json = pm.response.json();",
+              "pm.test(\"ok mező: true\", () => pm.expect(json.ok).to.be.true);",
+              "pm.test(\"rendelesek mező tömb\", () => pm.expect(json.rendelesek).to.be.an('array'));",
+              "pm.test(\"legalább 1 rendelés\", () => pm.expect(json.rendelesek.length).to.be.at.least(1));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6.10 – Leadott rendelések",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" }
+        ],
+        "url": { "raw": "{{BASE_URL}}/api/Leadott_rendeles", "host": ["{{BASE_URL}}"], "path": ["api", "Leadott_rendeles"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cegId\": 2\n}"
+        },
+        "description": "Leadott rendelések lekérdezése vevői nézet. A vevő cég lekérheti a leadott rendeléseit."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP státusz 200\", () => pm.response.to.have.status(200));",
+              "const json = pm.response.json();",
+              "pm.test(\"ok mező: true\", () => pm.expect(json.ok).to.be.true);",
+              "pm.test(\"rendelesek mező tömb\", () => pm.expect(json.rendelesek).to.be.an('array'));",
+              "pm.test(\"legalább 1 rendelés\", () => pm.expect(json.rendelesek.length).to.be.at.least(1));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6.11 – Felhasználó regisztráció",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "{{BASE_URL}}/api/Regisz/Felhasznalo_ad", "host": ["{{BASE_URL}}"], "path": ["api", "Regisz", "Felhasznalo_ad"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nev\": \"Teszt Elek\",\n  \"jelszo\": \"123456\",\n  \"telephely_cim\": \"Budapest\",\n  \"telefon\": \"+36301112222\",\n  \"cegId\": 1,\n  \"rendeles_osszkesz\": true,\n  \"rendeles_lead\": true,\n  \"szamla_keszit\": false,\n  \"raktar_kezel\": true\n}"
+        },
+        "description": "Nyilvános végpont (nem kell token). Új felhasználó létrehozása és hozzárendelése egy céghez."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP státusz 200\", () => pm.response.to.have.status(200));",
+              "const json = pm.response.json();",
+              "pm.test(\"ok mező: true\", () => pm.expect(json.ok).to.be.true);",
+              "pm.test(\"uzenet: Sikeres adatfelvétel!\", () => pm.expect(json.uzenet).to.equal('Sikeres adatfelvétel!'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6.12 – Cég regisztráció",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "{{BASE_URL}}/api/Regisz/Ceg_ad", "host": ["{{BASE_URL}}"], "path": ["api", "Regisz", "Ceg_ad"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nev\": \"Új Teszt Kft.\",\n  \"adoszam\": \"99999999-1-11\",\n  \"euAdoszam\": \"HU99999999\",\n  \"cim\": \"1234 Budapest, Teszt utca 5.\",\n  \"email\": \"teszt@ujceg.hu\",\n  \"telefon\": \"+36309999999\",\n  \"elofiz\": true,\n  \"szamla_minta\": \"UJ-0001\",\n  \"rendeles_minta\": \"R-UJ-0001\",\n  \"szamlaszam\": \"11700000-99999999-00000000\"\n}"
+        },
+        "description": "Nyilvános végpont (nem kell token). Új cég létrehozása a regisztrációs folyamat keretében."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP státusz 200\", () => pm.response.to.have.status(200));",
+              "const json = pm.response.json();",
+              "pm.test(\"ok mező: true\", () => pm.expect(json.ok).to.be.true);",
+              "pm.test(\"cegId visszaadva\", () => pm.expect(json.cegId).to.exist);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6.13 – Számla generálás",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "{{BASE_URL}}/api/Szamla_create", "host": ["{{BASE_URL}}"], "path": ["api", "Szamla_create"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": 1\n}"
+        },
+        "description": "Számla generálás PDF formátumban. A válasz egy letölthető PDF fájl. Ellenőrzi a Content-Type fejlécet."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP státusz 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Content-Type: application/pdf\", () => {",
+              "  pm.expect(pm.response.headers.get('Content-Type')).to.include('application/pdf');",
+              "});",
+              "pm.test(\"Content-Disposition tartalmaz fájlnevet\", () => {",
+              "  const cd = pm.response.headers.get('Content-Disposition');",
+              "  pm.expect(cd).to.exist;",
+              "  pm.expect(cd).to.include('attachment');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6.14 – Sztornó számla készítése",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "{{BASE_URL}}/api/Szamla_storno", "host": ["{{BASE_URL}}"], "path": ["api", "Szamla_storno"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": 15\n}"
+        },
+        "description": "Sztornó számla generálás meglévő, már kiállított számlával rendelkező rendeléshez."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP státusz 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Content-Type: application/pdf\", () => {",
+              "  pm.expect(pm.response.headers.get('Content-Type')).to.include('application/pdf');",
+              "});",
+              "pm.test(\"Content-Disposition fájlnév tartalmaz Sztorno-t\", () => {",
+              "  const cd = pm.response.headers.get('Content-Disposition');",
+              "  pm.expect(cd).to.exist;",
+              "  pm.expect(cd).to.include('attachment');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6.15 – Kategóriák lekérése (összes)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" }
+        ],
+        "url": { "raw": "{{BASE_URL}}/api/Kategoriak_all", "host": ["{{BASE_URL}}"], "path": ["api", "Kategoriak_all"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "description": "Az összes termékkategória lekérése. Visszaad egy kategoriak tömböt."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP státusz 200\", () => pm.response.to.have.status(200));",
+              "const json = pm.response.json();",
+              "pm.test(\"ok mező: true\", () => pm.expect(json.ok).to.be.true);",
+              "pm.test(\"kategoriak mező tömb\", () => pm.expect(json.kategoriak).to.be.an('array'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6.16 – Szűrt kategóriák (cég alapján)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" }
+        ],
+        "url": { "raw": "{{BASE_URL}}/api/Kategoriak_szurt", "host": ["{{BASE_URL}}"], "path": ["api", "Kategoriak_szurt"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": 1\n}"
+        },
+        "description": "Az adott cég által használt termékkategóriák lekérése. Visszaad egy szurok tömböt."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP státusz 200\", () => pm.response.to.have.status(200));",
+              "const json = pm.response.json();",
+              "pm.test(\"ok mező: true\", () => pm.expect(json.ok).to.be.true);",
+              "pm.test(\"szurok mező tömb\", () => pm.expect(json.szurok).to.be.an('array'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6.17 – Szűrt termékek (kategória szerint)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" }
+        ],
+        "url": { "raw": "{{BASE_URL}}/api/Szurt_termek", "host": ["{{BASE_URL}}"], "path": ["api", "Szurt_termek"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": 1,\n  \"szuro\": 2\n}"
+        },
+        "description": "Megadott kategóriára és cégre szűrt termékek lekérése. Visszaad egy termekek tömböt."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP státusz 200\", () => pm.response.to.have.status(200));",
+              "const json = pm.response.json();",
+              "pm.test(\"ok mező: true\", () => pm.expect(json.ok).to.be.true);",
+              "pm.test(\"termekek mező tömb\", () => pm.expect(json.termekek).to.be.an('array'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6.18 – Összes termék (cég alapján)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" }
+        ],
+        "url": { "raw": "{{BASE_URL}}/api/Osszes_termek", "host": ["{{BASE_URL}}"], "path": ["api", "Osszes_termek"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": 1\n}"
+        },
+        "description": "Egy adott cég összes termékének lekérése. Visszaad egy termekek tömböt."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP státusz 200\", () => pm.response.to.have.status(200));",
+              "const json = pm.response.json();",
+              "pm.test(\"ok mező: true\", () => pm.expect(json.ok).to.be.true);",
+              "pm.test(\"termekek mező tömb\", () => pm.expect(json.termekek).to.be.an('array'));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
